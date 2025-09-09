@@ -34,26 +34,18 @@ class TestPlotPalindromicHeatmapCoverage:
         assert 'files' in result
         assert 'metadata' in result
 
-    @patch('plotly.graph_objects.Figure')
-    @patch('plotly.offline.plot')
-    def test_plot_palindromic_heatmap_plotly(self, mock_plot, mock_figure):
-        """Test plot_palindromic_heatmap with plotly backend."""
-        mock_fig = MagicMock()
-        mock_figure.return_value = mock_fig
+    def test_plot_palindromic_heatmap_plotly(self):
+        """Test plot_palindromic_heatmap with plotly (should fail)."""
+        with pytest.raises(ValueError, match="Heatmap visualization requires matplotlib backend"):
+            plot_palindromic_heatmap(100, 120, backend='plotly')
 
-        result = plot_palindromic_heatmap(100, 120, backend='plotly')
+    def test_plot_palindromic_heatmap_small_range(self):
+        """Test plot_palindromic_heatmap with small number range."""
+        result = plot_palindromic_heatmap(100, 105)
 
         # Should return a dict with file information
         assert isinstance(result, dict)
         assert 'files' in result
-
-    def test_plot_palindromic_heatmap_small_range(self):
-        """Test plot_palindromic_heatmap with small number range."""
-        result = plot_palindromic_heatmap(100, 105, backend='ascii')
-
-        # Should return a dict with ASCII art
-        assert isinstance(result, dict)
-        assert 'ascii_art' in result
 
     def test_plot_palindromic_heatmap_invalid_range(self):
         """Test plot_palindromic_heatmap with invalid range."""

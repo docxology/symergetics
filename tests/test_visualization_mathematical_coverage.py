@@ -158,39 +158,24 @@ class TestPlotPatternAnalysisRadarCoverage:
 class TestOriginalMathematicalVisualizationsCoverage:
     """Test coverage for original mathematical visualization functions."""
 
-    @patch('matplotlib.pyplot.figure')
-    @patch('matplotlib.pyplot.savefig')
-    def test_plot_continued_fraction_custom_value(self, mock_savefig, mock_figure):
+    def test_plot_continued_fraction_custom_value(self):
         """Test plot_continued_fraction with custom value."""
-        mock_fig = MagicMock()
-        mock_figure.return_value = mock_fig
-
         result = plot_continued_fraction(math.sqrt(2), max_terms=12)
 
         # Should return a dict with file information
         assert isinstance(result, dict)
         assert 'files' in result
 
-    @patch('matplotlib.pyplot.figure')
-    @patch('matplotlib.pyplot.savefig')
-    def test_plot_base_conversion_large_number(self, mock_savefig, mock_figure):
+    def test_plot_base_conversion_large_number(self):
         """Test plot_base_conversion with large number."""
-        mock_fig = MagicMock()
-        mock_figure.return_value = mock_fig
-
         result = plot_base_conversion(1001, max_base=16)
 
         # Should return a dict with file information
         assert isinstance(result, dict)
         assert 'files' in result
 
-    @patch('matplotlib.pyplot.figure')
-    @patch('matplotlib.pyplot.savefig')
-    def test_plot_pattern_analysis_complex_sequence(self, mock_savefig, mock_figure):
+    def test_plot_pattern_analysis_complex_sequence(self):
         """Test plot_pattern_analysis with complex sequence."""
-        mock_fig = MagicMock()
-        mock_figure.return_value = mock_fig
-
         result = plot_pattern_analysis("1234554321")
 
         # Should return a dict with file information
