@@ -1,0 +1,18 @@
+Base Conversion: 1001 (base 10) → 2630 (base 7)
+======================================================================
+
+Original number: 1001
+From base: 10
+To base: 7
+Result: 2630
+
+Conversion Steps:
+(Dividing by target base and collecting remainders)
+  Step 0: 1001 ÷ 7 = 143 remainder 0
+  Step 1: 143 ÷ 7 = 20 remainder 3
+  Step 2: 20 ÷ 7 = 2 remainder 6
+  Step 3: 2 ÷ 7 = 0 remainder 2
+
+Properties:
+- Number of digits in base 7: 4
+- Maximum digit value: 6

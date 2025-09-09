@@ -1,0 +1,31 @@
+Base Conversion: 65537 (base 10) → 10000000000000001 (base 2)
+======================================================================
+
+Original number: 65537
+From base: 10
+To base: 2
+Result: 10000000000000001
+
+Conversion Steps:
+(Dividing by target base and collecting remainders)
+  Step 0: 65537 ÷ 2 = 32768 remainder 1
+  Step 1: 32768 ÷ 2 = 16384 remainder 0
+  Step 2: 16384 ÷ 2 = 8192 remainder 0
+  Step 3: 8192 ÷ 2 = 4096 remainder 0
+  Step 4: 4096 ÷ 2 = 2048 remainder 0
+  Step 5: 2048 ÷ 2 = 1024 remainder 0
+  Step 6: 1024 ÷ 2 = 512 remainder 0
+  Step 7: 512 ÷ 2 = 256 remainder 0
+  Step 8: 256 ÷ 2 = 128 remainder 0
+  Step 9: 128 ÷ 2 = 64 remainder 0
+  Step 10: 64 ÷ 2 = 32 remainder 0
+  Step 11: 32 ÷ 2 = 16 remainder 0
+  Step 12: 16 ÷ 2 = 8 remainder 0
+  Step 13: 8 ÷ 2 = 4 remainder 0
+  Step 14: 4 ÷ 2 = 2 remainder 0
+  Step 15: 2 ÷ 2 = 1 remainder 0
+  Step 16: 1 ÷ 2 = 0 remainder 1
+
+Properties:
+- Number of digits in base 2: 17
+- Maximum digit value: 1

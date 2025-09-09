@@ -1,0 +1,32 @@
+Base Conversion: 142857 (base 10) → 100010111000001001 (base 2)
+======================================================================
+
+Original number: 142857
+From base: 10
+To base: 2
+Result: 100010111000001001
+
+Conversion Steps:
+(Dividing by target base and collecting remainders)
+  Step 0: 142857 ÷ 2 = 71428 remainder 1
+  Step 1: 71428 ÷ 2 = 35714 remainder 0
+  Step 2: 35714 ÷ 2 = 17857 remainder 0
+  Step 3: 17857 ÷ 2 = 8928 remainder 1
+  Step 4: 8928 ÷ 2 = 4464 remainder 0
+  Step 5: 4464 ÷ 2 = 2232 remainder 0
+  Step 6: 2232 ÷ 2 = 1116 remainder 0
+  Step 7: 1116 ÷ 2 = 558 remainder 0
+  Step 8: 558 ÷ 2 = 279 remainder 0
+  Step 9: 279 ÷ 2 = 139 remainder 1
+  Step 10: 139 ÷ 2 = 69 remainder 1
+  Step 11: 69 ÷ 2 = 34 remainder 1
+  Step 12: 34 ÷ 2 = 17 remainder 0
+  Step 13: 17 ÷ 2 = 8 remainder 1
+  Step 14: 8 ÷ 2 = 4 remainder 0
+  Step 15: 4 ÷ 2 = 2 remainder 0
+  Step 16: 2 ÷ 2 = 1 remainder 0
+  Step 17: 1 ÷ 2 = 0 remainder 1
+
+Properties:
+- Number of digits in base 2: 18
+- Maximum digit value: 1

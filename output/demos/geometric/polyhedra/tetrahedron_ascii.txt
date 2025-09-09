@@ -1,0 +1,13 @@
+Tetrahedron
+Volume: 1 IVM units
+Vertices: 4
+
+ASCII Art:
+
+           /\
+          /  \
+         /____\
+        /\    /\
+       /__\__/__\
+      /\  /\  /\
+     /__\/__\/__\

@@ -1,0 +1,5 @@
+Quadray Coordinate: (4, 6, 13, 0)
+XYZ Position: (-15.0, -3.0, 11.0)
+
+IVM Lattice (size ±3):
+Nearby coordinates:

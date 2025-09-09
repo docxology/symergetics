@@ -1,0 +1,45 @@
+Palindromic Pattern Analysis: 100,030,001
+============================================================
+
+Number: 100030001
+Is Palindromic: True
+Length: 9 digits
+
+Palindromic Patterns Found: 6
+Patterns (longest first):
+  100030001
+  0003
+  0001
+  003
+  001
+  000
+
+Symmetric Patterns: 1
+  Type: central_symmetry
+  Pairs: 4
+
+Digit Pattern:
+1 0 0 0 3 0 0 0 1
+    * * * * *    
+(* = part of palindromic pattern)
+
+Palindromic Density: 66.667%
+
+Digit Frequency Analysis:
+  0:    6 ( 66.7%) █████████████████████████████████
+  1:    2 ( 22.2%) ███████████
+  2:    0 (  0.0%) 
+  3:    1 ( 11.1%) █████
+  4:    0 (  0.0%) 
+  5:    0 (  0.0%) 
+  6:    0 (  0.0%) 
+  7:    0 (  0.0%) 
+  8:    0 (  0.0%) 
+  9:    0 (  0.0%) 
+
+Statistical Analysis:
+  Entropy: 1.224 bits (max: 3.322 for uniform distribution)
+  Assessment: Low entropy - highly structured digit patterns
+  Most common digit: 0 (6 times)
+  Least common digit: 3 (1 times)
+  Unique digits used: 3/10 possible digits

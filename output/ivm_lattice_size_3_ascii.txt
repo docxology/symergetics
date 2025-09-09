@@ -1,0 +1,10 @@
+Isotropic Vector Matrix (IVM) Lattice - Size ±3
+==================================================
+
+Total lattice points: 129
+
+IVM Properties:
+- Each point has 12 nearest neighbors
+- Forms cuboctahedral coordination
+- Used in sphere packing and crystal structures
+- Related to Fuller's vector equilibrium

@@ -1,0 +1,22 @@
+Base Conversion: 210 (base 10) → 11010010 (base 2)
+======================================================================
+
+Original number: 210
+From base: 10
+To base: 2
+Result: 11010010
+
+Conversion Steps:
+(Dividing by target base and collecting remainders)
+  Step 0: 210 ÷ 2 = 105 remainder 0
+  Step 1: 105 ÷ 2 = 52 remainder 1
+  Step 2: 52 ÷ 2 = 26 remainder 0
+  Step 3: 26 ÷ 2 = 13 remainder 0
+  Step 4: 13 ÷ 2 = 6 remainder 1
+  Step 5: 6 ÷ 2 = 3 remainder 0
+  Step 6: 3 ÷ 2 = 1 remainder 1
+  Step 7: 1 ÷ 2 = 0 remainder 1
+
+Properties:
+- Number of digits in base 2: 8
+- Maximum digit value: 1

@@ -1,0 +1,20 @@
+Base Conversion: 42 (base 10) → 101010 (base 2)
+======================================================================
+
+Original number: 42
+From base: 10
+To base: 2
+Result: 101010
+
+Conversion Steps:
+(Dividing by target base and collecting remainders)
+  Step 0: 42 ÷ 2 = 21 remainder 0
+  Step 1: 21 ÷ 2 = 10 remainder 1
+  Step 2: 10 ÷ 2 = 5 remainder 0
+  Step 3: 5 ÷ 2 = 2 remainder 1
+  Step 4: 2 ÷ 2 = 1 remainder 0
+  Step 5: 1 ÷ 2 = 0 remainder 1
+
+Properties:
+- Number of digits in base 2: 6
+- Maximum digit value: 1

@@ -1,0 +1,39 @@
+Palindromic Pattern Analysis: 1,001
+============================================================
+
+Number: 1001
+Is Palindromic: True
+Length: 4 digits
+
+Palindromic Patterns Found: 2
+Patterns (longest first):
+  1001
+  001
+
+Symmetric Patterns: 0
+
+Digit Pattern:
+1 0 0 1
+       
+(* = part of palindromic pattern)
+
+Palindromic Density: 0.000%
+
+Digit Frequency Analysis:
+  0:    2 ( 50.0%) █████████████████████████
+  1:    2 ( 50.0%) █████████████████████████
+  2:    0 (  0.0%) 
+  3:    0 (  0.0%) 
+  4:    0 (  0.0%) 
+  5:    0 (  0.0%) 
+  6:    0 (  0.0%) 
+  7:    0 (  0.0%) 
+  8:    0 (  0.0%) 
+  9:    0 (  0.0%) 
+
+Statistical Analysis:
+  Entropy: 1.000 bits (max: 3.322 for uniform distribution)
+  Assessment: Low entropy - highly structured digit patterns
+  Most common digit: 1 (2 times)
+  Least common digit: 1 (2 times)
+  Unique digits used: 2/10 possible digits

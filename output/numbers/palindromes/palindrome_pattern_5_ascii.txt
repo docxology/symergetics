@@ -1,0 +1,36 @@
+Palindromic Pattern Analysis: 5
+============================================================
+
+Number: 5
+Is Palindromic: True
+Length: 1 digits
+
+Palindromic Patterns Found: 0
+
+Symmetric Patterns: 0
+
+Digit Pattern:
+5
+ 
+(* = part of palindromic pattern)
+
+Palindromic Density: 0.000%
+
+Digit Frequency Analysis:
+  0:    0 (  0.0%) 
+  1:    0 (  0.0%) 
+  2:    0 (  0.0%) 
+  3:    0 (  0.0%) 
+  4:    0 (  0.0%) 
+  5:    1 (100.0%) ██████████████████████████████████████████████████
+  6:    0 (  0.0%) 
+  7:    0 (  0.0%) 
+  8:    0 (  0.0%) 
+  9:    0 (  0.0%) 
+
+Statistical Analysis:
+  Entropy: 0.000 bits (max: 3.322 for uniform distribution)
+  Assessment: Low entropy - highly structured digit patterns
+  Most common digit: 5 (1 times)
+  Least common digit: 5 (1 times)
+  Unique digits used: 1/10 possible digits

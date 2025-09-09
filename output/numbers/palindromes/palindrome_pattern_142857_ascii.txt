@@ -1,0 +1,36 @@
+Palindromic Pattern Analysis: 142,857
+============================================================
+
+Number: 142857
+Is Palindromic: False
+Length: 6 digits
+
+Palindromic Patterns Found: 0
+
+Symmetric Patterns: 0
+
+Digit Pattern:
+1 4 2 8 5 7
+           
+(* = part of palindromic pattern)
+
+Palindromic Density: 0.000%
+
+Digit Frequency Analysis:
+  0:    0 (  0.0%) 
+  1:    1 ( 16.7%) ████████
+  2:    1 ( 16.7%) ████████
+  3:    0 (  0.0%) 
+  4:    1 ( 16.7%) ████████
+  5:    1 ( 16.7%) ████████
+  6:    0 (  0.0%) 
+  7:    1 ( 16.7%) ████████
+  8:    1 ( 16.7%) ████████
+  9:    0 (  0.0%) 
+
+Statistical Analysis:
+  Entropy: 2.585 bits (max: 3.322 for uniform distribution)
+  Assessment: Medium entropy - some pattern structure present
+  Most common digit: 1 (1 times)
+  Least common digit: 1 (1 times)
+  Unique digits used: 6/10 possible digits

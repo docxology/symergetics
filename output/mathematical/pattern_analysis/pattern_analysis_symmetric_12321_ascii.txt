@@ -1,0 +1,15 @@
+Pattern Analysis: Symmetric
+==================================================
+
+Number: 12321
+Length: 5 digits
+
+Digit Sequence:
+1 2 3 2 1
+
+(* indicates pattern position)
+
+Digit Statistics:
+  Digit 1: 2 times (40.0%)
+  Digit 2: 2 times (40.0%)
+  Digit 3: 1 times (20.0%)

@@ -1,0 +1,16 @@
+Base Conversion: 255 (base 10) → FF (base 16)
+======================================================================
+
+Original number: 255
+From base: 10
+To base: 16
+Result: FF
+
+Conversion Steps:
+(Dividing by target base and collecting remainders)
+  Step 0: 255 ÷ 16 = 15 remainder 15
+  Step 1: 15 ÷ 16 = 0 remainder 15
+
+Properties:
+- Number of digits in base 16: 2
+- Maximum digit value: 15

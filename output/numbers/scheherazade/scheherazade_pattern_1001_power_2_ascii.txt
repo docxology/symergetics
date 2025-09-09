@@ -1,0 +1,30 @@
+Scheherazade Number Analysis: 1001^2
+============================================================
+
+Number: 1002001
+Length: 7 digits
+Is Palindromic: True
+Palindromic Density: 42.857%
+
+Pattern Analysis:
+  Palindromic Patterns: 3
+  Symmetric Patterns: 1
+  Repeated Digit Patterns: 5
+
+All digits: 1002001
+
+Digit Frequency:
+  0:    4 ( 57.1%) ████████████████████████████
+  1:    2 ( 28.6%) ██████████████
+  2:    1 ( 14.3%) ███████
+  3:    0 (  0.0%) 
+  4:    0 (  0.0%) 
+  5:    0 (  0.0%) 
+  6:    0 (  0.0%) 
+  7:    0 (  0.0%) 
+  8:    0 (  0.0%) 
+  9:    0 (  0.0%) 
+
+Statistical Analysis:
+  Entropy: 1.379 bits (max: 3.322 for uniform distribution)
+  Assessment: Low entropy - highly structured digit patterns

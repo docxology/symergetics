@@ -1,0 +1,14 @@
+Cuboctahedron
+Volume: 20 IVM units
+Vertices: 12
+
+ASCII Art:
+
+         /\
+        /  \
+       +----+
+      /    /|
+     +----+ |
+     |    | +
+     |    |/
+     +----+

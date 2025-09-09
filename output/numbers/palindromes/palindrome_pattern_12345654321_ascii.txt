@@ -1,0 +1,44 @@
+Palindromic Pattern Analysis: 12,345,654,321
+============================================================
+
+Number: 12345654321
+Is Palindromic: True
+Length: 11 digits
+
+Palindromic Patterns Found: 5
+Patterns (longest first):
+  12345654321
+  234565432
+  3456543
+  45654
+  565
+
+Symmetric Patterns: 1
+  Type: central_symmetry
+  Pairs: 5
+
+Digit Pattern:
+1 2 3 4 5 6 5 4 3 2 1
+          *          
+(* = part of palindromic pattern)
+
+Palindromic Density: 45.455%
+
+Digit Frequency Analysis:
+  0:    0 (  0.0%) 
+  1:    2 ( 18.2%) █████████
+  2:    2 ( 18.2%) █████████
+  3:    2 ( 18.2%) █████████
+  4:    2 ( 18.2%) █████████
+  5:    2 ( 18.2%) █████████
+  6:    1 (  9.1%) ████
+  7:    0 (  0.0%) 
+  8:    0 (  0.0%) 
+  9:    0 (  0.0%) 
+
+Statistical Analysis:
+  Entropy: 2.550 bits (max: 3.322 for uniform distribution)
+  Assessment: Medium entropy - some pattern structure present
+  Most common digit: 1 (2 times)
+  Least common digit: 6 (1 times)
+  Unique digits used: 6/10 possible digits

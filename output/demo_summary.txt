@@ -1,0 +1,12 @@
+Visualization Export
+==================================================
+
+{
+  "experiment": "visualization_demo",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "results": {
+    "polyhedra_visualized": 4,
+    "numbers_analyzed": 10,
+    "patterns_found": 25
+  }
+}

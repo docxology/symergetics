@@ -1,0 +1,12 @@
+Cube
+Volume: 3 IVM units
+Vertices: 8
+
+ASCII Art:
+
+       +-----+
+      /     /|
+     +-----+ |
+     |     | +
+     |     |/
+     +-----+

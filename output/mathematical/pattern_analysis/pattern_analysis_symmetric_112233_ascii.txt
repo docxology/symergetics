@@ -1,0 +1,15 @@
+Pattern Analysis: Symmetric
+==================================================
+
+Number: 112233
+Length: 6 digits
+
+Digit Sequence:
+1 1 2 2 3 3
+
+(* indicates pattern position)
+
+Digit Statistics:
+  Digit 1: 2 times (33.3%)
+  Digit 2: 2 times (33.3%)
+  Digit 3: 2 times (33.3%)
