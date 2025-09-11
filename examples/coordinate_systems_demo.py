@@ -25,33 +25,14 @@ sys.path.insert(0, str(project_root))
 from symergetics.core.coordinates import QuadrayCoordinate, TETRAHEDRON_VERTICES, IVM_NEIGHBORS, ORIGIN
 from symergetics.geometry.transformations import (
     translate, scale, reflect,
-    rotate_around_axis, compose_transforms, coordinate_transform
+    rotate_around_axis, compose_transforms, coordinate_transform,
+    translate_by_vector, scale_by_factor, rotate_around_xyz_axis
 )
 from symergetics.visualization import (
-    set_config, plot_quadray_coordinate, plot_ivm_lattice, 
+    set_config, plot_quadray_coordinate, plot_ivm_lattice,
     create_output_structure_readme
 )
 import numpy as np
-
-
-# Wrapper functions for missing transformations
-def translate_by_vector(coord: QuadrayCoordinate, vector: np.ndarray) -> QuadrayCoordinate:
-    """Translate by XYZ vector (simplified implementation)."""
-    # For demo purposes, convert vector to Quadray offset
-    offset = QuadrayCoordinate(int(vector[0]), int(vector[1]), int(vector[2]), 0)
-    return translate(coord, offset)
-
-def scale_by_factor(coord: QuadrayCoordinate, factor: float) -> QuadrayCoordinate:
-    """Scale coordinate by a factor."""
-    return scale(coord, factor)
-
-def reflect_through_origin(coord: QuadrayCoordinate) -> QuadrayCoordinate:
-    """Reflect through origin."""
-    return reflect(coord, 'origin')
-
-def rotate_around_xyz_axis(coord: QuadrayCoordinate, axis: str, angle: float) -> QuadrayCoordinate:
-    """Rotate around XYZ axis."""
-    return rotate_around_axis(coord, axis, math.degrees(angle))
 
 
 def demonstrate_quadray_basics():
@@ -206,35 +187,38 @@ def demonstrate_transformations():
     
     # Translation
     translation_vector = np.array([1.0, 0.5, 0.0])
-    translated = translate_by_vector(original, translation_vector)
+    translate_func = translate_by_vector(int(translation_vector[0]), int(translation_vector[1]), int(translation_vector[2]))
+    translated = translate_func(original)
     print(f"\nTranslated by {translation_vector}:")
     print(f"Result: {translated}")
     print(f"XYZ: {translated.to_xyz()}")
-    
+
     # Scaling
     scale_factor = 2.0
-    scaled = scale_by_factor(original, scale_factor)
+    scale_func = scale_by_factor(scale_factor)
+    scaled = scale_func(original)
     print(f"\nScaled by {scale_factor}:")
     print(f"Result: {scaled}")
     print(f"XYZ: {scaled.to_xyz()}")
-    
+
     # Reflection
-    reflected = reflect_through_origin(original)
+    reflected = reflect(original, 'origin')
     print(f"\nReflected through origin:")
     print(f"Result: {reflected}")
     print(f"XYZ: {reflected.to_xyz()}")
-    
+
     print("\n2. Rotation Transformations:")
     print("-" * 25)
-    
+
     # Rotation around different axes
     angles = [30, 60, 90, 120]  # degrees
     axes = ['x', 'y', 'z']
-    
+
     for axis in axes:
         print(f"\nRotations around {axis.upper()}-axis:")
         for angle in angles:
-            rotated = rotate_around_xyz_axis(original, axis, math.radians(angle))
+            rotate_func = rotate_around_xyz_axis(axis, angle)
+            rotated = rotate_func(original)
             print(f"  {angle:3d}°: {rotated} -> XYZ{rotated.to_xyz()}")
             
     print("\n3. Composite Transformations:")
@@ -242,9 +226,9 @@ def demonstrate_transformations():
     
     # Create a sequence of transformations
     transforms = [
-        lambda coord: scale_by_factor(coord, 1.5),
-        lambda coord: translate_by_vector(coord, np.array([0.5, 0.0, 1.0])),
-        lambda coord: rotate_around_xyz_axis(coord, 'z', math.pi/4),
+        scale_by_factor(1.5),
+        translate_by_vector(1, 0, 1),
+        rotate_around_xyz_axis('z', math.degrees(math.pi/4)),
     ]
     
     # Apply transformations step by step

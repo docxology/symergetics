@@ -189,5 +189,104 @@ class TestUtilityFunctions:
         assert abs(float(pi_val.value) - math.pi) < 1e-8
 
 
+    def test_gcd_import_compatibility(self):
+        """Test that gcd import works correctly for different Python versions."""
+        # This tests the import logic at the top of the file
+        from symergetics.core.numbers import SymergeticsNumber
+        import math
+
+        # Test that basic operations work (which use gcd internally)
+        a = SymergeticsNumber(12, 18)  # Should be reduced to 2/3
+        assert a.value == Fraction(2, 3)
+
+    def test_string_representation(self):
+        """Test string representation methods."""
+        n = SymergeticsNumber(3, 4)
+
+        # Test __str__ (includes fraction and decimal)
+        assert str(n) == "3/4 (0.75000000)"
+
+        # Test __repr__
+        assert repr(n).startswith("SymergeticsNumber")
+
+    def test_hash_functionality(self):
+        """Test hash functionality for use in sets and dictionaries."""
+        n1 = SymergeticsNumber(2, 3)
+        n2 = SymergeticsNumber(4, 6)  # Should be equal to n1
+        n3 = SymergeticsNumber(1, 2)
+
+        # Test that equal numbers have equal hashes
+        assert hash(n1) == hash(n2)
+        assert hash(n1) != hash(n3)
+
+        # Test use in sets
+        num_set = {n1, n2, n3}
+        assert len(num_set) == 2  # n1 and n2 should be considered the same
+
+    def test_bool_conversion(self):
+        """Test boolean conversion."""
+        zero = SymergeticsNumber(0)
+        non_zero = SymergeticsNumber(5)
+
+        assert bool(zero) == False
+        assert bool(non_zero) == True
+
+    def test_power_operations_edge_cases(self):
+        """Test power operations with edge cases."""
+        base = SymergeticsNumber(2)
+
+        # Zero power
+        result = base ** 0
+        assert result.value == Fraction(1, 1)
+
+        # First power
+        result = base ** 1
+        assert result.value == Fraction(2, 1)
+
+        # Negative integer power
+        result = base ** (-1)
+        assert result.value == Fraction(1, 2)
+
+    def test_large_number_operations(self):
+        """Test operations with very large numbers."""
+        large_num = SymergeticsNumber(10**50, 3)
+        small_num = SymergeticsNumber(1, 10**20)
+
+        result = large_num + small_num
+        assert result.value.numerator > 10**49  # Should handle large numbers
+
+    def test_fractional_power_edge_cases(self):
+        """Test fractional powers with edge cases."""
+        # Square root of perfect square
+        n = SymergeticsNumber(9)
+        result = n ** Fraction(1, 2)
+        assert result.value == Fraction(3, 1)
+
+        # Cube root of perfect cube
+        n = SymergeticsNumber(8)
+        result = n ** Fraction(1, 3)
+        assert result.value == Fraction(2, 1)
+
+    def test_comparison_with_regular_numbers(self):
+        """Test comparison with regular Python numbers."""
+        n = SymergeticsNumber(3, 2)
+
+        assert n > 1
+        assert n < 2
+        assert n == 1.5
+        assert n >= 1.5
+        assert n <= 1.5
+
+    def test_division_by_zero_protection(self):
+        """Test that division by zero raises appropriate errors."""
+        n = SymergeticsNumber(1)
+
+        with pytest.raises(ZeroDivisionError):
+            result = n / 0
+
+        with pytest.raises(ZeroDivisionError):
+            result = n / SymergeticsNumber(0)
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

@@ -310,8 +310,8 @@ def extract_palindromic_patterns(number, min_length=3):
 
 ```mermaid
 graph TD
-  A[Small n] -->|O(1)| B[Core ops]
-  C[Large integers] -->|O(k)| D[String scanning]
+  A[Small n] -->|O-1| B[Core ops]
+  C[Large integers] -->|O-k| D[String scanning]
   E[Batch coords] -->|vectorized| F[NumPy paths]
 ```
 
@@ -500,7 +500,7 @@ sequenceDiagram
   participant EX as examples/
   U->>R: python3 run.py [flags]
   R->>V: uv sync; install -e .[scientific,test]
-  R->>T: pytest (optional)
+  R->>T: pytest optional
   R->>EX: run demo scripts
   EX->>R: artifacts under output/
   R->>U: summary + JSON report

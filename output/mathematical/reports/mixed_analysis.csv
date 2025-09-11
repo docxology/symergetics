@@ -1,0 +1,27 @@
+Key,Value
+title,Mixed Numbers Analysis
+timestamp,2025-09-11T13:26:56.713952
+total_analyses,4
+palindromic_count,0
+palindromic_ratio,0.0
+metrics.complexity.mean,6.6000000000000005
+metrics.complexity.median,0.6
+metrics.complexity.stdev,12.0
+metrics.complexity.min,0.6
+metrics.complexity.max,24.6
+metrics.symmetry.mean,0.0
+metrics.symmetry.median,0.0
+metrics.symmetry.stdev,0.0
+metrics.symmetry.min,0.0
+metrics.symmetry.max,0.0
+metrics.palindromic_density.mean,0.0
+metrics.palindromic_density.median,0.0
+metrics.palindromic_density.stdev,0.0
+metrics.palindromic_density.min,0.0
+metrics.palindromic_density.max,0.0
+metrics.length.mean,7.25
+metrics.length.median,3.0
+metrics.length.stdev,8.5
+metrics.length.min,3
+metrics.length.max,20
+insights,"Low palindromic ratio (0.0%) suggests diverse pattern distribution, High average complexity (6.60) indicates intricate patterns, Low average symmetry (0.00) suggests irregular patterns, High length variation suggests diverse mathematical domains"

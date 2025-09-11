@@ -2,7 +2,9 @@
 
 ## Introduction to Synergetic Geometry
 
-This comprehensive exploration examines the geometric foundations of Buckminster Fuller's Synergetics, focusing on the spatial patterns and relationships that emerge from exact mathematical calculations. We investigate how geometric forms manifest universal principles of efficiency, stability, and beauty.
+This comprehensive exploration examines the geometric foundations of Buckminster Fuller's Synergetics, focusing on the spatial patterns and relationships that emerge from **symbolic operations on all-integer accounting based upon ratios (geometrically based upon high frequency shapes)**. We investigate how geometric forms manifest universal principles of efficiency, stability, and beauty.
+
+> **Cross-reference**: For a detailed explanation of the core concept, see the [Core Concept Guide](core-concept-guide.md). For mathematical foundations, see [Mathematical Foundations](mathematical-foundations-synergetics.md).
 
 ## The Geometry of Sphere Packing
 
@@ -133,9 +135,9 @@ The transformation from tetrahedral to Cartesian coordinates reveals geometric i
 
 ```mermaid
 graph TD
-    A[Quadray (a,b,c,d)] --> B[Linear Transformation]
+    A[Quadray - a,b,c,d] --> B[Linear Transformation]
     B --> C[4×3 Matrix]
-    C --> D[Cartesian (x,y,z)]
+    C --> D[Cartesian - x,y,z]
     D --> E[Geometric Interpretation]
     E --> F[Spatial Relationships]
 ```

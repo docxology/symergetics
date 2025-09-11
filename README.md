@@ -1,6 +1,16 @@
 # Synergetics
 
-Exact, symbolic Synergetics: all-integer accounting, Quadray/IVM geometry, Scheherazade and primorial mathematics, and modular visualizations. Built for research-grade precision with a unified, well-tested Python package.
+**Symbolic Operations on All-Integer Accounting**: Exact rational arithmetic implementing Buckminster Fuller's Synergetics through geometric ratios from high-frequency shapes in Quadray/4D coordinates. Research-grade precision for pattern discovery and mathematical analysis.
+
+## Core Approach
+
+This package implements **symbolic operations on all-integer accounting based upon ratios (geometrically based upon high frequency shapes) of the Synergetics geometry and Quadray/4D coordinates**:
+
+- **Symbolic Operations**: Exact mathematical manipulations without floating-point errors
+- **All-Integer Accounting**: Rational relationships expressed as precise integer ratios
+- **Geometric Ratios**: Proportions derived from high-frequency polyhedral shapes
+- **Synergetics Geometry**: Fuller's comprehensive geometric framework
+- **Quadray/4D Coordinates**: Tetrahedral coordinate system for spatial relationships
 
 ## Highlights
 

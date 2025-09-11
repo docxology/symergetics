@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 """
-Symergetics Core Principles Demonstration
+Symergetics Core Concept Demonstration
 
-This example specifically showcases the three fundamental principles of 
-Fuller's Synergetics as implemented in this package:
+This example demonstrates the fundamental core concept of the Synergetics package:
+**Symbolic Operations on All-Integer Accounting based upon Ratios
+(geometrically based upon high frequency shapes) of the Synergetics
+geometry and Quadray/4D coordinates**.
 
-1. Integer-accounting: Exact counting and rational arithmetic
-2. Ratio-based geometry: Precise volumetric relationships  
-3. Quadmath connections: Four-dimensional coordinate mathematics
+The demonstration showcases how these components work together:
 
-Run this to see how these principles work together in the package.
+1. **Symbolic Operations**: Exact mathematical manipulations without floating-point errors
+2. **All-Integer Accounting**: Rational relationships expressed as precise integer ratios
+3. **Geometric Ratios**: Proportions derived from high-frequency polyhedral shapes
+4. **Synergetics Geometry**: Fuller's comprehensive geometric framework
+5. **Quadray/4D Coordinates**: Tetrahedral coordinate system for spatial relationships
+
+Run this to see the core concept in action.
 """
 
 import sys

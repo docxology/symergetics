@@ -1,0 +1,43 @@
+{
+  "title": "Geometric Mnemonics Statistical Summary",
+  "timestamp": "2025-09-11T13:27:14.561650",
+  "total_analyses": 20,
+  "palindromic_count": 3,
+  "palindromic_ratio": 0.15,
+  "metrics": {
+    "complexity": {
+      "mean": 0.825,
+      "median": 0.6,
+      "stdev": 0.6796864602230401,
+      "min": 0.2,
+      "max": 3.0
+    },
+    "symmetry": {
+      "mean": 0.13333333333333333,
+      "median": 0.0,
+      "stdev": 0.3315743061032267,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "palindromic_density": {
+      "mean": 0.05305555555555556,
+      "median": 0.0,
+      "stdev": 0.11954096467411358,
+      "min": 0.0,
+      "max": 0.4444444444444444
+    },
+    "length": {
+      "mean": 3.3,
+      "median": 3.0,
+      "stdev": 1.8945906376340316,
+      "min": 1,
+      "max": 9
+    }
+  },
+  "insights": [
+    "Low palindromic ratio (15.0%) suggests diverse pattern distribution",
+    "Low average complexity (0.82) suggests simple structures",
+    "Low average symmetry (0.13) suggests irregular patterns",
+    "High length variation suggests diverse mathematical domains"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "title": "Symergetics Advanced Analysis Report",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "summary": {
+    "total_numbers_analyzed": 1,
+    "palindromic_numbers": 1,
+    "average_palindromic_density": 0.3333333333333333,
+    "average_complexity": 0.8999999999999999,
+    "average_symmetry": 1.0
+  },
+  "detailed_analysis": {
+    "basic_properties": {
+      "number": "121",
+      "length": 3,
+      "is_palindromic": true,
+      "palindromic_density": 0.3333333333333333
+    },
+    "pattern_analysis": {
+      "repetitions": [
+        {
+          "pattern": "1",
+          "length": 1,
+          "count": 2,
+          "positions": [
+            0,
+            2
+          ]
+        },
+        {
+          "pattern": "1",
+          "length": 1,
+          "count": 2,
+          "positions": [
+            0,
+            2
+          ]
+        }
+      ],
+      "sequence_patterns": {
+        "arithmetic": false,
+        "geometric": false,
+        "fibonacci_like": false
+      },
+      "complexity_score": 0.8999999999999999
+    },
+    "symmetry_analysis": {
+      "mirror_symmetry": true,
+      "partial_symmetry": true,
+      "central_symmetry": true,
+      "symmetry_score": 1.0
+    },
+    "statistical_properties": {
+      "mean": 1.3333333333333333,
+      "median": 1,
+      "stdev": 0.5773502691896257,
+      "variance": 0.3333333333333333,
+      "range": 1,
+      "mode": 1
+    }
+  },
+  "insights": [
+    "Number exhibits perfect palindromic symmetry",
+    "Low complexity score (0.90) suggests simple pattern structure",
+    "High symmetry score (1.00) indicates strong structural regularity"
+  ],
+  "recommendations": [
+    "Generate palindromic pattern visualization",
+    "Create symmetry analysis heatmap",
+    "Produce complexity metric time series",
+    "Compare with other palindromic numbers in the same domain",
+    "Analyze group theoretical properties"
+  ]
+}

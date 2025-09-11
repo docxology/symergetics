@@ -18,6 +18,16 @@ from .mnemonics import (
     format_large_number,
     create_memory_aid
 )
+from .reporting import (
+    generate_statistical_summary,
+    generate_comparative_report,
+    export_report_to_json,
+    export_report_to_csv,
+    export_report_to_markdown,
+    generate_performance_report,
+    ReportMetrics,
+    AnalysisSummary
+)
 
 __all__ = [
     # Conversions
@@ -31,5 +41,15 @@ __all__ = [
     "mnemonic_encode",
     "mnemonic_decode",
     "format_large_number",
-    "create_memory_aid"
+    "create_memory_aid",
+
+    # Reporting
+    "generate_statistical_summary",
+    "generate_comparative_report",
+    "export_report_to_json",
+    "export_report_to_csv",
+    "export_report_to_markdown",
+    "generate_performance_report",
+    "ReportMetrics",
+    "AnalysisSummary"
 ]

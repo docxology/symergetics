@@ -565,6 +565,13 @@ from .mathematical import (
     plot_continued_fraction, plot_base_conversion, plot_pattern_analysis,
     plot_continued_fraction_convergence, plot_base_conversion_matrix, plot_pattern_analysis_radar
 )
+from .advanced import (
+    create_comparative_analysis_visualization,
+    create_pattern_discovery_visualization,
+    create_statistical_analysis_dashboard,
+    create_geometric_mnemonics_visualization,
+    create_mega_graphical_abstract
+)
 
 
 __all__ = [
@@ -585,8 +592,15 @@ __all__ = [
     "plot_scheherazade_pattern",
     "plot_primorial_distribution",
     "plot_continued_fraction",
-    "plot_base_conversion", 
+    "plot_base_conversion",
     "plot_pattern_analysis",
+
+    # Advanced visualizations
+    "create_comparative_analysis_visualization",
+    "create_pattern_discovery_visualization",
+    "create_statistical_analysis_dashboard",
+    "create_geometric_mnemonics_visualization",
+    "create_mega_graphical_abstract",
     
     # Utility functions
     "batch_visualize",

@@ -12,6 +12,7 @@ from symergetics.core.constants import (
     SCHEHERAZADE_BASE,
     COSMIC_ABUNDANCE
 )
+from symergetics.core.numbers import SymergeticsNumber
 
 
 class TestSymergeticsConstants:
@@ -204,6 +205,103 @@ class TestConvenienceConstants:
         """Test COSMIC_ABUNDANCE convenience constant."""
         # Should match the full calculation
         assert COSMIC_ABUNDANCE == SymergeticsConstants.COSMIC_ABUNDANCE_14_ILLION
+
+
+    def test_prime_sieve_functionality(self):
+        """Test the internal prime sieve functionality."""
+        # Test _get_primes_up_to method
+        primes = SymergeticsConstants._get_primes_up_to(10)
+        assert primes == [2, 3, 5, 7]
+
+        primes = SymergeticsConstants._get_primes_up_to(20)
+        assert primes == [2, 3, 5, 7, 11, 13, 17, 19]
+
+        # Test edge cases
+        assert SymergeticsConstants._get_primes_up_to(1) == []
+        assert SymergeticsConstants._get_primes_up_to(0) == []
+
+    def test_cosmic_scale_factor_calculations(self):
+        """Test cosmic scale factor calculations."""
+        # Test available scaling factors
+        factor = SymergeticsConstants.get_cosmic_scale_factor('inches', 'atomic_diameters')
+        assert isinstance(factor, SymergeticsNumber)
+        assert factor.value.numerator > 0
+
+        # Test reverse conversion
+        reverse_factor = SymergeticsConstants.get_cosmic_scale_factor('atomic_diameters', 'inches')
+        assert isinstance(reverse_factor, SymergeticsNumber)
+        # Reverse should be 1/factor
+        assert abs(float(reverse_factor.value) - 1.0/float(factor.value)) < 1e-10
+
+    def test_irrational_approximations_precision(self):
+        """Test that irrational approximations have reasonable precision."""
+        from math import pi, e, sqrt
+
+        pi_approx = PI
+        e_approx = E
+        sqrt2_approx = SQRT2
+
+        # Check that approximations are reasonably close
+        assert abs(float(pi_approx.value) - pi) < 0.001
+        assert abs(float(e_approx.value) - e) < 0.01
+        assert abs(float(sqrt2_approx.value) - sqrt(2)) < 0.001
+
+    def test_constants_caching(self):
+        """Test that constants are properly cached."""
+        # Get a value twice to test caching
+        val1 = SymergeticsConstants.get_scheherazade_power(3)
+        val2 = SymergeticsConstants.get_scheherazade_power(3)
+
+        # Should be the same object (cached)
+        assert val1 is val2
+
+        # Test primorial caching
+        prim1 = SymergeticsConstants.get_primorial(5)
+        prim2 = SymergeticsConstants.get_primorial(5)
+
+        assert prim1 is prim2
+
+    def test_constants_by_category_comprehensive(self):
+        """Test comprehensive category-based constant retrieval."""
+        geometry_constants = SymergeticsConstants.by_category('geometry')
+        assert isinstance(geometry_constants, dict)
+        assert len(geometry_constants) > 0
+
+        physics_constants = SymergeticsConstants.by_category('physics')
+        assert isinstance(physics_constants, dict)
+
+    def test_all_constants_comprehensive(self):
+        """Test comprehensive all constants retrieval."""
+        all_consts = SymergeticsConstants.all_constants()
+        assert isinstance(all_consts, dict)
+
+        # Count total constants across all categories
+        total_constants = sum(len(category_constants) for category_constants in all_consts.values())
+        assert total_constants > 10  # Should have many constants
+
+        # Check that we have multiple categories
+        assert len(all_consts) >= 3  # Should have at least 3 categories
+
+    def test_vector_equilibrium_constants_detailed(self):
+        """Test detailed vector equilibrium constants."""
+        ve_constants = SymergeticsConstants.VECTOR_EQUILIBRIUM
+        assert isinstance(ve_constants, dict)
+
+        # Check specific VE constants
+        expected_keys = ['frequency_formula', 'surface_vectors', 'edge_vectors', 'vertex_vectors', 'tetrahedral_cells', 'octahedral_cells']
+        for key in expected_keys:
+            assert key in ve_constants
+            assert isinstance(ve_constants[key], SymergeticsNumber)
+
+    def test_edge_length_ratios_detailed(self):
+        """Test detailed edge length ratios."""
+        edge_ratios = SymergeticsConstants.EDGE_LENGTH_RATIOS
+        assert isinstance(edge_ratios, dict)
+
+        # Should contain ratios for different polyhedra
+        assert len(edge_ratios) > 0
+        for ratio in edge_ratios.values():
+            assert isinstance(ratio, SymergeticsNumber)
 
 
 if __name__ == "__main__":

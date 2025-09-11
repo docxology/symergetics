@@ -94,10 +94,12 @@ class TestPlotPrimorialSpectrumCoverage:
 
     @patch('matplotlib.pyplot.figure')
     @patch('matplotlib.pyplot.savefig')
-    @patch('matplotlib.pyplot.subplot')
-    def test_plot_primorial_spectrum_matplotlib(self, mock_subplot, mock_savefig, mock_figure):
+    @patch('matplotlib.pyplot.subplots')
+    def test_plot_primorial_spectrum_matplotlib(self, mock_subplots, mock_savefig, mock_figure):
         """Test plot_primorial_spectrum with matplotlib backend."""
         mock_fig = MagicMock()
+        mock_ax1, mock_ax2, mock_ax3 = MagicMock(), MagicMock(), MagicMock()
+        mock_subplots.return_value = (mock_fig, (mock_ax1, mock_ax2, mock_ax3))
         mock_figure.return_value = mock_fig
 
         result = plot_primorial_spectrum(max_n=10, backend='matplotlib')
@@ -133,11 +135,16 @@ class TestPlotPrimorialSpectrumCoverage:
 class TestOriginalNumberVisualizationsCoverage:
     """Test coverage for original number visualization functions."""
 
+    @patch('matplotlib.pyplot.colorbar')
+    @patch('matplotlib.pyplot.tight_layout')
     @patch('matplotlib.pyplot.figure')
     @patch('matplotlib.pyplot.savefig')
-    def test_plot_palindromic_pattern_large_number(self, mock_savefig, mock_figure):
+    @patch('matplotlib.pyplot.subplots')
+    def test_plot_palindromic_pattern_large_number(self, mock_subplots, mock_savefig, mock_figure, mock_tight_layout, mock_colorbar):
         """Test plot_palindromic_pattern with large number."""
         mock_fig = MagicMock()
+        mock_ax1, mock_ax2 = MagicMock(), MagicMock()
+        mock_subplots.return_value = (mock_fig, (mock_ax1, mock_ax2))
         mock_figure.return_value = mock_fig
 
         result = plot_palindromic_pattern(123454321)
@@ -146,11 +153,16 @@ class TestOriginalNumberVisualizationsCoverage:
         assert isinstance(result, dict)
         assert 'files' in result
 
+    @patch('matplotlib.pyplot.colorbar')
+    @patch('matplotlib.pyplot.tight_layout')
     @patch('matplotlib.pyplot.figure')
     @patch('matplotlib.pyplot.savefig')
-    def test_plot_scheherazade_pattern_higher_power(self, mock_savefig, mock_figure):
+    @patch('matplotlib.pyplot.subplots')
+    def test_plot_scheherazade_pattern_higher_power(self, mock_subplots, mock_savefig, mock_figure, mock_tight_layout, mock_colorbar):
         """Test plot_scheherazade_pattern with higher power."""
         mock_fig = MagicMock()
+        mock_ax1, mock_ax2, mock_ax3, mock_ax4 = MagicMock(), MagicMock(), MagicMock(), MagicMock()
+        mock_subplots.return_value = (mock_fig, ((mock_ax1, mock_ax2), (mock_ax3, mock_ax4)))
         mock_figure.return_value = mock_fig
 
         result = plot_scheherazade_pattern(8)
@@ -159,11 +171,16 @@ class TestOriginalNumberVisualizationsCoverage:
         assert isinstance(result, dict)
         assert 'files' in result
 
+    @patch('matplotlib.pyplot.colorbar')
+    @patch('matplotlib.pyplot.tight_layout')
     @patch('matplotlib.pyplot.figure')
     @patch('matplotlib.pyplot.savefig')
-    def test_plot_primorial_distribution_custom_range(self, mock_savefig, mock_figure):
+    @patch('matplotlib.pyplot.subplots')
+    def test_plot_primorial_distribution_custom_range(self, mock_subplots, mock_savefig, mock_figure, mock_tight_layout, mock_colorbar):
         """Test plot_primorial_distribution with custom range."""
         mock_fig = MagicMock()
+        mock_ax1, mock_ax2, mock_ax3, mock_ax4 = MagicMock(), MagicMock(), MagicMock(), MagicMock()
+        mock_subplots.return_value = (mock_fig, ((mock_ax1, mock_ax2), (mock_ax3, mock_ax4)))
         mock_figure.return_value = mock_fig
 
         result = plot_primorial_distribution(max_n=12)

@@ -274,12 +274,16 @@ class SymergeticsConstants:
         category_mapping = {
             'volume': 'volume_ratios',
             'volumes': 'volume_ratios',
+            'geometry': 'volume_ratios',
+            'geometric': 'volume_ratios',
             'scheherazade': 'scheherazade_powers',
             'scheherazade_numbers': 'scheherazade_powers',
             'primorial': 'primorials',
             'primorials': 'primorials',
             'cosmic': 'cosmic_scaling',
             'cosmic_scaling': 'cosmic_scaling',
+            'physics': 'cosmic_scaling',
+            'physical': 'cosmic_scaling',
             'irrational': 'irrational_approximations',
             'irrationals': 'irrational_approximations',
         }

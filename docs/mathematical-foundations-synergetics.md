@@ -2,7 +2,31 @@
 
 ## Introduction to Synergetic Mathematics
 
-This comprehensive exploration delves into the mathematical foundations that underpin Buckminster Fuller's Synergetics, with particular emphasis on the exact rational arithmetic and geometric patterns implemented in this computational framework. We examine how mathematical precision enables the discovery of profound patterns in nature and human cognition.
+This comprehensive exploration delves into the mathematical foundations that underpin Buckminster Fuller's Synergetics, with particular emphasis on **symbolic operations on all-integer accounting based upon ratios (geometrically based upon high frequency shapes) of the Synergetics geometry and Quadray/4D coordinates**. We examine how mathematical precision enables the discovery of profound patterns in nature and human cognition.
+
+### Core Concept: Symbolic Operations on Geometric Ratios
+
+The fundamental approach of Synergetics is **symbolic operations on all-integer accounting** where:
+
+1. **Symbolic Operations** maintain exact mathematical relationships
+2. **All-Integer Accounting** expresses ratios as precise integer relationships
+3. **Geometric Ratios** are derived from high-frequency polyhedral shapes
+4. **Synergetics Geometry** provides the comprehensive geometric framework
+5. **Quadray/4D Coordinates** enable spatial relationships in tetrahedral space
+
+```mermaid
+graph TD
+    A[Symbolic Operations] --> B[Exact Rational Arithmetic]
+    A --> C[Geometric Transformations]
+    B --> D[All-Integer Accounting]
+    C --> E[High-Frequency Shapes]
+    D --> F[Integer Ratios]
+    E --> G[Polyhedral Geometry]
+    F --> H[Quadray Coordinates]
+    G --> H
+    H --> I[Synergetics Framework]
+    I --> J[Universal Patterns]
+```
 
 ## The Principle of Exact Arithmetic
 
@@ -91,13 +115,47 @@ class SymergeticsNumber:
 
 ## Geometric Foundations: The Quadray Coordinate System
 
-### Four-Dimensional Coordinate Geometry
+### Four-Dimensional Coordinate Geometry and High-Frequency Shapes
 
-Synergetics introduces a revolutionary coordinate system that transcends traditional three-dimensional thinking. The Quadray system represents points in four-dimensional space using tetrahedral coordinates.
+Synergetics introduces a revolutionary coordinate system that transcends traditional three-dimensional thinking. The Quadray system represents points in four-dimensional space using tetrahedral coordinates, enabling **symbolic operations on geometric ratios derived from high-frequency shapes**.
+
+#### Connecting Symbolic Operations to Geometric Ratios
+
+The Quadray system enables exact symbolic operations on geometric relationships:
+
+```python
+# Example: Exact volume ratios in Quadray coordinates
+from symergetics import QuadrayCoordinate, integer_tetra_volume
+
+# Tetrahedron vertices in Quadray coordinates
+tetra_vertices = [
+    QuadrayCoordinate(0, 0, 0, 0),  # Origin
+    QuadrayCoordinate(2, 1, 1, 0),  # Face center
+    QuadrayCoordinate(2, 1, 0, 1),  # Edge center
+    QuadrayCoordinate(2, 0, 1, 1)   # Vertex
+]
+
+# Exact volume calculation (symbolic operation)
+volume = integer_tetra_volume(*tetra_vertices)
+print(f"Exact volume: {volume}")  # Returns exact integer ratio
+```
+
+This demonstrates how **symbolic operations on all-integer accounting** work with **geometric ratios from high-frequency shapes** in the **Quadray/4D coordinate system**.
+
+#### High-Frequency Shapes and Their Ratios
+
+The system derives exact ratios from polyhedral geometry:
+
+- **Tetrahedron**: Volume = 1 (fundamental unit)
+- **Octahedron**: Volume = 4 (ratio = 4:1)
+- **Cube**: Volume = 3 (ratio = 3:1)
+- **Cuboctahedron**: Volume = 20 (ratio = 20:1)
+
+These ratios form the basis for **all-integer accounting** in synergetic geometry.
 
 ```mermaid
 graph TD
-    A[3D Cartesian (x,y,z)] --> B[4D Quadray (a,b,c,d)]
+    A[3D Cartesian - x,y,z] --> B[4D Quadray - a,b,c,d]
     B --> C[Tetrahedral Volume]
     B --> D[IVM Lattice Points]
     B --> E[Closest Packing]
@@ -343,9 +401,9 @@ def continued_fraction_approximation(value: float, max_terms: int = 10) -> List[
 ```mermaid
 graph TD
     A[Decimal Number] --> B{Target Base}
-    B -->|Binary (2)| C[Binary Representation]
-    B -->|Octal (8)| D[Octal Representation]
-    B -->|Hex (16)| E[Hexadecimal]
+    B -->|Binary - 2| C[Binary Representation]
+    B -->|Octal - 8| D[Octal Representation]
+    B -->|Hex - 16| E[Hexadecimal]
     B -->|Custom| F[Arbitrary Base]
     C --> G[Pattern Analysis]
     D --> G

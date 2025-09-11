@@ -1,0 +1,43 @@
+{
+  "title": "Palindromic Numbers Analysis",
+  "timestamp": "2025-09-11T13:26:56.713879",
+  "total_analyses": 4,
+  "palindromic_count": 4,
+  "palindromic_ratio": 1.0,
+  "metrics": {
+    "complexity": {
+      "mean": 2.825,
+      "median": 2.3,
+      "stdev": 2.1669871557841165,
+      "min": 0.8999999999999999,
+      "max": 5.800000000000001
+    },
+    "symmetry": {
+      "mean": 1.0,
+      "median": 1.0,
+      "stdev": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "palindromic_density": {
+      "mean": 0.41209150326797384,
+      "median": 0.4222222222222222,
+      "stdev": 0.060048964030030745,
+      "min": 0.3333333333333333,
+      "max": 0.47058823529411764
+    },
+    "length": {
+      "mean": 8.5,
+      "median": 7.0,
+      "stdev": 6.191391873668904,
+      "min": 3,
+      "max": 17
+    }
+  },
+  "insights": [
+    "High palindromic ratio (100.0%) indicates strong pattern presence",
+    "High average complexity (2.83) indicates intricate patterns",
+    "High average symmetry (1.00) indicates regular structures",
+    "High length variation suggests diverse mathematical domains"
+  ]
+}

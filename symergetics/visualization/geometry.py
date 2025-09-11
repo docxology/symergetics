@@ -383,6 +383,33 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     ax.scatter([x], [y], [z], color=_config["colors"]["primary"],
               s=200, alpha=1.0, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})')
 
+    # Add direction vectors for quadray axes
+    # Define the four fundamental quadray directions
+    quadray_directions = [
+        QuadrayCoordinate(1, 0, 0, 0),  # A-direction (red)
+        QuadrayCoordinate(0, 1, 0, 0),  # B-direction (green)
+        QuadrayCoordinate(0, 0, 1, 0),  # C-direction (blue)
+        QuadrayCoordinate(0, 0, 0, 1),  # D-direction (yellow)
+    ]
+
+    direction_colors = ['red', 'green', 'blue', 'orange']
+    direction_labels = ['A-axis', 'B-axis', 'C-axis', 'D-axis']
+
+    # Scale factor for vectors (adjust based on visualization scale)
+    vector_scale = 0.8
+
+    for i, (direction, color, label) in enumerate(zip(quadray_directions, direction_colors, direction_labels)):
+        # Calculate direction vector in XYZ space
+        dir_xyz = direction.to_xyz()
+
+        # Scale the vector
+        scaled_dir = np.array(dir_xyz) * vector_scale
+
+        # Plot vector from origin
+        ax.quiver(0, 0, 0, scaled_dir[0], scaled_dir[1], scaled_dir[2],
+                 color=color, alpha=0.7, linewidth=2, arrow_length_ratio=0.1,
+                 label=label if i == 0 else "")  # Only label first vector to avoid clutter
+
     # Show lattice points if requested
     if show_lattice:
         lattice_points = []
@@ -423,7 +450,20 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
             ax.set_ylim(mid_y - max_range, mid_y + max_range)
             ax.set_zlim(mid_z - max_range, mid_z + max_range)
 
-    ax.legend()
+    # Create a custom legend with direction vectors
+    legend_elements = [
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=_config["colors"]["primary"],
+                  markersize=10, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=_config["colors"]["grid"],
+                  markersize=6, alpha=0.3, label='IVM Lattice') if show_lattice else None,
+        plt.Line2D([0], [0], color='red', linewidth=2, label='A-axis'),
+        plt.Line2D([0], [0], color='green', linewidth=2, label='B-axis'),
+        plt.Line2D([0], [0], color='blue', linewidth=2, label='C-axis'),
+        plt.Line2D([0], [0], color='orange', linewidth=2, label='D-axis'),
+    ]
+    # Filter out None elements
+    legend_elements = [elem for elem in legend_elements if elem is not None]
+    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.05, 1))
 
     # Save plot using organized structure
     filename = f"quadray_coordinate_{coord.a}_{coord.b}_{coord.c}_{coord.d}.png"

@@ -1,0 +1,22 @@
+{
+  "title": "Geometric Mnemonics Performance Analysis",
+  "timestamp": "2025-09-11T13:27:14.563525",
+  "performance_metrics": {
+    "total_analyses": 15,
+    "execution_times": {
+      "total_time": 0.255,
+      "average_time": 0.017,
+      "median_time": 0.017,
+      "min_time": 0.01,
+      "max_time": 0.024,
+      "time_stddev": 0.004472135954999579
+    },
+    "throughput": 58.8235294117647,
+    "average_input_size": 2.8666666666666667
+  },
+  "efficiency_analysis": {
+    "complexity_time_correlation": 0.521491245501974,
+    "insight": "Moderate correlation between complexity and execution time"
+  },
+  "recommendations": []
+}

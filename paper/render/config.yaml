@@ -1,0 +1,133 @@
+# Configuration for Synergetics Paper PDF Renderer
+
+# Paper metadata
+metadata:
+  title: "Symergetics: Symbolic Synergetics for Rational Arithmetic, Geometric Pattern Discovery, and All-Integer Accounting"
+  subtitle: "A Computational Framework for Buckminster Fuller's Mathematical Principles"
+  author: "Daniel Ari Friedman"
+  email: "daniel@activeinference.institute"
+  orcid: "0000-0001-6232-9096"
+  affiliation: "Independent Researcher"
+  institution: "Active Inference Institute"
+  date: "September 10, 2025"
+  version: "1.0.0"
+
+# PDF formatting options
+pdf:
+  pagesize: "A4"  # A4, letter, or custom [width, height] in points
+  margins:
+    left: 72      # 1 inch in points
+    right: 72     # 1 inch in points
+    top: 72       # 1 inch in points
+    bottom: 72    # 1 inch in points
+  font:
+    family: "Helvetica"
+    size:
+      title: 24
+      section: 16
+      subsection: 14
+      body: 11
+      caption: 10
+      code: 9
+  colors:
+    title: [0.2, 0.2, 0.6]      # Dark blue
+    section: [0.2, 0.2, 0.6]    # Dark blue
+    subsection: [0.2, 0.4, 0.2] # Dark green
+    body: [0.0, 0.0, 0.0]       # Black
+    code_bg: [0.95, 0.95, 0.95] # Light gray
+
+# Content structure
+sections:
+  - file: "00_title.md"
+    order: 0
+    include_in_toc: false
+  - file: "01_abstract.md"
+    order: 1
+    include_in_toc: true
+  - file: "02_introduction.md"
+    order: 2
+    include_in_toc: true
+  - file: "03_mathematical_foundations.md"
+    order: 3
+    include_in_toc: true
+  - file: "04_system_architecture.md"
+    order: 4
+    include_in_toc: true
+  - file: "05_computational_methods.md"
+    order: 5
+    include_in_toc: true
+  - file: "06_geometric_applications.md"
+    order: 6
+    include_in_toc: true
+  - file: "07_pattern_discovery.md"
+    order: 7
+    include_in_toc: true
+  - file: "08_research_applications.md"
+    order: 8
+    include_in_toc: true
+  - file: "09_conclusion.md"
+    order: 9
+    include_in_toc: true
+
+# Image handling
+images:
+  max_width: 6.0   # inches
+  max_height: 4.0  # inches
+  dpi: 300         # resolution for raster images
+  formats:         # supported image formats
+    - "png"
+    - "jpg"
+    - "jpeg"
+    - "svg"
+    - "pdf"
+
+# Output directories
+directories:
+  markdown: "markdown"     # relative to paper/
+  output: "output"         # relative to paper/
+  data_source: "../output" # relative to paper/ (source of images/data)
+
+# Code formatting
+code:
+  font: "Courier"
+  background_color: [0.95, 0.95, 0.95]
+  border: true
+  syntax_highlighting: true
+  line_numbers: false
+
+# Table of contents
+toc:
+  enabled: true
+  title: "Table of Contents"
+  depth: 3
+  font_size: 12
+  style: "numbered"  # numbered, bulleted, or plain
+
+# Bibliography/References
+bibliography:
+  style: "ieee"  # ieee, apa, mla, chicago
+  file: "references.bib"
+  inline_citations: true
+
+# Quality assurance
+qa:
+  spell_check: true
+  grammar_check: false
+  validate_links: true
+  check_image_paths: true
+  validate_markdown: true
+
+# Build options
+build:
+  verbose: true
+  clean_output: false
+  compress_pdf: true
+  embed_fonts: true
+  pdf_version: "1.5"
+
+# Development options
+development:
+  debug_mode: false
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  save_intermediate: false  # Save intermediate files for debugging
+

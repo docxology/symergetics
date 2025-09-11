@@ -82,6 +82,10 @@ class SymergeticsNumber:
         except (ValueError, TypeError):
             return False
 
+    def __hash__(self) -> int:
+        """Hash based on the underlying Fraction value for use in sets and dicts."""
+        return hash(self.value)
+
     def __add__(self, other: Union['SymergeticsNumber', int, float, Fraction]) -> 'SymergeticsNumber':
         """Exact addition with rational arithmetic."""
         if isinstance(other, SymergeticsNumber):
@@ -144,6 +148,10 @@ class SymergeticsNumber:
     def __abs__(self) -> 'SymergeticsNumber':
         """Absolute value."""
         return SymergeticsNumber(abs(self.value))
+
+    def __bool__(self) -> bool:
+        """Boolean conversion. Returns False for zero, True otherwise."""
+        return self.value != 0
 
     def __lt__(self, other: Union['SymergeticsNumber', int, float, Fraction]) -> bool:
         """Less than comparison."""

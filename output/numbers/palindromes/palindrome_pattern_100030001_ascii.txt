@@ -8,11 +8,11 @@ Length: 9 digits
 Palindromic Patterns Found: 6
 Patterns (longest first):
   100030001
-  0003
   0001
-  003
-  001
+  0003
   000
+  001
+  003
 
 Symmetric Patterns: 1
   Type: central_symmetry

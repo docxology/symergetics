@@ -2,7 +2,9 @@
 
 ## Introduction
 
-This comprehensive deep dive explores advanced topics in synergetic mathematics, pushing beyond the fundamentals to examine cutting-edge applications, theoretical extensions, and research frontiers. These topics represent the bleeding edge of synergetic research and applications.
+This comprehensive deep dive explores advanced topics in synergetic mathematics, pushing beyond the fundamentals to examine cutting-edge applications, theoretical extensions, and research frontiers. These topics represent the bleeding edge of synergetic research and applications, all built upon the core concept of **symbolic operations on all-integer accounting based upon ratios (geometrically based upon high frequency shapes) of the Synergetics geometry and Quadray/4D coordinates**.
+
+> **Cross-reference**: For the fundamental core concept, see the [Core Concept Guide](core-concept-guide.md). For basic geometric patterns, see [Geometric Patterns](geometric-patterns-spatial-relationships.md).
 
 ## Advanced Geometric Theory
 

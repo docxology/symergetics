@@ -1,5 +1,27 @@
 # API Reference
 
+## Core Concept Integration
+
+The API is designed around the core concept of **symbolic operations on all-integer accounting based upon ratios (geometrically based upon high frequency shapes) of the Synergetics geometry and Quadray/4D coordinates**. Each component contributes to this unified approach:
+
+- **SymergeticsNumber**: Enables symbolic operations and all-integer accounting
+- **QuadrayCoordinate**: Provides geometric ratios through high-frequency shapes
+- **Synergetics Geometry**: Implements the comprehensive geometric framework
+- **Computation Modules**: Apply exact ratios to advanced mathematical patterns
+
+```mermaid
+graph TD
+    A[Symbolic Operations] --> B[SymergeticsNumber]
+    A --> C[QuadrayCoordinate]
+    B --> D[Exact Rational Arithmetic]
+    C --> E[Geometric Ratios]
+    D --> F[All-Integer Accounting]
+    E --> G[High-Frequency Shapes]
+    F --> H[Pattern Discovery]
+    G --> H
+    H --> I[Synergetics Framework]
+```
+
 ## Core Module
 
 ### SymergeticsNumber

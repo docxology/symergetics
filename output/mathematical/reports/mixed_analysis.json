@@ -1,0 +1,43 @@
+{
+  "title": "Mixed Numbers Analysis",
+  "timestamp": "2025-09-11T13:26:56.713952",
+  "total_analyses": 4,
+  "palindromic_count": 0,
+  "palindromic_ratio": 0.0,
+  "metrics": {
+    "complexity": {
+      "mean": 6.6000000000000005,
+      "median": 0.6,
+      "stdev": 12.0,
+      "min": 0.6,
+      "max": 24.6
+    },
+    "symmetry": {
+      "mean": 0.0,
+      "median": 0.0,
+      "stdev": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "palindromic_density": {
+      "mean": 0.0,
+      "median": 0.0,
+      "stdev": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "length": {
+      "mean": 7.25,
+      "median": 3.0,
+      "stdev": 8.5,
+      "min": 3,
+      "max": 20
+    }
+  },
+  "insights": [
+    "Low palindromic ratio (0.0%) suggests diverse pattern distribution",
+    "High average complexity (6.60) indicates intricate patterns",
+    "Low average symmetry (0.00) suggests irregular patterns",
+    "High length variation suggests diverse mathematical domains"
+  ]
+}
