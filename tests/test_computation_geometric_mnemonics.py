@@ -89,7 +89,6 @@ class TestGeometricMnemonicsAnalysis:
 class TestGeometricMnemonicVisualization:
     """Test geometric mnemonics visualization functions."""
 
-    @pytest.mark.skipif(not hasattr(pytest, 'matplotlib'), reason="matplotlib not available")
     def test_create_integer_ratio_visualization(self):
         """Test integer ratio visualization creation."""
         numbers = [6, 12, 20, 24, 30]

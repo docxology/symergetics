@@ -74,8 +74,12 @@ def analyze_mathematical_patterns(
 
     # Basic pattern analysis
     if num_str:  # Only analyze non-empty strings
-        results['is_palindromic'] = is_palindromic(number)
-        results['palindromic_density'] = calculate_palindromic_density(number)
+        try:
+            results['is_palindromic'] = is_palindromic(number)
+            results['palindromic_density'] = calculate_palindromic_density(number)
+        except (TypeError, ValueError):
+            results['is_palindromic'] = False
+            results['palindromic_density'] = 0.0
     else:
         results['is_palindromic'] = True  # Empty string is technically palindromic
         results['palindromic_density'] = 0.0
@@ -326,6 +330,23 @@ def _estimate_fractal_dimension(number_str: str) -> float:
     return 1.0
 
 
+def _prime_factors(number: int) -> List[int]:
+    """Find prime factors of a number."""
+    if number <= 1:
+        return []
+    
+    factors = []
+    d = 2
+    while d * d <= number:
+        while number % d == 0:
+            factors.append(d)
+            number //= d
+        d += 1
+    if number > 1:
+        factors.append(number)
+    return factors
+
+
 def _analyze_prime_relationships(number: int) -> Dict[str, Any]:
     """Analyze relationships between number and prime numbers."""
     prime_relationships = {}
@@ -337,7 +358,7 @@ def _analyze_prime_relationships(number: int) -> Dict[str, Any]:
     prime_relationships['is_prime'] = is_prime(number)
 
     # Find prime factors
-    prime_relationships['prime_factors'] = prime_factors(number)
+    prime_relationships['prime_factors'] = _prime_factors(number)
 
     # Check for primorial relationships
     primorial_relationships = []
@@ -663,6 +684,10 @@ def generate_comprehensive_report(
     Returns:
         Dict containing formatted report data
     """
+    # Handle None or invalid input
+    if analysis_data is None:
+        analysis_data = {}
+    
     report = {
         'title': title,
         'timestamp': '2024-01-01T00:00:00Z',  # Would use datetime in real implementation
@@ -684,8 +709,8 @@ def generate_comprehensive_report(
     # Detailed analysis sections
     report['detailed_analysis'] = {
         'basic_properties': {
-            'number': analysis_data['number'],
-            'length': analysis_data['length'],
+            'number': analysis_data.get('number', ''),
+            'length': analysis_data.get('length', 0),
             'is_palindromic': analysis_data.get('is_palindromic', False),
             'palindromic_density': analysis_data.get('palindromic_density', 0)
         },

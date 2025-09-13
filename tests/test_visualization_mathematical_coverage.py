@@ -48,7 +48,7 @@ class TestPlotContinuedFractionConvergenceCoverage:
 
     def test_plot_continued_fraction_convergence_integer(self):
         """Test plot_continued_fraction_convergence with integer value."""
-        result = plot_continued_fraction_convergence(3.0, max_terms=5)
+        result = plot_continued_fraction_convergence(3.0, max_terms=5, backend='matplotlib')
 
         # Should handle integer values
         assert isinstance(result, dict)
@@ -57,7 +57,7 @@ class TestPlotContinuedFractionConvergenceCoverage:
         """Test plot_continued_fraction_convergence with few terms."""
         # Golden ratio: (1 + sqrt(5)) / 2
         phi = (1 + math.sqrt(5)) / 2
-        result = plot_continued_fraction_convergence(phi, max_terms=3)
+        result = plot_continued_fraction_convergence(phi, max_terms=3, backend='matplotlib')
 
         # Should handle small number of terms
         assert isinstance(result, dict)
@@ -92,7 +92,7 @@ class TestPlotBaseConversionMatrixCoverage:
 
     def test_plot_base_conversion_matrix_wide_range(self):
         """Test plot_base_conversion_matrix with wide base range."""
-        result = plot_base_conversion_matrix(start_base=2, end_base=16, number=255)
+        result = plot_base_conversion_matrix(start_base=2, end_base=16, number=255, backend='matplotlib')
 
         # Should handle wider range
         assert isinstance(result, dict)
@@ -100,7 +100,7 @@ class TestPlotBaseConversionMatrixCoverage:
     def test_plot_base_conversion_matrix_invalid_range(self):
         """Test plot_base_conversion_matrix with invalid base range."""
         # This function doesn't validate range, it just works with whatever is given
-        result = plot_base_conversion_matrix(start_base=10, end_base=5, number=100)
+        result = plot_base_conversion_matrix(start_base=10, end_base=5, number=100, backend='matplotlib')
         assert isinstance(result, dict)
 
 
@@ -141,7 +141,7 @@ class TestPlotPatternAnalysisRadarCoverage:
 
     def test_plot_pattern_analysis_radar_single_character(self):
         """Test plot_pattern_analysis_radar with single character."""
-        result = plot_pattern_analysis_radar("5")
+        result = plot_pattern_analysis_radar("5", backend='matplotlib')
 
         # Should handle single character
         assert isinstance(result, dict)
@@ -149,7 +149,7 @@ class TestPlotPatternAnalysisRadarCoverage:
     def test_plot_pattern_analysis_radar_long_sequence(self):
         """Test plot_pattern_analysis_radar with long sequence."""
         sequence = "123456789" * 10  # 90 characters
-        result = plot_pattern_analysis_radar(sequence)
+        result = plot_pattern_analysis_radar(sequence, backend='matplotlib')
 
         # Should handle long sequences
         assert isinstance(result, dict)

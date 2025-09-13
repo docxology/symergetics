@@ -1,27 +1,27 @@
 Key,Value
 title,Geometric Mnemonics Statistical Summary
-timestamp,2025-09-11T13:27:14.561650
+timestamp,2025-09-11T20:35:20.812736
 total_analyses,20
-palindromic_count,3
-palindromic_ratio,0.15
-metrics.complexity.mean,0.825
+palindromic_count,5
+palindromic_ratio,0.25
+metrics.complexity.mean,0.855
 metrics.complexity.median,0.6
-metrics.complexity.stdev,0.6796864602230401
+metrics.complexity.stdev,0.7185328619375808
 metrics.complexity.min,0.2
 metrics.complexity.max,3.0
-metrics.symmetry.mean,0.13333333333333333
+metrics.symmetry.mean,0.21666666666666667
 metrics.symmetry.median,0.0
-metrics.symmetry.stdev,0.3315743061032267
+metrics.symmetry.stdev,0.39403446282620613
 metrics.symmetry.min,0.0
 metrics.symmetry.max,1.0
-metrics.palindromic_density.mean,0.05305555555555556
+metrics.palindromic_density.mean,0.058888888888888886
 metrics.palindromic_density.median,0.0
-metrics.palindromic_density.stdev,0.11954096467411358
+metrics.palindromic_density.stdev,0.13450266971753236
 metrics.palindromic_density.min,0.0
 metrics.palindromic_density.max,0.4444444444444444
 metrics.length.mean,3.3
 metrics.length.median,3.0
-metrics.length.stdev,1.8945906376340316
+metrics.length.stdev,2.0545200489600846
 metrics.length.min,1
 metrics.length.max,9
-insights,"Low palindromic ratio (15.0%) suggests diverse pattern distribution, Low average complexity (0.82) suggests simple structures, Low average symmetry (0.13) suggests irregular patterns, High length variation suggests diverse mathematical domains"
+insights,"Low average complexity (0.85) suggests simple structures, Low average symmetry (0.22) suggests irregular patterns, High length variation suggests diverse mathematical domains"

@@ -265,6 +265,98 @@ def _plot_polyhedron_plotly(polyhedron: SymergeticsPolyhedron,
     }
 
 
+def _plot_polyhedron_3d_plotly(polyhedron: SymergeticsPolyhedron,
+                              show_wireframe: bool = True,
+                              show_surface: bool = True,
+                              elevation: float = 20,
+                              azimuth: float = 45,
+                              **kwargs) -> Dict[str, Any]:
+    """Create enhanced 3D plotly visualization."""
+    try:
+        import plotly.graph_objects as go
+    except ImportError:
+        raise ImportError("plotly is required for plotly backend")
+
+    # Get vertex coordinates
+    vertices_xyz = polyhedron.to_xyz_vertices()
+    if not vertices_xyz:
+        raise ValueError("No vertices to plot")
+
+    vertices = np.array(vertices_xyz)
+
+    # Create mesh data
+    x, y, z = vertices[:, 0], vertices[:, 1], vertices[:, 2]
+
+    # Create figure
+    fig = go.Figure()
+
+    # Add surface if requested
+    if show_surface:
+        # Create a simple surface using the vertices
+        # This is a basic implementation - could be enhanced with proper triangulation
+        fig.add_trace(go.Scatter3d(
+            x=x, y=y, z=z,
+            mode='markers',
+            marker=dict(
+                size=8,
+                color='lightblue',
+                opacity=0.8
+            ),
+            name='Vertices'
+        ))
+
+    # Add wireframe if requested
+    if show_wireframe:
+        # Add edges (simplified - would need proper edge detection for complex polyhedra)
+        for i in range(len(vertices)):
+            for j in range(i + 1, len(vertices)):
+                fig.add_trace(go.Scatter3d(
+                    x=[vertices[i][0], vertices[j][0]],
+                    y=[vertices[i][1], vertices[j][1]],
+                    z=[vertices[i][2], vertices[j][2]],
+                    mode='lines',
+                    line=dict(color='black', width=2),
+                    showlegend=False
+                ))
+
+    # Update layout
+    fig.update_layout(
+        title=f"{type(polyhedron).__name__} 3D Visualization",
+        scene=dict(
+            xaxis_title='X',
+            yaxis_title='Y',
+            zaxis_title='Z',
+            camera=dict(
+                eye=dict(x=1.5, y=1.5, z=1.5),
+                center=dict(x=0, y=0, z=0)
+            )
+        ),
+        width=800,
+        height=600
+    )
+
+    # Save plot using organized structure
+    filename = f"{type(polyhedron).__name__.lower()}_3d_enhanced.html"
+    filepath = get_organized_output_path('geometric', 'polyhedra', filename)
+    fig.write_html(str(filepath))
+    files = [str(filepath)]
+
+    return {
+        'files': files,
+        'metadata': {
+            'type': 'polyhedron_3d_enhanced',
+            'polyhedron': type(polyhedron).__name__,
+            'vertices': len(polyhedron.vertices),
+            'volume': polyhedron.volume(),
+            'show_wireframe': show_wireframe,
+            'show_surface': show_surface,
+            'elevation': elevation,
+            'azimuth': azimuth,
+            'backend': 'plotly'
+        }
+    }
+
+
 def _plot_polyhedron_ascii(polyhedron: SymergeticsPolyhedron,
                           **kwargs) -> Dict[str, Any]:
     """Create ASCII art representation of polyhedron."""

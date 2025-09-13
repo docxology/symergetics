@@ -27,7 +27,7 @@ class TestPlotPalindromicHeatmapCoverage:
         mock_fig = MagicMock()
         mock_figure.return_value = mock_fig
 
-        result = plot_palindromic_heatmap(100, 120, backend='matplotlib')
+        result = plot_palindromic_heatmap(sequence_start=100, sequence_end=120, backend='matplotlib')
 
         # Should return a dict with file information
         assert isinstance(result, dict)
@@ -37,11 +37,11 @@ class TestPlotPalindromicHeatmapCoverage:
     def test_plot_palindromic_heatmap_plotly(self):
         """Test plot_palindromic_heatmap with plotly (should fail)."""
         with pytest.raises(ValueError, match="Heatmap visualization requires matplotlib backend"):
-            plot_palindromic_heatmap(100, 120, backend='plotly')
+            plot_palindromic_heatmap(sequence_start=100, sequence_end=120, backend='plotly')
 
     def test_plot_palindromic_heatmap_small_range(self):
         """Test plot_palindromic_heatmap with small number range."""
-        result = plot_palindromic_heatmap(100, 105)
+        result = plot_palindromic_heatmap(sequence_start=100, sequence_end=105, backend='matplotlib')
 
         # Should return a dict with file information
         assert isinstance(result, dict)
@@ -50,7 +50,7 @@ class TestPlotPalindromicHeatmapCoverage:
     def test_plot_palindromic_heatmap_invalid_range(self):
         """Test plot_palindromic_heatmap with invalid range."""
         with pytest.raises(ValueError):
-            plot_palindromic_heatmap(120, 100)  # end < start
+            plot_palindromic_heatmap(sequence_start=120, sequence_end=100)  # end < start
 
 
 class TestPlotScheherazadeNetworkCoverage:
@@ -65,7 +65,7 @@ class TestPlotScheherazadeNetworkCoverage:
         mock_fig = MagicMock()
         mock_figure.return_value = mock_fig
 
-        result = plot_scheherazade_network(6, backend='matplotlib')
+        result = plot_scheherazade_network(power=6, backend='matplotlib')
 
         # Should return a dict with file information
         assert isinstance(result, dict)
@@ -74,16 +74,16 @@ class TestPlotScheherazadeNetworkCoverage:
     def test_plot_scheherazade_network_plotly(self):
         """Test plot_scheherazade_network with plotly (should fail)."""
         with pytest.raises(ValueError, match="Network visualization requires matplotlib backend"):
-            plot_scheherazade_network(6, backend='plotly')
+            plot_scheherazade_network(power=6, backend='plotly')
 
     def test_plot_scheherazade_network_ascii(self):
         """Test plot_scheherazade_network with ascii (should fail)."""
         with pytest.raises(ValueError, match="Network visualization requires matplotlib backend"):
-            plot_scheherazade_network(4, backend='ascii')
+            plot_scheherazade_network(power=4, backend='ascii')
 
     def test_plot_scheherazade_network_power_zero(self):
         """Test plot_scheherazade_network with power 0."""
-        result = plot_scheherazade_network(0)
+        result = plot_scheherazade_network(power=0, backend='matplotlib')
 
         # Should handle power 0 gracefully
         assert isinstance(result, dict)
@@ -121,7 +121,7 @@ class TestPlotPrimorialSpectrumCoverage:
 
     def test_plot_primorial_spectrum_large_max_n(self):
         """Test plot_primorial_spectrum with larger max_n."""
-        result = plot_primorial_spectrum(max_n=15)
+        result = plot_primorial_spectrum(max_n=15, backend='matplotlib')
 
         # Should handle larger values
         assert isinstance(result, dict)
@@ -129,7 +129,7 @@ class TestPlotPrimorialSpectrumCoverage:
     def test_plot_primorial_spectrum_invalid_max_n(self):
         """Test plot_primorial_spectrum with invalid max_n."""
         with pytest.raises(ValueError):
-            plot_primorial_spectrum(max_n=0)
+            plot_primorial_spectrum(max_n=0, backend='matplotlib')
 
 
 class TestOriginalNumberVisualizationsCoverage:
@@ -147,7 +147,7 @@ class TestOriginalNumberVisualizationsCoverage:
         mock_subplots.return_value = (mock_fig, (mock_ax1, mock_ax2))
         mock_figure.return_value = mock_fig
 
-        result = plot_palindromic_pattern(123454321)
+        result = plot_palindromic_pattern(123454321, backend='matplotlib')
 
         # Should return a dict with file information
         assert isinstance(result, dict)
@@ -183,7 +183,7 @@ class TestOriginalNumberVisualizationsCoverage:
         mock_subplots.return_value = (mock_fig, ((mock_ax1, mock_ax2), (mock_ax3, mock_ax4)))
         mock_figure.return_value = mock_fig
 
-        result = plot_primorial_distribution(max_n=12)
+        result = plot_primorial_distribution(max_n=12, backend='matplotlib')
 
         # Should return a dict with file information
         assert isinstance(result, dict)

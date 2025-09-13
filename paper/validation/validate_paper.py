@@ -301,7 +301,7 @@ class PaperValidator:
                 terminology[term] += content.count(term.lower())
         
         # Check for consistent usage
-        if terminology['symergetics'] > 0 and terminology['synergetics'] > 0:
+        if terminology.get('symergetics', 0) > 0 and terminology.get('synergetics', 0) > 0:
             self.results.append(ValidationResult(
                 "terminology_consistency",
                 False,

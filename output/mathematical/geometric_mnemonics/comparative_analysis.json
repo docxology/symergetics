@@ -1,6 +1,6 @@
 {
   "title": "Comparative Analysis Report",
-  "timestamp": "2025-09-11T13:27:14.562774",
+  "timestamp": "2025-09-11T20:35:20.814204",
   "domains": {
     "domain1": "Small Geometric Numbers",
     "domain2": "Large Geometric Numbers"
@@ -8,112 +8,110 @@
   "summary": {},
   "comparisons": {
     "palindromic_ratio": {
-      "Small Geometric Numbers": 0.15789473684210525,
-      "Large Geometric Numbers": 0.21052631578947367,
-      "difference": 0.05263157894736842,
-      "ratio": 1.3333333333333333
+      "Small Geometric Numbers": 0.21052631578947367,
+      "Large Geometric Numbers": 0.15789473684210525,
+      "difference": -0.05263157894736842,
+      "ratio": 0.75
     },
     "complexity": {
-      "Small Geometric Numbers": 0.7736842105263158,
-      "Large Geometric Numbers": 0.7421052631578947,
-      "difference": -0.03157894736842104,
-      "similarity": 0.9591836734693878
+      "Small Geometric Numbers": 0.8894736842105263,
+      "Large Geometric Numbers": 0.6263157894736843,
+      "difference": -0.26315789473684204,
+      "similarity": 0.7041420118343196
     },
     "symmetry": {
-      "Small Geometric Numbers": 0.14035087719298245,
-      "Large Geometric Numbers": 0.17543859649122806,
-      "difference": 0.03508771929824561,
-      "similarity": 0.8
+      "Small Geometric Numbers": 0.19298245614035087,
+      "Large Geometric Numbers": 0.12280701754385964,
+      "difference": -0.07017543859649122,
+      "similarity": 0.6363636363636364
     }
   },
   "insights": [
-    "Similar palindromic pattern distribution between domains",
-    "Domains show similar complexity patterns"
+    "Similar palindromic pattern distribution between domains"
   ],
   "domain_summaries": {
     "Small Geometric Numbers": {
       "title": "Small Geometric Numbers Summary",
-      "timestamp": "2025-09-11T13:27:14.562780",
-      "total_analyses": 19,
-      "palindromic_count": 3,
-      "palindromic_ratio": 0.15789473684210525,
-      "metrics": {
-        "complexity": {
-          "mean": 0.7736842105263158,
-          "median": 0.6,
-          "stdev": 0.6573026575526155,
-          "min": 0.2,
-          "max": 3.0
-        },
-        "symmetry": {
-          "mean": 0.14035087719298245,
-          "median": 0.0,
-          "stdev": 0.3391308694128182,
-          "min": 0.0,
-          "max": 1.0
-        },
-        "palindromic_density": {
-          "mean": 0.055847953216374265,
-          "median": 0.0,
-          "stdev": 0.12214466793397091,
-          "min": 0.0,
-          "max": 0.4444444444444444
-        },
-        "length": {
-          "mean": 3.1578947368421053,
-          "median": 3,
-          "stdev": 1.8337320140672695,
-          "min": 1,
-          "max": 9
-        }
-      },
-      "insights": [
-        "Low palindromic ratio (15.8%) suggests diverse pattern distribution",
-        "Low average complexity (0.77) suggests simple structures",
-        "Low average symmetry (0.14) suggests irregular patterns",
-        "High length variation suggests diverse mathematical domains"
-      ]
-    },
-    "Large Geometric Numbers": {
-      "title": "Large Geometric Numbers Summary",
-      "timestamp": "2025-09-11T13:27:14.562881",
+      "timestamp": "2025-09-11T20:35:20.814220",
       "total_analyses": 19,
       "palindromic_count": 4,
       "palindromic_ratio": 0.21052631578947367,
       "metrics": {
         "complexity": {
-          "mean": 0.7421052631578947,
-          "median": 0.4,
-          "stdev": 0.5003507541644985,
+          "mean": 0.8894736842105263,
+          "median": 0.6,
+          "stdev": 0.7210291540122857,
           "min": 0.2,
-          "max": 1.7999999999999998
+          "max": 3.0
         },
         "symmetry": {
-          "mean": 0.17543859649122806,
+          "mean": 0.19298245614035087,
           "median": 0.0,
-          "stdev": 0.3577781410045012,
+          "stdev": 0.3899317679104012,
           "min": 0.0,
           "max": 1.0
         },
         "palindromic_density": {
-          "mean": 0.02982456140350877,
+          "mean": 0.06198830409356725,
           "median": 0.0,
-          "stdev": 0.0974329379004566,
+          "stdev": 0.1374526125837054,
           "min": 0.0,
-          "max": 0.4
+          "max": 0.4444444444444444
         },
         "length": {
-          "mean": 2.8421052631578947,
-          "median": 2,
-          "stdev": 1.4629938062729393,
+          "mean": 3.4210526315789473,
+          "median": 3,
+          "stdev": 2.03622170463075,
           "min": 1,
-          "max": 6
+          "max": 9
         }
       },
       "insights": [
-        "Low average complexity (0.74) suggests simple structures",
-        "Low average symmetry (0.18) suggests irregular patterns",
+        "Low average complexity (0.89) suggests simple structures",
+        "Low average symmetry (0.19) suggests irregular patterns",
         "High length variation suggests diverse mathematical domains"
+      ]
+    },
+    "Large Geometric Numbers": {
+      "title": "Large Geometric Numbers Summary",
+      "timestamp": "2025-09-11T20:35:20.814348",
+      "total_analyses": 19,
+      "palindromic_count": 3,
+      "palindromic_ratio": 0.15789473684210525,
+      "metrics": {
+        "complexity": {
+          "mean": 0.6263157894736843,
+          "median": 0.4,
+          "stdev": 0.355656053048694,
+          "min": 0.2,
+          "max": 1.4000000000000001
+        },
+        "symmetry": {
+          "mean": 0.12280701754385964,
+          "median": 0.0,
+          "stdev": 0.29836025775027125,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "palindromic_density": {
+          "mean": 0.02368421052631579,
+          "median": 0.0,
+          "stdev": 0.07143065995275803,
+          "min": 0.0,
+          "max": 0.25
+        },
+        "length": {
+          "mean": 2.5789473684210527,
+          "median": 2,
+          "stdev": 1.0173926082384546,
+          "min": 1,
+          "max": 5
+        }
+      },
+      "insights": [
+        "Low palindromic ratio (15.8%) suggests diverse pattern distribution",
+        "Low average complexity (0.63) suggests simple structures",
+        "Low average symmetry (0.12) suggests irregular patterns"
       ]
     }
   }

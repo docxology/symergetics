@@ -72,7 +72,18 @@ def _plot_palindrome_matplotlib(number: Union[int, SymergeticsNumber],
         else:
             num_str = str(number.value.numerator)
     else:
-        num_str = str(abs(int(number)))
+        try:
+            num_str = str(abs(int(number)))
+        except (ValueError, TypeError):
+            # Handle invalid input gracefully
+            return {
+                'files': [],
+                'metadata': {
+                    'error': f'Invalid input: {number}',
+                    'backend': 'matplotlib',
+                    'function': 'plot_palindromic_pattern'
+                }
+            }
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(_config["figure_size"][0], _config["figure_size"][1] * 1.5))
 
@@ -160,7 +171,18 @@ def _plot_palindrome_ascii(number: Union[int, SymergeticsNumber],
         else:
             num_str = str(number.value.numerator)
     else:
-        num_str = str(abs(int(number)))
+        try:
+            num_str = str(abs(int(number)))
+        except (ValueError, TypeError):
+            # Handle invalid input gracefully
+            return {
+                'files': [],
+                'metadata': {
+                    'error': f'Invalid input: {number}',
+                    'backend': 'ascii',
+                    'function': 'plot_palindromic_pattern'
+                }
+            }
 
     lines = []
     lines.append(f"Palindromic Pattern Analysis: {format_large_number(int(num_str) if num_str.isdigit() else 0)}")
@@ -781,7 +803,18 @@ def _plot_mnemonic_matplotlib(number: Union[int, SymergeticsNumber],
     if isinstance(number, SymergeticsNumber):
         num_str = str(number.value.numerator)[:20]
     else:
-        num_str = str(abs(int(number)))[:20]
+        try:
+            num_str = str(abs(int(number)))[:20]
+        except (ValueError, TypeError):
+            # Handle invalid input gracefully
+            return {
+                'files': [],
+                'metadata': {
+                    'error': f'Invalid input: {number}',
+                    'backend': 'matplotlib',
+                    'function': 'plot_mnemonic_visualization'
+                }
+            }
 
     filename = f"mnemonic_visualization_{num_str}.png"
     filepath = get_organized_output_path('numbers', 'mnemonics', filename)
@@ -1053,6 +1086,10 @@ def _plot_primorial_spectrum_matplotlib(max_n: int = 15, **kwargs) -> Dict[str, 
     except ImportError:
         raise ImportError("matplotlib is required for spectrum visualization")
 
+    # Validate input
+    if max_n < 1:
+        raise ValueError(f"max_n must be >= 1, got {max_n}")
+
     # Calculate primorials
     primorials = []
     for n in range(1, max_n + 1):
@@ -1157,7 +1194,18 @@ def _plot_mnemonic_ascii(number: Union[int, SymergeticsNumber],
     if isinstance(number, SymergeticsNumber):
         num_str = str(number.value.numerator)[:20]
     else:
-        num_str = str(abs(int(number)))[:20]
+        try:
+            num_str = str(abs(int(number)))[:20]
+        except (ValueError, TypeError):
+            # Handle invalid input gracefully
+            return {
+                'files': [],
+                'metadata': {
+                    'error': f'Invalid input: {number}',
+                    'backend': 'ascii',
+                    'function': 'plot_mnemonic_visualization'
+                }
+            }
 
     filename = f"mnemonic_visualization_{num_str}_ascii.txt"
     filepath = get_organized_output_path('numbers', 'mnemonics', filename)

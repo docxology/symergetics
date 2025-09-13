@@ -1,0 +1,14 @@
+SSCRD Analysis: 1001^3
+============================================================
+
+Number: 1003003001
+Length: 10 digits
+Is Palindromic: True
+Palindromic Density: 40.000%
+
+Pattern Analysis:
+  Palindromic Patterns: 6
+  Symmetric Patterns: 1
+  Repeated Digit Patterns: 5
+
+No binomial coefficient patterns found.

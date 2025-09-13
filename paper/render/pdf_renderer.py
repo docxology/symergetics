@@ -95,6 +95,13 @@ class ScientificPaperRenderer:
         """Setup ReportLab styles for scientific formatting"""
         styles = getSampleStyleSheet()
 
+        # Modify the existing Normal style for better paragraph spacing
+        styles['Normal'].fontSize = 11
+        styles['Normal'].spaceAfter = 12
+        styles['Normal'].spaceBefore = 6
+        styles['Normal'].alignment = TA_JUSTIFY
+        styles['Normal'].textColor = colors.black
+
         # Title style
         styles.add(ParagraphStyle(
             name='PaperTitle',
@@ -259,7 +266,7 @@ class ScientificPaperRenderer:
         return styles
 
     def load_sections(self) -> List[PaperSection]:
-        """Load the exact 11 specified paper sections in correct order"""
+        """Load the exact 12 specified paper sections in correct order"""
         sections = []
 
         # Define the exact files to include in the correct order
@@ -270,11 +277,12 @@ class ScientificPaperRenderer:
             ("03_mathematical_foundations.md", "Mathematical Foundations"),
             ("04_system_architecture.md", "System Architecture"),
             ("05_computational_methods.md", "Computational Methods"),
-            ("06_geometric_applications.md", "Geometric Applications"),
-            ("07_pattern_discovery.md", "Pattern Discovery"),
-            ("08_research_applications.md", "Research Applications"),
-            ("09_conclusion.md", "Conclusion"),
-            ("10_ongoing_questions_inquiries.md", "Ongoing Questions and Inquiries")
+            ("06_results.md", "Results"),
+            ("07_geometric_applications.md", "Geometric Applications"),
+            ("08_pattern_discovery.md", "Pattern Discovery"),
+            ("09_research_applications.md", "Research Applications"),
+            ("10_ongoing_questions_inquiries.md", "Ongoing Questions and Inquiries"),
+            ("11_conclusion.md", "Conclusion")
         ]
 
         for order, (filename, title) in enumerate(paper_files, 0):
@@ -894,6 +902,9 @@ class ScientificPaperRenderer:
                 current_section = "title_page"
             elif line == "## Front Matter":
                 current_section = "front_matter"
+            elif line == "## Abstract":
+                current_section = "front_matter"
+                break  # Stop processing title page content when we hit the abstract
             elif line.startswith('**Author:**') and current_section == "title_page":
                 continue  # Skip the label
             elif line.startswith('**Affiliation:**') and current_section == "title_page":
@@ -904,10 +915,12 @@ class ScientificPaperRenderer:
                 continue  # Skip the label
             elif line.startswith('**Date:**') and current_section == "title_page":
                 date = line[8:].strip()
+                continue
             elif line.startswith('**Version:**') and current_section == "title_page":
                 version = line[10:].strip()
+                continue
             elif line.startswith('**') and line.endswith('**') and current_section == "title_page":
-                # Skip bold labels
+                # Skip other bold labels
                 continue
             elif line.startswith('---') and current_section == "title_page":
                 continue  # Skip separators
@@ -980,7 +993,7 @@ class ScientificPaperRenderer:
         """Generate complete PDF from all sections"""
         if not output_filename:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            output_filename = f"synergetics_paper_{timestamp}.pdf"
+            output_filename = f"symergetics_paper_{timestamp}.pdf"
 
         output_path = self.output_dir / output_filename
 

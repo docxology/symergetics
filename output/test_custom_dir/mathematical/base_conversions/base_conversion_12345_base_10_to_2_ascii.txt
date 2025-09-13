@@ -1,0 +1,28 @@
+Base Conversion: 12345 (base 10) → 11000000111001 (base 2)
+======================================================================
+
+Original number: 12345
+From base: 10
+To base: 2
+Result: 11000000111001
+
+Conversion Steps:
+(Dividing by target base and collecting remainders)
+  Step 0: 12345 ÷ 2 = 6172 remainder 1
+  Step 1: 6172 ÷ 2 = 3086 remainder 0
+  Step 2: 3086 ÷ 2 = 1543 remainder 0
+  Step 3: 1543 ÷ 2 = 771 remainder 1
+  Step 4: 771 ÷ 2 = 385 remainder 1
+  Step 5: 385 ÷ 2 = 192 remainder 1
+  Step 6: 192 ÷ 2 = 96 remainder 0
+  Step 7: 96 ÷ 2 = 48 remainder 0
+  Step 8: 48 ÷ 2 = 24 remainder 0
+  Step 9: 24 ÷ 2 = 12 remainder 0
+  Step 10: 12 ÷ 2 = 6 remainder 0
+  Step 11: 6 ÷ 2 = 3 remainder 0
+  Step 12: 3 ÷ 2 = 1 remainder 1
+  Step 13: 1 ÷ 2 = 0 remainder 1
+
+Properties:
+- Number of digits in base 2: 14
+- Maximum digit value: 1

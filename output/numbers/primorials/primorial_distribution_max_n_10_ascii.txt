@@ -1,0 +1,41 @@
+Primorial Distribution (n ≤ 10)
+==================================================
+
+Primorial Values:
+n    n#
+-    --
+ 2   2
+ 3   6
+ 4   6
+ 5   30
+ 6   30
+ 7   210
+ 8   210
+ 9   210
+10   210
+
+Collective Digit Frequency Analysis (19 total digits):
+==================================================
+  0:    6 ( 31.6%) ███████████████
+  1:    4 ( 21.1%) ██████████
+  2:    5 ( 26.3%) █████████████
+  3:    2 ( 10.5%) █████
+  4:    0 (  0.0%) 
+  5:    0 (  0.0%) 
+  6:    2 ( 10.5%) █████
+  7:    0 (  0.0%) 
+  8:    0 (  0.0%) 
+  9:    0 (  0.0%) 
+
+Statistical Properties:
+  Digit Entropy: 2.189 bits (max: 3.322 for uniform)
+  Assessment: Low entropy - strong digit patterns present
+  Most common digit: 0 (6 times)
+  Least common digit: 6 (2 times)
+  Unique digits used: 5/10 possible digits
+
+Mathematical Properties:
+- Primorials grow faster than exponentials
+- Related to prime number distribution
+- Used in number theory and cryptography
+- Fuller's 14-illion number uses primorial factors

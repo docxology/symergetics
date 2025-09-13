@@ -16,6 +16,7 @@ Author: Symergetics Team
 """
 
 import math
+import numpy as np
 from typing import Dict, List, Any, Tuple, Optional, Union
 from collections import defaultdict
 from fractions import Fraction
@@ -574,7 +575,7 @@ def _plot_rational_approximations(ax, analyses):
     labels = list(constants.keys())
 
     if data:
-        ax.boxplot(data, labels=labels)
+        ax.boxplot(data, tick_labels=labels)
         ax.set_ylabel('Approximation Error')
         ax.set_title('Rational Approximation Quality by Constant')
         ax.tick_params(axis='x', rotation=45)

@@ -64,7 +64,7 @@ class TestEnhancedGeometryVisualizations:
         """Test graphical abstract visualization."""
         cube = Tetrahedron()  # Using tetrahedron for simplicity
 
-        result = plot_polyhedron_graphical_abstract(cube, show_volume_ratios=True, show_coordinates=True)
+        result = plot_polyhedron_graphical_abstract(cube, show_volume_ratios=True, show_coordinates=True, backend='matplotlib')
 
         assert 'files' in result
         assert 'metadata' in result
@@ -78,7 +78,7 @@ class TestEnhancedGeometryVisualizations:
         """Test wireframe visualization."""
         octa = Tetrahedron()  # Using tetrahedron for simplicity
 
-        result = plot_polyhedron_wireframe(octa, elevation=30, azimuth=60)
+        result = plot_polyhedron_wireframe(octa, elevation=30, azimuth=60, backend='matplotlib')
 
         assert 'files' in result
         assert 'metadata' in result
@@ -272,8 +272,8 @@ class TestVisualizationIntegration:
         # Test multiple visualization methods
         methods = [
             lambda: plot_polyhedron_3d(tetra),
-            lambda: plot_polyhedron_graphical_abstract(tetra),
-            lambda: plot_polyhedron_wireframe(tetra)
+            lambda: plot_polyhedron_graphical_abstract(tetra, backend='matplotlib'),
+            lambda: plot_polyhedron_wireframe(tetra, backend='matplotlib')
         ]
 
         for method in methods:
@@ -289,7 +289,7 @@ class TestVisualizationIntegration:
         """Test that files are named and organized correctly."""
         tetra = Tetrahedron()
 
-        result = plot_polyhedron_3d(tetra, show_wireframe=True, show_surface=True)
+        result = plot_polyhedron_3d(tetra, show_wireframe=True, show_surface=True, backend='matplotlib')
 
         # Check file naming
         filename = os.path.basename(result['files'][0])
@@ -324,14 +324,16 @@ class TestVisualizationPerformance:
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-    @pytest.mark.skip(reason="Requires psutil module which is not installed")
     def test_memory_usage_during_visualization(self):
         """Test memory usage during visualization creation."""
-        import psutil
-        import os
-
-        process = psutil.Process(os.getpid())
-        initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+        try:
+            import psutil
+            import os
+            process = psutil.Process(os.getpid())
+            initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+        except ImportError:
+            # Skip memory testing if psutil not available
+            pytest.skip("psutil not available for memory testing")
 
         tetra = Tetrahedron()
         result = plot_polyhedron_3d(tetra)
@@ -367,7 +369,7 @@ class TestVisualizationConfiguration:
         set_config(custom_config)
 
         tetra = Tetrahedron()
-        result = plot_polyhedron_3d(tetra)
+        result = plot_polyhedron_3d(tetra, backend='matplotlib')
 
         # Should use custom configuration
         assert result['metadata']['backend'] == 'matplotlib'

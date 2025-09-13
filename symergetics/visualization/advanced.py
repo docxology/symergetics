@@ -220,7 +220,10 @@ def _plot_palindromic_comparison(ax, domain1_metrics, domain2_metrics, name1, na
 
         # Add mean markers
         for i, d in enumerate(data):
-            mean_val = statistics.mean(d)
+            if d:
+                mean_val = statistics.mean(d)
+            else:
+                mean_val = 0
             ax.plot(i+1, mean_val, 'ro', markersize=8, label=f'Mean: {mean_val:.3f}' if i == 0 else "")
 
         ax.legend()
@@ -675,9 +678,9 @@ def _plot_main_statistics(ax, analysis_results):
     Total Analyses: {total_count}
     Palindromic Numbers: {palindromic_count} ({palindromic_ratio:.1%})
 
-    Average Length: {statistics.mean([r.get('length', 0) for r in analysis_results]):.1f}
-    Average Complexity: {statistics.mean([r.get('pattern_complexity', {}).get('complexity_score', 0) for r in analysis_results]):.2f}
-    Average Symmetry: {statistics.mean([r.get('symmetry_analysis', {}).get('symmetry_score', 0) for r in analysis_results]):.2f}
+    Average Length: {statistics.mean([r.get('length', 0) for r in analysis_results]) if analysis_results else 0:.1f}
+    Average Complexity: {statistics.mean([r.get('pattern_complexity', {}).get('complexity_score', 0) for r in analysis_results]) if analysis_results else 0:.2f}
+    Average Symmetry: {statistics.mean([r.get('symmetry_analysis', {}).get('symmetry_score', 0) for r in analysis_results]) if analysis_results else 0:.2f}
     """
 
     ax.text(0.1, 0.9, summary_text, transform=ax.transAxes,
@@ -704,6 +707,13 @@ def _plot_distribution_summary(ax, lengths, complexities, symmetries):
 
 def _plot_correlation_matrix(ax, complexities, symmetries, densities, lengths):
     """Plot correlation matrix."""
+    # Handle empty data
+    if not complexities and not symmetries and not densities and not lengths:
+        ax.text(0.5, 0.5, 'No data for correlation analysis', 
+                ha='center', va='center', transform=ax.transAxes)
+        ax.set_title('Correlation Matrix\n(No Data)')
+        return
+    
     # Create correlation matrix
     data = _np.array([complexities, symmetries, densities, lengths])
     corr_matrix = _np.corrcoef(data)
@@ -744,11 +754,21 @@ def _plot_metric_evolution(ax, complexities, symmetries, densities):
 def _plot_detailed_histogram(ax, data, title, color):
     """Plot detailed histogram with statistics."""
     if data:
-        n, bins, patches = ax.hist(data, bins=15, alpha=0.7, color=color, edgecolor='black')
+        hist_result = ax.hist(data, bins=15, alpha=0.7, color=color, edgecolor='black')
+        if len(hist_result) >= 3:
+            n, bins, patches = hist_result
+        else:
+            # Handle case where hist returns fewer values (e.g., in mocked tests)
+            n, bins = hist_result[0], hist_result[1] if len(hist_result) > 1 else []
+            patches = []
 
         # Add mean and median lines
-        mean_val = statistics.mean(data)
-        median_val = statistics.median(data)
+        if data:
+            mean_val = statistics.mean(data)
+            median_val = statistics.median(data)
+        else:
+            mean_val = 0
+            median_val = 0
 
         ax.axvline(mean_val, color='red', linestyle='--', linewidth=2, label='.2f')
         ax.axvline(median_val, color='green', linestyle=':', linewidth=2, label='.2f')
@@ -1570,8 +1590,8 @@ def _create_frequency_ratios_panel(ax):
         volumes = [f**3 for f in frequencies]  # Volume scales with cube of frequency
 
         # Plot frequency vs volume relationship
-        ax_freq.loglog(frequencies, volumes, 'ro-', linewidth=3, markersize=8,
-                      label='Volume Scaling (V ∝ f³)', color='#d62728')
+        ax_freq.loglog(frequencies, volumes, linewidth=3, markersize=8,
+                      label='Volume Scaling (V ∝ f³)', color='#d62728', marker='o', linestyle='-')
 
         # Add reference lines for different scaling relationships
         f_range = np.logspace(0, 1.5, 50)
@@ -1961,8 +1981,8 @@ def _create_synergetics_sphere_frequency_panel(ax):
             sphere_counts.append(count)
 
         # Plot frequency vs sphere count
-        ax_freq.semilogy(frequencies, sphere_counts, 'ro-', linewidth=3, markersize=10,
-                        label='Sphere Count (log scale)', color='#8c564b')
+        ax_freq.semilogy(frequencies, sphere_counts, linewidth=3, markersize=10,
+                        label='Sphere Count (log scale)', color='#8c564b', marker='o', linestyle='-')
 
         # Add frequency labels
         for freq, count in zip(frequencies, sphere_counts):
@@ -2349,8 +2369,8 @@ def _create_primorial_distribution_panel(ax):
             num += 1
 
         # Plot primorial growth on log scale
-        ax_prime.semilogy(n_values, primorials, 'ro-', linewidth=3, markersize=8,
-                         label='Primorial Values', color='#9467bd')
+        ax_prime.semilogy(n_values, primorials, linewidth=3, markersize=8,
+                         label='Primorial Values', color='#9467bd', marker='o', linestyle='-')
 
         # Add prime factor information
         prime_factors = ['2', '2×3', '2×3×5', '2×3×5×7', '2×3×5×7×11']

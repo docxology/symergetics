@@ -1,6 +1,6 @@
 # Comparative Analysis Report
 
-**Generated:** 2025-09-11T13:27:14.562774
+**Generated:** 2025-09-11T20:35:20.814204
 
 ## Summary
 
@@ -8,24 +8,23 @@
 ## Key Insights
 
 - Similar palindromic pattern distribution between domains
-- Domains show similar complexity patterns
 
 ## Comparisons
 
 ### Palindromic Ratio
-- **Small Geometric Numbers:** 0.1579
-- **Large Geometric Numbers:** 0.2105
-- **difference:** 0.0526
-- **ratio:** 1.3333
+- **Small Geometric Numbers:** 0.2105
+- **Large Geometric Numbers:** 0.1579
+- **difference:** -0.0526
+- **ratio:** 0.7500
 
 ### Complexity
-- **Small Geometric Numbers:** 0.7737
-- **Large Geometric Numbers:** 0.7421
-- **difference:** -0.0316
-- **similarity:** 0.9592
+- **Small Geometric Numbers:** 0.8895
+- **Large Geometric Numbers:** 0.6263
+- **difference:** -0.2632
+- **similarity:** 0.7041
 
 ### Symmetry
-- **Small Geometric Numbers:** 0.1404
-- **Large Geometric Numbers:** 0.1754
-- **difference:** 0.0351
-- **similarity:** 0.8000
+- **Small Geometric Numbers:** 0.1930
+- **Large Geometric Numbers:** 0.1228
+- **difference:** -0.0702
+- **similarity:** 0.6364

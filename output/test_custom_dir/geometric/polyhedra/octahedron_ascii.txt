@@ -1,0 +1,12 @@
+Octahedron
+Volume: 4 IVM units
+Vertices: 6
+
+ASCII Art:
+
+          /\
+         /  \
+        /____\
+        \    /
+         \  /
+          \/

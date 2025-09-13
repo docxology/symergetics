@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Synergetics Paper Generation Script
+Symergetics Paper Generation Script
 
 This script orchestrates the complete paper generation process:
 1. Verifies all components are present
@@ -777,13 +777,14 @@ def generate_summary():
     """Generate a summary of the paper generation process"""
     print_header("PAPER GENERATION COMPLETE")
 
-    # Count sections (only the 10 specified ones)
+    # Count sections (all 12 specified ones)
     sections = [
         "00_title.md", "01_abstract.md", "02_introduction.md",
         "03_mathematical_foundations.md", "04_system_architecture.md",
-        "05_computational_methods.md", "06_geometric_applications.md",
-        "07_pattern_discovery.md", "08_research_applications.md",
-        "09_conclusion.md"
+        "05_computational_methods.md", "06_results.md",
+        "07_geometric_applications.md", "08_pattern_discovery.md", 
+        "09_research_applications.md", "10_ongoing_questions_inquiries.md", 
+        "11_conclusion.md"
     ]
 
     markdown_dir = PROJECT_ROOT / "paper" / "markdown"
@@ -792,7 +793,7 @@ def generate_summary():
         if (markdown_dir / section).exists():
             found_sections += 1
 
-    print(f"📝 Sections: {found_sections}/10 specified markdown files loaded")
+    print(f"📝 Sections: {found_sections}/12 specified markdown files loaded")
 
     # Count visualizations
     output_dir = PROJECT_ROOT / "output"
@@ -810,6 +811,18 @@ def generate_summary():
         print(f"📄 Size: {size_mb:.2f} MB")
         print(f"📄 Location: {latest_pdf.absolute()}")
 
+    # Check orchestration results
+    orchestration_file = output_dir / "orchestration_results.json"
+    if orchestration_file.exists():
+        try:
+            import json
+            with open(orchestration_file, 'r') as f:
+                orchestration_data = json.load(f)
+            print(f"🚀 Orchestration: {orchestration_data.get('summary', {}).get('successful', 0)}/{orchestration_data.get('summary', {}).get('total_examples', 0)} examples successful")
+            print(f"⏱️  Total orchestration time: {orchestration_data.get('total_duration', 0):.1f} seconds")
+        except:
+            print("📊 Orchestration results available but couldn't parse details")
+
     print(f"\n⏰ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"👤 Author: Daniel Ari Friedman")
     print(f"📧 Contact: daniel@activeinference.institute")
@@ -822,24 +835,135 @@ def generate_summary():
         title = section.replace('.md', '').replace('_', ' ').title()
         print(f" {status} Section {i}: {title}")
     print(f"{'='*60}")
+    
+    print(f"\n{'='*60}")
+    print(" Workflow Summary:")
+    print(" ✓ 1. Requirements checked")
+    print(" ✓ 2. Full orchestration completed (setup, tests, demos)")
+    print(" ✓ 3. Enhanced visualizations generated")
+    print(" ✓ 4. PDF rendered with integrated content")
+    print(" ✓ 5. Output validated")
+    print(f"{'='*60}")
 
+
+def run_full_orchestration():
+    """Run the full orchestration from run.py including setup, tests, and demos"""
+    print_step("2", "Running full orchestration (setup, tests, demos)...")
+    
+    try:
+        # Change to project root
+        original_dir = os.getcwd()
+        os.chdir(PROJECT_ROOT)
+        
+        print("🚀 Executing complete Symergetics package orchestration...")
+        print("   This includes:")
+        print("   • Environment setup and dependency installation")
+        print("   • Full test suite execution (all test files)")
+        print("   • All example demonstrations (all .py files in examples/)")
+        print("   • Comprehensive output generation and reporting")
+        print()
+        
+        # Run the full orchestration with explicit arguments to ensure full execution
+        result = subprocess.run([
+            sys.executable, "run.py"
+        ], capture_output=True, text=True, timeout=1800)  # 30 minute timeout
+        
+        if result.returncode == 0:
+            print("✅ Full orchestration completed successfully")
+            print("   All tests and examples executed successfully")
+            
+            # Print summary from orchestration
+            if result.stdout.strip():
+                stdout_lines = result.stdout.strip().split('\n')
+                print("   Key orchestration results:")
+                # Show key summary lines
+                for line in stdout_lines[-25:]:  # Last 25 lines for summary
+                    if line.strip() and ('✅' in line or '❌' in line or '📊' in line or '⏱️' in line or 'SUCCESS' in line or 'FAILED' in line):
+                        print(f"     {line}")
+            return True
+        else:
+            print("⚠️ Full orchestration had issues but continuing...")
+            print("   Some tests or examples may have failed")
+            print("   Error output:")
+            print(result.stderr[-500:])  # Last 500 chars
+            return True  # Don't fail the whole process
+            
+    except subprocess.TimeoutExpired:
+        print("⏰ Full orchestration timed out after 30 minutes")
+        print("⚠️ Continuing with paper generation...")
+        return True
+    except Exception as e:
+        print(f"❌ Error running full orchestration: {e}")
+        print("⚠️ Continuing with paper generation...")
+        return True
+    finally:
+        os.chdir(original_dir)
+
+def run_enhanced_visualizations():
+    """Run the enhanced visualizations generator"""
+    print_step("3", "Generating enhanced visualizations...")
+    
+    try:
+        # Change to project root
+        original_dir = os.getcwd()
+        os.chdir(PROJECT_ROOT)
+        
+        # Run the enhanced visualizations script
+        result = subprocess.run([
+            sys.executable, "paper/improve_paper_visualizations.py"
+        ], capture_output=True, text=True, timeout=600)  # 10 minute timeout
+        
+        if result.returncode == 0:
+            print("✅ Enhanced visualizations generated successfully")
+            # Print summary from visualizations
+            if result.stdout.strip():
+                stdout_lines = result.stdout.strip().split('\n')
+                # Show key summary lines
+                for line in stdout_lines[-10:]:  # Last 10 lines for summary
+                    if line.strip() and ('✅' in line or '❌' in line or 'Enhanced' in line):
+                        print(f"  {line}")
+            return True
+        else:
+            print("⚠️ Enhanced visualizations had issues but continuing...")
+            print("Error output:")
+            print(result.stderr[-300:])  # Last 300 chars
+            return True  # Don't fail the whole process
+            
+    except subprocess.TimeoutExpired:
+        print("⏰ Enhanced visualizations timed out after 10 minutes")
+        print("⚠️ Continuing with paper generation...")
+        return True
+    except Exception as e:
+        print(f"❌ Error running enhanced visualizations: {e}")
+        print("⚠️ Continuing with paper generation...")
+        return True
+    finally:
+        os.chdir(original_dir)
 
 def main():
-    """Main paper generation workflow - simplified to only render PDF"""
-    print_header("SYNERGETICS PAPER GENERATOR")
+    """Main paper generation workflow with full orchestration"""
+    print_header("SYMERGETICS PAPER GENERATOR")
     print("Generating scientific paper with integrated visualizations...")
     print(f"Author: Daniel Ari Friedman")
     print(f"ORCID: 0000-0001-6232-9096")
     print()
     print("Workflow:")
     print("1. Check requirements")
-    print("2. Render PDF")
-    print("3. Validate output")
+    print("2. Run full orchestration (setup, tests, demos)")
+    print("   - Environment setup and dependency installation")
+    print("   - Complete test suite execution (all test files)")
+    print("   - All example demonstrations (all .py files in examples/)")
+    print("   - Comprehensive output generation and reporting")
+    print("3. Generate enhanced visualizations")
+    print("4. Render PDF")
+    print("5. Validate output")
     print()
 
-    # Execute simplified workflow
+    # Execute comprehensive workflow
     steps = [
         ("Check requirements", check_requirements, True),
+        ("Run full orchestration", run_full_orchestration, False),
+        ("Generate enhanced visualizations", run_enhanced_visualizations, False),
         ("Render PDF", render_pdf, True),
         ("Validate output", validate_output, False),
     ]

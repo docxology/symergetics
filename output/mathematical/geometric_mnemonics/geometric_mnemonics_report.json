@@ -13,26 +13,6 @@
     "platonic_relationships": {
       "tetrahedron": [
         {
-          "scaling_factor": 239,
-          "relationship_type": "volume_multiple",
-          "description": "239 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 60,
-          "relationship_type": "volume_multiple",
-          "description": "60 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 35,
-          "relationship_type": "volume_multiple",
-          "description": "35 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 470,
-          "relationship_type": "volume_multiple",
-          "description": "470 × tetrahedron volume"
-        },
-        {
           "scaling_factor": 20,
           "relationship_type": "volume_multiple",
           "description": "20 × tetrahedron volume"
@@ -43,54 +23,9 @@
           "description": "72 × tetrahedron volume"
         },
         {
-          "scaling_factor": 4,
-          "relationship_type": "volume_multiple",
-          "description": "4 × tetrahedron volume"
-        },
-        {
           "scaling_factor": 360,
           "relationship_type": "volume_multiple",
           "description": "360 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 10,
-          "relationship_type": "volume_multiple",
-          "description": "10 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 31415,
-          "relationship_type": "volume_multiple",
-          "description": "31415 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 3141,
-          "relationship_type": "volume_multiple",
-          "description": "3141 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 24,
-          "relationship_type": "volume_multiple",
-          "description": "24 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 240,
-          "relationship_type": "volume_multiple",
-          "description": "240 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 610,
-          "relationship_type": "volume_multiple",
-          "description": "610 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 414213,
-          "relationship_type": "volume_multiple",
-          "description": "414213 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 132,
-          "relationship_type": "volume_multiple",
-          "description": "132 × tetrahedron volume"
         },
         {
           "scaling_factor": 120,
@@ -98,9 +33,19 @@
           "description": "120 × tetrahedron volume"
         },
         {
-          "scaling_factor": 123454321,
+          "scaling_factor": 610,
           "relationship_type": "volume_multiple",
-          "description": "123454321 × tetrahedron volume"
+          "description": "610 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 470,
+          "relationship_type": "volume_multiple",
+          "description": "470 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "volume_multiple",
+          "description": "4 × tetrahedron volume"
         },
         {
           "scaling_factor": 22,
@@ -108,74 +53,9 @@
           "description": "22 × tetrahedron volume"
         },
         {
-          "scaling_factor": 577215,
+          "scaling_factor": 414213,
           "relationship_type": "volume_multiple",
-          "description": "577215 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 30,
-          "relationship_type": "volume_multiple",
-          "description": "30 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 36,
-          "relationship_type": "volume_multiple",
-          "description": "36 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 377,
-          "relationship_type": "volume_multiple",
-          "description": "377 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 314,
-          "relationship_type": "volume_multiple",
-          "description": "314 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 40,
-          "relationship_type": "volume_multiple",
-          "description": "40 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 1001,
-          "relationship_type": "volume_multiple",
-          "description": "1001 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 19,
-          "relationship_type": "volume_multiple",
-          "description": "19 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 577,
-          "relationship_type": "volume_multiple",
-          "description": "577 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 355,
-          "relationship_type": "volume_multiple",
-          "description": "355 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 42,
-          "relationship_type": "volume_multiple",
-          "description": "42 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 48,
-          "relationship_type": "volume_multiple",
-          "description": "48 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 92,
-          "relationship_type": "volume_multiple",
-          "description": "92 × tetrahedron volume"
-        },
-        {
-          "scaling_factor": 12,
-          "relationship_type": "volume_multiple",
-          "description": "12 × tetrahedron volume"
+          "description": "414213 × tetrahedron volume"
         },
         {
           "scaling_factor": 314159,
@@ -183,14 +63,64 @@
           "description": "314159 × tetrahedron volume"
         },
         {
+          "scaling_factor": 12321,
+          "relationship_type": "volume_multiple",
+          "description": "12321 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 30,
+          "relationship_type": "volume_multiple",
+          "description": "30 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 577215,
+          "relationship_type": "volume_multiple",
+          "description": "577215 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 577,
+          "relationship_type": "volume_multiple",
+          "description": "577 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 60,
+          "relationship_type": "volume_multiple",
+          "description": "60 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 24,
+          "relationship_type": "volume_multiple",
+          "description": "24 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 132,
+          "relationship_type": "volume_multiple",
+          "description": "132 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 12,
+          "relationship_type": "volume_multiple",
+          "description": "12 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 123454321,
+          "relationship_type": "volume_multiple",
+          "description": "123454321 × tetrahedron volume"
+        },
+        {
           "scaling_factor": 1,
           "relationship_type": "volume_multiple",
           "description": "1 × tetrahedron volume"
         },
         {
-          "scaling_factor": 6,
+          "scaling_factor": 314,
           "relationship_type": "volume_multiple",
-          "description": "6 × tetrahedron volume"
+          "description": "314 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 19,
+          "relationship_type": "volume_multiple",
+          "description": "19 × tetrahedron volume"
         },
         {
           "scaling_factor": 665,
@@ -198,17 +128,82 @@
           "description": "665 × tetrahedron volume"
         },
         {
-          "scaling_factor": 12321,
+          "scaling_factor": 240,
           "relationship_type": "volume_multiple",
-          "description": "12321 × tetrahedron volume"
+          "description": "240 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 42,
+          "relationship_type": "volume_multiple",
+          "description": "42 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 1001,
+          "relationship_type": "volume_multiple",
+          "description": "1001 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 377,
+          "relationship_type": "volume_multiple",
+          "description": "377 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 355,
+          "relationship_type": "volume_multiple",
+          "description": "355 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 10,
+          "relationship_type": "volume_multiple",
+          "description": "10 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 36,
+          "relationship_type": "volume_multiple",
+          "description": "36 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 40,
+          "relationship_type": "volume_multiple",
+          "description": "40 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 239,
+          "relationship_type": "volume_multiple",
+          "description": "239 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 3141,
+          "relationship_type": "volume_multiple",
+          "description": "3141 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 92,
+          "relationship_type": "volume_multiple",
+          "description": "92 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 31415,
+          "relationship_type": "volume_multiple",
+          "description": "31415 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 48,
+          "relationship_type": "volume_multiple",
+          "description": "48 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 35,
+          "relationship_type": "volume_multiple",
+          "description": "35 × tetrahedron volume"
+        },
+        {
+          "scaling_factor": 6,
+          "relationship_type": "volume_multiple",
+          "description": "6 × tetrahedron volume"
         }
       ],
       "octahedron": [
-        {
-          "scaling_factor": 15,
-          "relationship_type": "volume_multiple",
-          "description": "15 × octahedron volume"
-        },
         {
           "scaling_factor": 5,
           "relationship_type": "volume_multiple",
@@ -220,14 +215,24 @@
           "description": "18 × octahedron volume"
         },
         {
+          "scaling_factor": 90,
+          "relationship_type": "volume_multiple",
+          "description": "90 × octahedron volume"
+        },
+        {
+          "scaling_factor": 30,
+          "relationship_type": "volume_multiple",
+          "description": "30 × octahedron volume"
+        },
+        {
           "scaling_factor": 1,
           "relationship_type": "volume_multiple",
           "description": "1 × octahedron volume"
         },
         {
-          "scaling_factor": 90,
+          "scaling_factor": 15,
           "relationship_type": "volume_multiple",
-          "description": "90 × octahedron volume"
+          "description": "15 × octahedron volume"
         },
         {
           "scaling_factor": 6,
@@ -235,19 +240,19 @@
           "description": "6 × octahedron volume"
         },
         {
-          "scaling_factor": 60,
-          "relationship_type": "volume_multiple",
-          "description": "60 × octahedron volume"
-        },
-        {
           "scaling_factor": 33,
           "relationship_type": "volume_multiple",
           "description": "33 × octahedron volume"
         },
         {
-          "scaling_factor": 30,
+          "scaling_factor": 3,
           "relationship_type": "volume_multiple",
-          "description": "30 × octahedron volume"
+          "description": "3 × octahedron volume"
+        },
+        {
+          "scaling_factor": 60,
+          "relationship_type": "volume_multiple",
+          "description": "60 × octahedron volume"
         },
         {
           "scaling_factor": 9,
@@ -260,114 +265,17 @@
           "description": "10 × octahedron volume"
         },
         {
-          "scaling_factor": 12,
-          "relationship_type": "volume_multiple",
-          "description": "12 × octahedron volume"
-        },
-        {
           "scaling_factor": 23,
           "relationship_type": "volume_multiple",
           "description": "23 × octahedron volume"
         },
         {
-          "scaling_factor": 3,
-          "relationship_type": "volume_multiple",
-          "description": "3 × octahedron volume"
-        }
-      ],
-      "cube": [
-        {
-          "scaling_factor": 20,
-          "relationship_type": "volume_multiple",
-          "description": "20 × cube volume"
-        },
-        {
-          "scaling_factor": 24,
-          "relationship_type": "volume_multiple",
-          "description": "24 × cube volume"
-        },
-        {
-          "scaling_factor": 120,
-          "relationship_type": "volume_multiple",
-          "description": "120 × cube volume"
-        },
-        {
-          "scaling_factor": 1047,
-          "relationship_type": "volume_multiple",
-          "description": "1047 × cube volume"
-        },
-        {
-          "scaling_factor": 8,
-          "relationship_type": "volume_multiple",
-          "description": "8 × cube volume"
-        },
-        {
-          "scaling_factor": 80,
-          "relationship_type": "volume_multiple",
-          "description": "80 × cube volume"
-        },
-        {
-          "scaling_factor": 138071,
-          "relationship_type": "volume_multiple",
-          "description": "138071 × cube volume"
-        },
-        {
-          "scaling_factor": 44,
-          "relationship_type": "volume_multiple",
-          "description": "44 × cube volume"
-        },
-        {
-          "scaling_factor": 40,
-          "relationship_type": "volume_multiple",
-          "description": "40 × cube volume"
-        },
-        {
-          "scaling_factor": 192405,
-          "relationship_type": "volume_multiple",
-          "description": "192405 × cube volume"
-        },
-        {
-          "scaling_factor": 10,
-          "relationship_type": "volume_multiple",
-          "description": "10 × cube volume"
-        },
-        {
           "scaling_factor": 12,
           "relationship_type": "volume_multiple",
-          "description": "12 × cube volume"
-        },
-        {
-          "scaling_factor": 14,
-          "relationship_type": "volume_multiple",
-          "description": "14 × cube volume"
-        },
-        {
-          "scaling_factor": 16,
-          "relationship_type": "volume_multiple",
-          "description": "16 × cube volume"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "volume_multiple",
-          "description": "4 × cube volume"
-        },
-        {
-          "scaling_factor": 2,
-          "relationship_type": "volume_multiple",
-          "description": "2 × cube volume"
-        },
-        {
-          "scaling_factor": 4107,
-          "relationship_type": "volume_multiple",
-          "description": "4107 × cube volume"
+          "description": "12 × octahedron volume"
         }
       ],
       "cuboctahedron": [
-        {
-          "scaling_factor": 3,
-          "relationship_type": "volume_multiple",
-          "description": "3 × cuboctahedron volume"
-        },
         {
           "scaling_factor": 1,
           "relationship_type": "volume_multiple",
@@ -379,14 +287,19 @@
           "description": "18 × cuboctahedron volume"
         },
         {
-          "scaling_factor": 12,
-          "relationship_type": "volume_multiple",
-          "description": "12 × cuboctahedron volume"
-        },
-        {
           "scaling_factor": 6,
           "relationship_type": "volume_multiple",
           "description": "6 × cuboctahedron volume"
+        },
+        {
+          "scaling_factor": 3,
+          "relationship_type": "volume_multiple",
+          "description": "3 × cuboctahedron volume"
+        },
+        {
+          "scaling_factor": 12,
+          "relationship_type": "volume_multiple",
+          "description": "12 × cuboctahedron volume"
         },
         {
           "scaling_factor": 2,
@@ -394,304 +307,7 @@
           "description": "2 × cuboctahedron volume"
         }
       ],
-      "rhombic_dodecahedron": [
-        {
-          "scaling_factor": 10,
-          "relationship_type": "volume_multiple",
-          "description": "10 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 12,
-          "relationship_type": "volume_multiple",
-          "description": "12 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 60,
-          "relationship_type": "volume_multiple",
-          "description": "60 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "volume_multiple",
-          "description": "4 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 40,
-          "relationship_type": "volume_multiple",
-          "description": "40 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 22,
-          "relationship_type": "volume_multiple",
-          "description": "22 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 20,
-          "relationship_type": "volume_multiple",
-          "description": "20 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 5,
-          "relationship_type": "volume_multiple",
-          "description": "5 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 6,
-          "relationship_type": "volume_multiple",
-          "description": "6 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 7,
-          "relationship_type": "volume_multiple",
-          "description": "7 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 8,
-          "relationship_type": "volume_multiple",
-          "description": "8 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 2,
-          "relationship_type": "volume_multiple",
-          "description": "2 × rhombic_dodecahedron volume"
-        },
-        {
-          "scaling_factor": 1,
-          "relationship_type": "volume_multiple",
-          "description": "1 × rhombic_dodecahedron volume"
-        }
-      ],
-      "tetrahedron_edges": [
-        {
-          "scaling_factor": 10,
-          "relationship_type": "edge_count",
-          "description": "10 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 12,
-          "relationship_type": "edge_count",
-          "description": "12 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 60,
-          "relationship_type": "edge_count",
-          "description": "60 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "edge_count",
-          "description": "4 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 40,
-          "relationship_type": "edge_count",
-          "description": "40 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 22,
-          "relationship_type": "edge_count",
-          "description": "22 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 20,
-          "relationship_type": "edge_count",
-          "description": "20 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 5,
-          "relationship_type": "edge_count",
-          "description": "5 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 6,
-          "relationship_type": "edge_count",
-          "description": "6 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 7,
-          "relationship_type": "edge_count",
-          "description": "7 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 8,
-          "relationship_type": "edge_count",
-          "description": "8 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 2,
-          "relationship_type": "edge_count",
-          "description": "2 × tetrahedron edges (6)"
-        },
-        {
-          "scaling_factor": 1,
-          "relationship_type": "edge_count",
-          "description": "1 × tetrahedron edges (6)"
-        }
-      ],
-      "octahedron_edges": [
-        {
-          "scaling_factor": 5,
-          "relationship_type": "edge_count",
-          "description": "5 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 6,
-          "relationship_type": "edge_count",
-          "description": "6 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 30,
-          "relationship_type": "edge_count",
-          "description": "30 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 2,
-          "relationship_type": "edge_count",
-          "description": "2 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 20,
-          "relationship_type": "edge_count",
-          "description": "20 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 11,
-          "relationship_type": "edge_count",
-          "description": "11 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 10,
-          "relationship_type": "edge_count",
-          "description": "10 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 3,
-          "relationship_type": "edge_count",
-          "description": "3 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "edge_count",
-          "description": "4 × octahedron edges (12)"
-        },
-        {
-          "scaling_factor": 1,
-          "relationship_type": "edge_count",
-          "description": "1 × octahedron edges (12)"
-        }
-      ],
-      "cube_edges": [
-        {
-          "scaling_factor": 5,
-          "relationship_type": "edge_count",
-          "description": "5 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 6,
-          "relationship_type": "edge_count",
-          "description": "6 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 30,
-          "relationship_type": "edge_count",
-          "description": "30 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 2,
-          "relationship_type": "edge_count",
-          "description": "2 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 20,
-          "relationship_type": "edge_count",
-          "description": "20 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 11,
-          "relationship_type": "edge_count",
-          "description": "11 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 10,
-          "relationship_type": "edge_count",
-          "description": "10 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 3,
-          "relationship_type": "edge_count",
-          "description": "3 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "edge_count",
-          "description": "4 × cube edges (12)"
-        },
-        {
-          "scaling_factor": 1,
-          "relationship_type": "edge_count",
-          "description": "1 × cube edges (12)"
-        }
-      ],
-      "icosahedron_edges": [
-        {
-          "scaling_factor": 2,
-          "relationship_type": "edge_count",
-          "description": "2 × icosahedron edges (30)"
-        },
-        {
-          "scaling_factor": 12,
-          "relationship_type": "edge_count",
-          "description": "12 × icosahedron edges (30)"
-        },
-        {
-          "scaling_factor": 8,
-          "relationship_type": "edge_count",
-          "description": "8 × icosahedron edges (30)"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "edge_count",
-          "description": "4 × icosahedron edges (30)"
-        },
-        {
-          "scaling_factor": 1,
-          "relationship_type": "edge_count",
-          "description": "1 × icosahedron edges (30)"
-        }
-      ],
-      "dodecahedron_edges": [
-        {
-          "scaling_factor": 2,
-          "relationship_type": "edge_count",
-          "description": "2 × dodecahedron edges (30)"
-        },
-        {
-          "scaling_factor": 12,
-          "relationship_type": "edge_count",
-          "description": "12 × dodecahedron edges (30)"
-        },
-        {
-          "scaling_factor": 8,
-          "relationship_type": "edge_count",
-          "description": "8 × dodecahedron edges (30)"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "edge_count",
-          "description": "4 × dodecahedron edges (30)"
-        },
-        {
-          "scaling_factor": 1,
-          "relationship_type": "edge_count",
-          "description": "1 × dodecahedron edges (30)"
-        }
-      ],
       "tetrahedron_faces": [
-        {
-          "scaling_factor": 15,
-          "relationship_type": "face_count",
-          "description": "15 × tetrahedron faces (4)"
-        },
         {
           "scaling_factor": 5,
           "relationship_type": "face_count",
@@ -703,14 +319,24 @@
           "description": "18 × tetrahedron faces (4)"
         },
         {
+          "scaling_factor": 90,
+          "relationship_type": "face_count",
+          "description": "90 × tetrahedron faces (4)"
+        },
+        {
+          "scaling_factor": 30,
+          "relationship_type": "face_count",
+          "description": "30 × tetrahedron faces (4)"
+        },
+        {
           "scaling_factor": 1,
           "relationship_type": "face_count",
           "description": "1 × tetrahedron faces (4)"
         },
         {
-          "scaling_factor": 90,
+          "scaling_factor": 15,
           "relationship_type": "face_count",
-          "description": "90 × tetrahedron faces (4)"
+          "description": "15 × tetrahedron faces (4)"
         },
         {
           "scaling_factor": 6,
@@ -718,19 +344,19 @@
           "description": "6 × tetrahedron faces (4)"
         },
         {
-          "scaling_factor": 60,
-          "relationship_type": "face_count",
-          "description": "60 × tetrahedron faces (4)"
-        },
-        {
           "scaling_factor": 33,
           "relationship_type": "face_count",
           "description": "33 × tetrahedron faces (4)"
         },
         {
-          "scaling_factor": 30,
+          "scaling_factor": 3,
           "relationship_type": "face_count",
-          "description": "30 × tetrahedron faces (4)"
+          "description": "3 × tetrahedron faces (4)"
+        },
+        {
+          "scaling_factor": 60,
+          "relationship_type": "face_count",
+          "description": "60 × tetrahedron faces (4)"
         },
         {
           "scaling_factor": 9,
@@ -743,94 +369,17 @@
           "description": "10 × tetrahedron faces (4)"
         },
         {
-          "scaling_factor": 12,
-          "relationship_type": "face_count",
-          "description": "12 × tetrahedron faces (4)"
-        },
-        {
           "scaling_factor": 23,
           "relationship_type": "face_count",
           "description": "23 × tetrahedron faces (4)"
         },
         {
-          "scaling_factor": 3,
-          "relationship_type": "face_count",
-          "description": "3 × tetrahedron faces (4)"
-        }
-      ],
-      "cube_faces": [
-        {
-          "scaling_factor": 10,
-          "relationship_type": "face_count",
-          "description": "10 × cube faces (6)"
-        },
-        {
           "scaling_factor": 12,
           "relationship_type": "face_count",
-          "description": "12 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 60,
-          "relationship_type": "face_count",
-          "description": "60 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 4,
-          "relationship_type": "face_count",
-          "description": "4 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 40,
-          "relationship_type": "face_count",
-          "description": "40 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 22,
-          "relationship_type": "face_count",
-          "description": "22 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 20,
-          "relationship_type": "face_count",
-          "description": "20 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 5,
-          "relationship_type": "face_count",
-          "description": "5 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 6,
-          "relationship_type": "face_count",
-          "description": "6 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 7,
-          "relationship_type": "face_count",
-          "description": "7 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 8,
-          "relationship_type": "face_count",
-          "description": "8 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 2,
-          "relationship_type": "face_count",
-          "description": "2 × cube faces (6)"
-        },
-        {
-          "scaling_factor": 1,
-          "relationship_type": "face_count",
-          "description": "1 × cube faces (6)"
+          "description": "12 × tetrahedron faces (4)"
         }
       ],
       "icosahedron_faces": [
-        {
-          "scaling_factor": 3,
-          "relationship_type": "face_count",
-          "description": "3 × icosahedron faces (20)"
-        },
         {
           "scaling_factor": 1,
           "relationship_type": "face_count",
@@ -842,14 +391,19 @@
           "description": "18 × icosahedron faces (20)"
         },
         {
-          "scaling_factor": 12,
-          "relationship_type": "face_count",
-          "description": "12 × icosahedron faces (20)"
-        },
-        {
           "scaling_factor": 6,
           "relationship_type": "face_count",
           "description": "6 × icosahedron faces (20)"
+        },
+        {
+          "scaling_factor": 3,
+          "relationship_type": "face_count",
+          "description": "3 × icosahedron faces (20)"
+        },
+        {
+          "scaling_factor": 12,
+          "relationship_type": "face_count",
+          "description": "12 × icosahedron faces (20)"
         },
         {
           "scaling_factor": 2,
@@ -857,113 +411,329 @@
           "description": "2 × icosahedron faces (20)"
         }
       ],
-      "dodecahedron_faces": [
+      "cube": [
         {
-          "scaling_factor": 5,
-          "relationship_type": "face_count",
-          "description": "5 × dodecahedron faces (12)"
+          "scaling_factor": 24,
+          "relationship_type": "volume_multiple",
+          "description": "24 × cube volume"
         },
         {
-          "scaling_factor": 6,
-          "relationship_type": "face_count",
-          "description": "6 × dodecahedron faces (12)"
+          "scaling_factor": 120,
+          "relationship_type": "volume_multiple",
+          "description": "120 × cube volume"
         },
         {
-          "scaling_factor": 30,
-          "relationship_type": "face_count",
-          "description": "30 × dodecahedron faces (12)"
+          "scaling_factor": 40,
+          "relationship_type": "volume_multiple",
+          "description": "40 × cube volume"
         },
         {
-          "scaling_factor": 2,
-          "relationship_type": "face_count",
-          "description": "2 × dodecahedron faces (12)"
+          "scaling_factor": 138071,
+          "relationship_type": "volume_multiple",
+          "description": "138071 × cube volume"
         },
         {
-          "scaling_factor": 20,
-          "relationship_type": "face_count",
-          "description": "20 × dodecahedron faces (12)"
-        },
-        {
-          "scaling_factor": 11,
-          "relationship_type": "face_count",
-          "description": "11 × dodecahedron faces (12)"
+          "scaling_factor": 4107,
+          "relationship_type": "volume_multiple",
+          "description": "4107 × cube volume"
         },
         {
           "scaling_factor": 10,
-          "relationship_type": "face_count",
-          "description": "10 × dodecahedron faces (12)"
+          "relationship_type": "volume_multiple",
+          "description": "10 × cube volume"
         },
         {
-          "scaling_factor": 3,
-          "relationship_type": "face_count",
-          "description": "3 × dodecahedron faces (12)"
+          "scaling_factor": 192405,
+          "relationship_type": "volume_multiple",
+          "description": "192405 × cube volume"
+        },
+        {
+          "scaling_factor": 20,
+          "relationship_type": "volume_multiple",
+          "description": "20 × cube volume"
+        },
+        {
+          "scaling_factor": 8,
+          "relationship_type": "volume_multiple",
+          "description": "8 × cube volume"
+        },
+        {
+          "scaling_factor": 44,
+          "relationship_type": "volume_multiple",
+          "description": "44 × cube volume"
         },
         {
           "scaling_factor": 4,
-          "relationship_type": "face_count",
-          "description": "4 × dodecahedron faces (12)"
+          "relationship_type": "volume_multiple",
+          "description": "4 × cube volume"
+        },
+        {
+          "scaling_factor": 80,
+          "relationship_type": "volume_multiple",
+          "description": "80 × cube volume"
+        },
+        {
+          "scaling_factor": 14,
+          "relationship_type": "volume_multiple",
+          "description": "14 × cube volume"
+        },
+        {
+          "scaling_factor": 12,
+          "relationship_type": "volume_multiple",
+          "description": "12 × cube volume"
+        },
+        {
+          "scaling_factor": 1047,
+          "relationship_type": "volume_multiple",
+          "description": "1047 × cube volume"
+        },
+        {
+          "scaling_factor": 16,
+          "relationship_type": "volume_multiple",
+          "description": "16 × cube volume"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "volume_multiple",
+          "description": "2 × cube volume"
+        }
+      ],
+      "rhombic_dodecahedron": [
+        {
+          "scaling_factor": 12,
+          "relationship_type": "volume_multiple",
+          "description": "12 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 60,
+          "relationship_type": "volume_multiple",
+          "description": "60 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 20,
+          "relationship_type": "volume_multiple",
+          "description": "20 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 5,
+          "relationship_type": "volume_multiple",
+          "description": "5 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 10,
+          "relationship_type": "volume_multiple",
+          "description": "10 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "volume_multiple",
+          "description": "4 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 22,
+          "relationship_type": "volume_multiple",
+          "description": "22 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "volume_multiple",
+          "description": "2 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 40,
+          "relationship_type": "volume_multiple",
+          "description": "40 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 7,
+          "relationship_type": "volume_multiple",
+          "description": "7 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 6,
+          "relationship_type": "volume_multiple",
+          "description": "6 × rhombic_dodecahedron volume"
+        },
+        {
+          "scaling_factor": 8,
+          "relationship_type": "volume_multiple",
+          "description": "8 × rhombic_dodecahedron volume"
         },
         {
           "scaling_factor": 1,
-          "relationship_type": "face_count",
-          "description": "1 × dodecahedron faces (12)"
+          "relationship_type": "volume_multiple",
+          "description": "1 × rhombic_dodecahedron volume"
         }
       ],
-      "vector_equilibrium": [
+      "tetrahedron_edges": [
         {
-          "scaling_factor": 5,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "5 × vector equilibrium 12"
+          "scaling_factor": 12,
+          "relationship_type": "edge_count",
+          "description": "12 × tetrahedron edges (6)"
         },
         {
-          "scaling_factor": 9,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "9 × vector equilibrium 8"
+          "scaling_factor": 60,
+          "relationship_type": "edge_count",
+          "description": "60 × tetrahedron edges (6)"
         },
         {
-          "scaling_factor": 45,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "45 × vector equilibrium 8"
-        },
-        {
-          "scaling_factor": 3,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "3 × vector equilibrium 8"
+          "scaling_factor": 20,
+          "relationship_type": "edge_count",
+          "description": "20 × tetrahedron edges (6)"
         },
         {
           "scaling_factor": 5,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "5 × vector equilibrium 48"
+          "relationship_type": "edge_count",
+          "description": "5 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 10,
+          "relationship_type": "edge_count",
+          "description": "10 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "edge_count",
+          "description": "4 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 22,
+          "relationship_type": "edge_count",
+          "description": "22 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "edge_count",
+          "description": "2 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 40,
+          "relationship_type": "edge_count",
+          "description": "40 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 7,
+          "relationship_type": "edge_count",
+          "description": "7 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 6,
+          "relationship_type": "edge_count",
+          "description": "6 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 8,
+          "relationship_type": "edge_count",
+          "description": "8 × tetrahedron edges (6)"
+        },
+        {
+          "scaling_factor": 1,
+          "relationship_type": "edge_count",
+          "description": "1 × tetrahedron edges (6)"
+        }
+      ],
+      "octahedron_edges": [
+        {
+          "scaling_factor": 6,
+          "relationship_type": "edge_count",
+          "description": "6 × octahedron edges (12)"
+        },
+        {
+          "scaling_factor": 30,
+          "relationship_type": "edge_count",
+          "description": "30 × octahedron edges (12)"
+        },
+        {
+          "scaling_factor": 10,
+          "relationship_type": "edge_count",
+          "description": "10 × octahedron edges (12)"
+        },
+        {
+          "scaling_factor": 5,
+          "relationship_type": "edge_count",
+          "description": "5 × octahedron edges (12)"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "edge_count",
+          "description": "2 × octahedron edges (12)"
         },
         {
           "scaling_factor": 11,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "11 × vector equilibrium 12"
+          "relationship_type": "edge_count",
+          "description": "11 × octahedron edges (12)"
         },
         {
-          "scaling_factor": 15,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "15 × vector equilibrium 8"
+          "scaling_factor": 1,
+          "relationship_type": "edge_count",
+          "description": "1 × octahedron edges (12)"
+        },
+        {
+          "scaling_factor": 20,
+          "relationship_type": "edge_count",
+          "description": "20 × octahedron edges (12)"
         },
         {
           "scaling_factor": 3,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "3 × vector equilibrium 12"
+          "relationship_type": "edge_count",
+          "description": "3 × octahedron edges (12)"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "edge_count",
+          "description": "4 × octahedron edges (12)"
+        }
+      ],
+      "cube_edges": [
+        {
+          "scaling_factor": 6,
+          "relationship_type": "edge_count",
+          "description": "6 × cube edges (12)"
+        },
+        {
+          "scaling_factor": 30,
+          "relationship_type": "edge_count",
+          "description": "30 × cube edges (12)"
+        },
+        {
+          "scaling_factor": 10,
+          "relationship_type": "edge_count",
+          "description": "10 × cube edges (12)"
         },
         {
           "scaling_factor": 5,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "5 × vector equilibrium 8"
+          "relationship_type": "edge_count",
+          "description": "5 × cube edges (12)"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "edge_count",
+          "description": "2 × cube edges (12)"
+        },
+        {
+          "scaling_factor": 11,
+          "relationship_type": "edge_count",
+          "description": "11 × cube edges (12)"
         },
         {
           "scaling_factor": 1,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "1 × vector equilibrium 48"
+          "relationship_type": "edge_count",
+          "description": "1 × cube edges (12)"
         },
         {
-          "scaling_factor": 1,
-          "relationship_type": "vector_equilibrium_element",
-          "description": "1 × vector equilibrium 12"
+          "scaling_factor": 20,
+          "relationship_type": "edge_count",
+          "description": "20 × cube edges (12)"
+        },
+        {
+          "scaling_factor": 3,
+          "relationship_type": "edge_count",
+          "description": "3 × cube edges (12)"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "edge_count",
+          "description": "4 × cube edges (12)"
         }
       ],
       "cuboctahedron_edges": [
@@ -978,6 +748,11 @@
           "description": "15 × cuboctahedron edges (24)"
         },
         {
+          "scaling_factor": 5,
+          "relationship_type": "edge_count",
+          "description": "5 × cuboctahedron edges (24)"
+        },
+        {
           "scaling_factor": 1,
           "relationship_type": "edge_count",
           "description": "1 × cuboctahedron edges (24)"
@@ -986,11 +761,6 @@
           "scaling_factor": 10,
           "relationship_type": "edge_count",
           "description": "10 × cuboctahedron edges (24)"
-        },
-        {
-          "scaling_factor": 5,
-          "relationship_type": "edge_count",
-          "description": "5 × cuboctahedron edges (24)"
         },
         {
           "scaling_factor": 2,
@@ -1010,6 +780,11 @@
           "description": "45 × octahedron faces (8)"
         },
         {
+          "scaling_factor": 15,
+          "relationship_type": "face_count",
+          "description": "15 × octahedron faces (8)"
+        },
+        {
           "scaling_factor": 3,
           "relationship_type": "face_count",
           "description": "3 × octahedron faces (8)"
@@ -1018,11 +793,6 @@
           "scaling_factor": 30,
           "relationship_type": "face_count",
           "description": "30 × octahedron faces (8)"
-        },
-        {
-          "scaling_factor": 15,
-          "relationship_type": "face_count",
-          "description": "15 × octahedron faces (8)"
         },
         {
           "scaling_factor": 5,
@@ -1035,6 +805,182 @@
           "description": "6 × octahedron faces (8)"
         }
       ],
+      "cube_faces": [
+        {
+          "scaling_factor": 12,
+          "relationship_type": "face_count",
+          "description": "12 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 60,
+          "relationship_type": "face_count",
+          "description": "60 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 20,
+          "relationship_type": "face_count",
+          "description": "20 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 5,
+          "relationship_type": "face_count",
+          "description": "5 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 10,
+          "relationship_type": "face_count",
+          "description": "10 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "face_count",
+          "description": "4 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 22,
+          "relationship_type": "face_count",
+          "description": "22 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "face_count",
+          "description": "2 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 40,
+          "relationship_type": "face_count",
+          "description": "40 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 7,
+          "relationship_type": "face_count",
+          "description": "7 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 6,
+          "relationship_type": "face_count",
+          "description": "6 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 8,
+          "relationship_type": "face_count",
+          "description": "8 × cube faces (6)"
+        },
+        {
+          "scaling_factor": 1,
+          "relationship_type": "face_count",
+          "description": "1 × cube faces (6)"
+        }
+      ],
+      "dodecahedron_faces": [
+        {
+          "scaling_factor": 6,
+          "relationship_type": "face_count",
+          "description": "6 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 30,
+          "relationship_type": "face_count",
+          "description": "30 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 10,
+          "relationship_type": "face_count",
+          "description": "10 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 5,
+          "relationship_type": "face_count",
+          "description": "5 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "face_count",
+          "description": "2 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 11,
+          "relationship_type": "face_count",
+          "description": "11 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 1,
+          "relationship_type": "face_count",
+          "description": "1 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 20,
+          "relationship_type": "face_count",
+          "description": "20 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 3,
+          "relationship_type": "face_count",
+          "description": "3 × dodecahedron faces (12)"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "face_count",
+          "description": "4 × dodecahedron faces (12)"
+        }
+      ],
+      "vector_equilibrium": [
+        {
+          "scaling_factor": 9,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "9 × vector equilibrium 8"
+        },
+        {
+          "scaling_factor": 45,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "45 × vector equilibrium 8"
+        },
+        {
+          "scaling_factor": 15,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "15 × vector equilibrium 8"
+        },
+        {
+          "scaling_factor": 5,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "5 × vector equilibrium 12"
+        },
+        {
+          "scaling_factor": 3,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "3 × vector equilibrium 8"
+        },
+        {
+          "scaling_factor": 11,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "11 × vector equilibrium 12"
+        },
+        {
+          "scaling_factor": 1,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "1 × vector equilibrium 12"
+        },
+        {
+          "scaling_factor": 5,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "5 × vector equilibrium 48"
+        },
+        {
+          "scaling_factor": 3,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "3 × vector equilibrium 12"
+        },
+        {
+          "scaling_factor": 5,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "5 × vector equilibrium 8"
+        },
+        {
+          "scaling_factor": 1,
+          "relationship_type": "vector_equilibrium_element",
+          "description": "1 × vector equilibrium 48"
+        }
+      ],
       "rhombic_triacontahedron": [
         {
           "scaling_factor": 3,
@@ -1042,14 +988,68 @@
           "description": "3 × rhombic_triacontahedron volume"
         },
         {
-          "scaling_factor": 2,
-          "relationship_type": "volume_multiple",
-          "description": "2 × rhombic_triacontahedron volume"
-        },
-        {
           "scaling_factor": 1,
           "relationship_type": "volume_multiple",
           "description": "1 × rhombic_triacontahedron volume"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "volume_multiple",
+          "description": "2 × rhombic_triacontahedron volume"
+        }
+      ],
+      "icosahedron_edges": [
+        {
+          "scaling_factor": 12,
+          "relationship_type": "edge_count",
+          "description": "12 × icosahedron edges (30)"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "edge_count",
+          "description": "4 × icosahedron edges (30)"
+        },
+        {
+          "scaling_factor": 1,
+          "relationship_type": "edge_count",
+          "description": "1 × icosahedron edges (30)"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "edge_count",
+          "description": "2 × icosahedron edges (30)"
+        },
+        {
+          "scaling_factor": 8,
+          "relationship_type": "edge_count",
+          "description": "8 × icosahedron edges (30)"
+        }
+      ],
+      "dodecahedron_edges": [
+        {
+          "scaling_factor": 12,
+          "relationship_type": "edge_count",
+          "description": "12 × dodecahedron edges (30)"
+        },
+        {
+          "scaling_factor": 4,
+          "relationship_type": "edge_count",
+          "description": "4 × dodecahedron edges (30)"
+        },
+        {
+          "scaling_factor": 1,
+          "relationship_type": "edge_count",
+          "description": "1 × dodecahedron edges (30)"
+        },
+        {
+          "scaling_factor": 2,
+          "relationship_type": "edge_count",
+          "description": "2 × dodecahedron edges (30)"
+        },
+        {
+          "scaling_factor": 8,
+          "relationship_type": "edge_count",
+          "description": "8 × dodecahedron edges (30)"
         }
       ],
       "cuboctahedron_faces": [
@@ -1063,24 +1063,9 @@
     "ivm_relationships": {
       "tetrahedral_number": [
         {
-          "layer": 5,
-          "sphere_count": 35,
-          "description": "tetrahedral_number sphere packing for layer 5"
-        },
-        {
           "layer": 4,
           "sphere_count": 20,
           "description": "tetrahedral_number sphere packing for layer 4"
-        },
-        {
-          "layer": 2,
-          "sphere_count": 4,
-          "description": "tetrahedral_number sphere packing for layer 2"
-        },
-        {
-          "layer": 3,
-          "sphere_count": 10,
-          "description": "tetrahedral_number sphere packing for layer 3"
         },
         {
           "layer": 8,
@@ -1088,9 +1073,24 @@
           "description": "tetrahedral_number sphere packing for layer 8"
         },
         {
+          "layer": 2,
+          "sphere_count": 4,
+          "description": "tetrahedral_number sphere packing for layer 2"
+        },
+        {
           "layer": 1,
           "sphere_count": 1,
           "description": "tetrahedral_number sphere packing for layer 1"
+        },
+        {
+          "layer": 3,
+          "sphere_count": 10,
+          "description": "tetrahedral_number sphere packing for layer 3"
+        },
+        {
+          "layer": 5,
+          "sphere_count": 35,
+          "description": "tetrahedral_number sphere packing for layer 5"
         }
       ],
       "fibonacci_sphere": [
@@ -1100,26 +1100,26 @@
           "description": "fibonacci_sphere sphere packing for layer 15"
         },
         {
-          "layer": 14,
-          "sphere_count": 377,
-          "description": "fibonacci_sphere sphere packing for layer 14"
-        },
-        {
           "layer": 1,
           "sphere_count": 1,
           "description": "fibonacci_sphere sphere packing for layer 1"
+        },
+        {
+          "layer": 14,
+          "sphere_count": 377,
+          "description": "fibonacci_sphere sphere packing for layer 14"
         }
       ],
       "octahedral_number": [
         {
-          "layer": 3,
-          "sphere_count": 19,
-          "description": "octahedral_number sphere packing for layer 3"
-        },
-        {
           "layer": 1,
           "sphere_count": 1,
           "description": "octahedral_number sphere packing for layer 1"
+        },
+        {
+          "layer": 3,
+          "sphere_count": 19,
+          "description": "octahedral_number sphere packing for layer 3"
         },
         {
           "layer": 2,
@@ -1136,38 +1136,6 @@
       ]
     },
     "rational_approximations": {
-      "√3_denominator_7_4": [
-        {
-          "constant": "√3",
-          "approximation": "7/4",
-          "error": 0.017949192431122807,
-          "description": "Denominator in rational approximation of √3"
-        }
-      ],
-      "π_denominator_31_10": [
-        {
-          "constant": "π",
-          "approximation": "31/10",
-          "error": 0.04159265358979303,
-          "description": "Denominator in rational approximation of π"
-        }
-      ],
-      "√3_denominator_17_10": [
-        {
-          "constant": "√3",
-          "approximation": "17/10",
-          "error": 0.03205080756887724,
-          "description": "Denominator in rational approximation of √3"
-        }
-      ],
-      "√3_numerator_24_14": [
-        {
-          "constant": "√3",
-          "approximation": "24/14",
-          "error": 0.017765093283163003,
-          "description": "Numerator in rational approximation of √3"
-        }
-      ],
       "φ_numerator_610_377": [
         {
           "constant": "φ",
@@ -1184,6 +1152,14 @@
           "description": "Denominator in rational approximation of φ"
         }
       ],
+      "√3_denominator_7_4": [
+        {
+          "constant": "√3",
+          "approximation": "7/4",
+          "error": 0.017949192431122807,
+          "description": "Denominator in rational approximation of √3"
+        }
+      ],
       "π_numerator_22_7": [
         {
           "constant": "π",
@@ -1192,20 +1168,28 @@
           "description": "Numerator in rational approximation of π"
         }
       ],
-      "φ_numerator_377_233": [
+      "φ_numerator_577_376": [
         {
           "constant": "φ",
-          "approximation": "377/233",
-          "error": 8.237676933475768e-06,
+          "approximation": "577/376",
+          "error": 0.08345952066478857,
           "description": "Numerator in rational approximation of φ"
         }
       ],
-      "φ_denominator_610_377": [
+      "√3_numerator_24_14": [
         {
-          "constant": "φ",
-          "approximation": "610/377",
-          "error": 3.1465286196574738e-06,
-          "description": "Denominator in rational approximation of φ"
+          "constant": "√3",
+          "approximation": "24/14",
+          "error": 0.017765093283163003,
+          "description": "Numerator in rational approximation of √3"
+        }
+      ],
+      "√2_denominator_17_12": [
+        {
+          "constant": "√2",
+          "approximation": "17/12",
+          "error": 0.002453104293571595,
+          "description": "Denominator in rational approximation of √2"
         }
       ],
       "π_numerator_314_100": [
@@ -1224,12 +1208,20 @@
           "description": "Numerator in rational approximation of e"
         }
       ],
-      "φ_numerator_577_376": [
+      "φ_numerator_377_233": [
         {
           "constant": "φ",
-          "approximation": "577/376",
-          "error": 0.08345952066478857,
+          "approximation": "377/233",
+          "error": 8.237676933475768e-06,
           "description": "Numerator in rational approximation of φ"
+        }
+      ],
+      "φ_denominator_610_377": [
+        {
+          "constant": "φ",
+          "approximation": "610/377",
+          "error": 3.1465286196574738e-06,
+          "description": "Denominator in rational approximation of φ"
         }
       ],
       "π_numerator_355_113": [
@@ -1240,35 +1232,24 @@
           "description": "Numerator in rational approximation of π"
         }
       ],
-      "√2_denominator_17_12": [
+      "π_denominator_31_10": [
         {
-          "constant": "√2",
-          "approximation": "17/12",
-          "error": 0.002453104293571595,
-          "description": "Denominator in rational approximation of √2"
+          "constant": "π",
+          "approximation": "31/10",
+          "error": 0.04159265358979303,
+          "description": "Denominator in rational approximation of π"
+        }
+      ],
+      "√3_denominator_17_10": [
+        {
+          "constant": "√3",
+          "approximation": "17/10",
+          "error": 0.03205080756887724,
+          "description": "Denominator in rational approximation of √3"
         }
       ]
     },
     "geometric_mnemonics": [
-      "GeometricMnemonic(239 (239.00000000), 239 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(60 (60.00000000), 60 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(60 (60.00000000), 15 × octahedron volume, octahedron)",
-      "GeometricMnemonic(60 (60.00000000), 20 × cube volume, cube)",
-      "GeometricMnemonic(60 (60.00000000), 3 × cuboctahedron volume, cuboctahedron)",
-      "GeometricMnemonic(60 (60.00000000), 10 × rhombic_dodecahedron volume, rhombic)",
-      "GeometricMnemonic(60 (60.00000000), 10 × tetrahedron edges (6), tetrahedron)",
-      "GeometricMnemonic(60 (60.00000000), 5 × octahedron edges (12), octahedron)",
-      "GeometricMnemonic(60 (60.00000000), 5 × cube edges (12), cube)",
-      "GeometricMnemonic(60 (60.00000000), 2 × icosahedron edges (30), icosahedron)",
-      "GeometricMnemonic(60 (60.00000000), 2 × dodecahedron edges (30), dodecahedron)",
-      "GeometricMnemonic(60 (60.00000000), 15 × tetrahedron faces (4), tetrahedron)",
-      "GeometricMnemonic(60 (60.00000000), 10 × cube faces (6), cube)",
-      "GeometricMnemonic(60 (60.00000000), 3 × icosahedron faces (20), icosahedron)",
-      "GeometricMnemonic(60 (60.00000000), 5 × dodecahedron faces (12), dodecahedron)",
-      "GeometricMnemonic(60 (60.00000000), 5 × vector equilibrium 12, vector)",
-      "GeometricMnemonic(35 (35.00000000), 35 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(35 (35.00000000), tetrahedral_number sphere packing for layer 5, ivm_lattice)",
-      "GeometricMnemonic(470 (470.00000000), 470 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(20 (20.00000000), 20 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(20 (20.00000000), 5 × octahedron volume, octahedron)",
       "GeometricMnemonic(20 (20.00000000), 1 × cuboctahedron volume, cuboctahedron)",
@@ -1288,11 +1269,6 @@
       "GeometricMnemonic(72 (72.00000000), 12 × cube faces (6), cube)",
       "GeometricMnemonic(72 (72.00000000), 6 × dodecahedron faces (12), dodecahedron)",
       "GeometricMnemonic(72 (72.00000000), 9 × vector equilibrium 8, vector)",
-      "GeometricMnemonic(4 (4.00000000), 4 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(4 (4.00000000), 1 × octahedron volume, octahedron)",
-      "GeometricMnemonic(4 (4.00000000), 1 × tetrahedron faces (4), tetrahedron)",
-      "GeometricMnemonic(4 (4.00000000), tetrahedral_number sphere packing for layer 2, ivm_lattice)",
-      "GeometricMnemonic(4 (4.00000000), Denominator in rational approximation of √3, rational_approximation)",
       "GeometricMnemonic(360 (360.00000000), 360 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(360 (360.00000000), 90 × octahedron volume, octahedron)",
       "GeometricMnemonic(360 (360.00000000), 120 × cube volume, cube)",
@@ -1311,62 +1287,6 @@
       "GeometricMnemonic(360 (360.00000000), 18 × icosahedron faces (20), icosahedron)",
       "GeometricMnemonic(360 (360.00000000), 30 × dodecahedron faces (12), dodecahedron)",
       "GeometricMnemonic(360 (360.00000000), 45 × vector equilibrium 8, vector)",
-      "GeometricMnemonic(10 (10.00000000), 10 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(10 (10.00000000), tetrahedral_number sphere packing for layer 3, ivm_lattice)",
-      "GeometricMnemonic(10 (10.00000000), Denominator in rational approximation of π, rational_approximation)",
-      "GeometricMnemonic(10 (10.00000000), Denominator in rational approximation of √3, rational_approximation)",
-      "GeometricMnemonic(31415 (31415.00000000), 31415 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(3141 (3141.00000000), 3141 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(3141 (3141.00000000), 1047 × cube volume, cube)",
-      "GeometricMnemonic(24 (24.00000000), 24 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(24 (24.00000000), 6 × octahedron volume, octahedron)",
-      "GeometricMnemonic(24 (24.00000000), 8 × cube volume, cube)",
-      "GeometricMnemonic(24 (24.00000000), 4 × rhombic_dodecahedron volume, rhombic)",
-      "GeometricMnemonic(24 (24.00000000), 4 × tetrahedron edges (6), tetrahedron)",
-      "GeometricMnemonic(24 (24.00000000), 2 × octahedron edges (12), octahedron)",
-      "GeometricMnemonic(24 (24.00000000), 2 × cube edges (12), cube)",
-      "GeometricMnemonic(24 (24.00000000), 1 × cuboctahedron edges (24), cuboctahedron)",
-      "GeometricMnemonic(24 (24.00000000), 6 × tetrahedron faces (4), tetrahedron)",
-      "GeometricMnemonic(24 (24.00000000), 3 × octahedron faces (8), octahedron)",
-      "GeometricMnemonic(24 (24.00000000), 4 × cube faces (6), cube)",
-      "GeometricMnemonic(24 (24.00000000), 2 × dodecahedron faces (12), dodecahedron)",
-      "GeometricMnemonic(24 (24.00000000), 3 × vector equilibrium 8, vector)",
-      "GeometricMnemonic(24 (24.00000000), Numerator in rational approximation of √3, rational_approximation)",
-      "GeometricMnemonic(240 (240.00000000), 240 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(240 (240.00000000), 60 × octahedron volume, octahedron)",
-      "GeometricMnemonic(240 (240.00000000), 80 × cube volume, cube)",
-      "GeometricMnemonic(240 (240.00000000), 12 × cuboctahedron volume, cuboctahedron)",
-      "GeometricMnemonic(240 (240.00000000), 40 × rhombic_dodecahedron volume, rhombic)",
-      "GeometricMnemonic(240 (240.00000000), 2 × rhombic_triacontahedron volume, rhombic)",
-      "GeometricMnemonic(240 (240.00000000), 40 × tetrahedron edges (6), tetrahedron)",
-      "GeometricMnemonic(240 (240.00000000), 20 × octahedron edges (12), octahedron)",
-      "GeometricMnemonic(240 (240.00000000), 20 × cube edges (12), cube)",
-      "GeometricMnemonic(240 (240.00000000), 10 × cuboctahedron edges (24), cuboctahedron)",
-      "GeometricMnemonic(240 (240.00000000), 8 × icosahedron edges (30), icosahedron)",
-      "GeometricMnemonic(240 (240.00000000), 8 × dodecahedron edges (30), dodecahedron)",
-      "GeometricMnemonic(240 (240.00000000), 60 × tetrahedron faces (4), tetrahedron)",
-      "GeometricMnemonic(240 (240.00000000), 30 × octahedron faces (8), octahedron)",
-      "GeometricMnemonic(240 (240.00000000), 40 × cube faces (6), cube)",
-      "GeometricMnemonic(240 (240.00000000), 12 × icosahedron faces (20), icosahedron)",
-      "GeometricMnemonic(240 (240.00000000), 20 × dodecahedron faces (12), dodecahedron)",
-      "GeometricMnemonic(240 (240.00000000), 5 × vector equilibrium 48, vector)",
-      "GeometricMnemonic(610 (610.00000000), 610 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(610 (610.00000000), fibonacci_sphere sphere packing for layer 15, ivm_lattice)",
-      "GeometricMnemonic(610 (610.00000000), Numerator in rational approximation of φ, rational_approximation)",
-      "GeometricMnemonic(610 (610.00000000), Denominator in rational approximation of φ, rational_approximation)",
-      "GeometricMnemonic(414213 (414213.00000000), 414213 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(414213 (414213.00000000), 138071 × cube volume, cube)",
-      "GeometricMnemonic(132 (132.00000000), 132 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(132 (132.00000000), 33 × octahedron volume, octahedron)",
-      "GeometricMnemonic(132 (132.00000000), 44 × cube volume, cube)",
-      "GeometricMnemonic(132 (132.00000000), 22 × rhombic_dodecahedron volume, rhombic)",
-      "GeometricMnemonic(132 (132.00000000), 22 × tetrahedron edges (6), tetrahedron)",
-      "GeometricMnemonic(132 (132.00000000), 11 × octahedron edges (12), octahedron)",
-      "GeometricMnemonic(132 (132.00000000), 11 × cube edges (12), cube)",
-      "GeometricMnemonic(132 (132.00000000), 33 × tetrahedron faces (4), tetrahedron)",
-      "GeometricMnemonic(132 (132.00000000), 22 × cube faces (6), cube)",
-      "GeometricMnemonic(132 (132.00000000), 11 × dodecahedron faces (12), dodecahedron)",
-      "GeometricMnemonic(132 (132.00000000), 11 × vector equilibrium 12, vector)",
       "GeometricMnemonic(120 (120.00000000), 120 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(120 (120.00000000), 30 × octahedron volume, octahedron)",
       "GeometricMnemonic(120 (120.00000000), 40 × cube volume, cube)",
@@ -1386,11 +1306,23 @@
       "GeometricMnemonic(120 (120.00000000), 10 × dodecahedron faces (12), dodecahedron)",
       "GeometricMnemonic(120 (120.00000000), 15 × vector equilibrium 8, vector)",
       "GeometricMnemonic(120 (120.00000000), tetrahedral_number sphere packing for layer 8, ivm_lattice)",
-      "GeometricMnemonic(123454321 (123454321.00000000), 123454321 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(610 (610.00000000), 610 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(610 (610.00000000), fibonacci_sphere sphere packing for layer 15, ivm_lattice)",
+      "GeometricMnemonic(610 (610.00000000), Numerator in rational approximation of φ, rational_approximation)",
+      "GeometricMnemonic(610 (610.00000000), Denominator in rational approximation of φ, rational_approximation)",
+      "GeometricMnemonic(470 (470.00000000), 470 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(4 (4.00000000), 4 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(4 (4.00000000), 1 × octahedron volume, octahedron)",
+      "GeometricMnemonic(4 (4.00000000), 1 × tetrahedron faces (4), tetrahedron)",
+      "GeometricMnemonic(4 (4.00000000), tetrahedral_number sphere packing for layer 2, ivm_lattice)",
+      "GeometricMnemonic(4 (4.00000000), Denominator in rational approximation of √3, rational_approximation)",
       "GeometricMnemonic(22 (22.00000000), 22 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(22 (22.00000000), Numerator in rational approximation of π, rational_approximation)",
-      "GeometricMnemonic(577215 (577215.00000000), 577215 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(577215 (577215.00000000), 192405 × cube volume, cube)",
+      "GeometricMnemonic(414213 (414213.00000000), 414213 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(414213 (414213.00000000), 138071 × cube volume, cube)",
+      "GeometricMnemonic(314159 (314159.00000000), 314159 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(12321 (12321.00000000), 12321 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(12321 (12321.00000000), 4107 × cube volume, cube)",
       "GeometricMnemonic(30 (30.00000000), 30 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(30 (30.00000000), 10 × cube volume, cube)",
       "GeometricMnemonic(30 (30.00000000), 5 × rhombic_dodecahedron volume, rhombic)",
@@ -1398,6 +1330,109 @@
       "GeometricMnemonic(30 (30.00000000), 1 × icosahedron edges (30), icosahedron)",
       "GeometricMnemonic(30 (30.00000000), 1 × dodecahedron edges (30), dodecahedron)",
       "GeometricMnemonic(30 (30.00000000), 5 × cube faces (6), cube)",
+      "GeometricMnemonic(577215 (577215.00000000), 577215 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(577215 (577215.00000000), 192405 × cube volume, cube)",
+      "GeometricMnemonic(577 (577.00000000), 577 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(577 (577.00000000), Numerator in rational approximation of φ, rational_approximation)",
+      "GeometricMnemonic(60 (60.00000000), 60 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(60 (60.00000000), 15 × octahedron volume, octahedron)",
+      "GeometricMnemonic(60 (60.00000000), 20 × cube volume, cube)",
+      "GeometricMnemonic(60 (60.00000000), 3 × cuboctahedron volume, cuboctahedron)",
+      "GeometricMnemonic(60 (60.00000000), 10 × rhombic_dodecahedron volume, rhombic)",
+      "GeometricMnemonic(60 (60.00000000), 10 × tetrahedron edges (6), tetrahedron)",
+      "GeometricMnemonic(60 (60.00000000), 5 × octahedron edges (12), octahedron)",
+      "GeometricMnemonic(60 (60.00000000), 5 × cube edges (12), cube)",
+      "GeometricMnemonic(60 (60.00000000), 2 × icosahedron edges (30), icosahedron)",
+      "GeometricMnemonic(60 (60.00000000), 2 × dodecahedron edges (30), dodecahedron)",
+      "GeometricMnemonic(60 (60.00000000), 15 × tetrahedron faces (4), tetrahedron)",
+      "GeometricMnemonic(60 (60.00000000), 10 × cube faces (6), cube)",
+      "GeometricMnemonic(60 (60.00000000), 3 × icosahedron faces (20), icosahedron)",
+      "GeometricMnemonic(60 (60.00000000), 5 × dodecahedron faces (12), dodecahedron)",
+      "GeometricMnemonic(60 (60.00000000), 5 × vector equilibrium 12, vector)",
+      "GeometricMnemonic(24 (24.00000000), 24 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(24 (24.00000000), 6 × octahedron volume, octahedron)",
+      "GeometricMnemonic(24 (24.00000000), 8 × cube volume, cube)",
+      "GeometricMnemonic(24 (24.00000000), 4 × rhombic_dodecahedron volume, rhombic)",
+      "GeometricMnemonic(24 (24.00000000), 4 × tetrahedron edges (6), tetrahedron)",
+      "GeometricMnemonic(24 (24.00000000), 2 × octahedron edges (12), octahedron)",
+      "GeometricMnemonic(24 (24.00000000), 2 × cube edges (12), cube)",
+      "GeometricMnemonic(24 (24.00000000), 1 × cuboctahedron edges (24), cuboctahedron)",
+      "GeometricMnemonic(24 (24.00000000), 6 × tetrahedron faces (4), tetrahedron)",
+      "GeometricMnemonic(24 (24.00000000), 3 × octahedron faces (8), octahedron)",
+      "GeometricMnemonic(24 (24.00000000), 4 × cube faces (6), cube)",
+      "GeometricMnemonic(24 (24.00000000), 2 × dodecahedron faces (12), dodecahedron)",
+      "GeometricMnemonic(24 (24.00000000), 3 × vector equilibrium 8, vector)",
+      "GeometricMnemonic(24 (24.00000000), Numerator in rational approximation of √3, rational_approximation)",
+      "GeometricMnemonic(132 (132.00000000), 132 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(132 (132.00000000), 33 × octahedron volume, octahedron)",
+      "GeometricMnemonic(132 (132.00000000), 44 × cube volume, cube)",
+      "GeometricMnemonic(132 (132.00000000), 22 × rhombic_dodecahedron volume, rhombic)",
+      "GeometricMnemonic(132 (132.00000000), 22 × tetrahedron edges (6), tetrahedron)",
+      "GeometricMnemonic(132 (132.00000000), 11 × octahedron edges (12), octahedron)",
+      "GeometricMnemonic(132 (132.00000000), 11 × cube edges (12), cube)",
+      "GeometricMnemonic(132 (132.00000000), 33 × tetrahedron faces (4), tetrahedron)",
+      "GeometricMnemonic(132 (132.00000000), 22 × cube faces (6), cube)",
+      "GeometricMnemonic(132 (132.00000000), 11 × dodecahedron faces (12), dodecahedron)",
+      "GeometricMnemonic(132 (132.00000000), 11 × vector equilibrium 12, vector)",
+      "GeometricMnemonic(12 (12.00000000), 12 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(12 (12.00000000), 3 × octahedron volume, octahedron)",
+      "GeometricMnemonic(12 (12.00000000), 4 × cube volume, cube)",
+      "GeometricMnemonic(12 (12.00000000), 2 × rhombic_dodecahedron volume, rhombic)",
+      "GeometricMnemonic(12 (12.00000000), 2 × tetrahedron edges (6), tetrahedron)",
+      "GeometricMnemonic(12 (12.00000000), 1 × octahedron edges (12), octahedron)",
+      "GeometricMnemonic(12 (12.00000000), 1 × cube edges (12), cube)",
+      "GeometricMnemonic(12 (12.00000000), 3 × tetrahedron faces (4), tetrahedron)",
+      "GeometricMnemonic(12 (12.00000000), 2 × cube faces (6), cube)",
+      "GeometricMnemonic(12 (12.00000000), 1 × dodecahedron faces (12), dodecahedron)",
+      "GeometricMnemonic(12 (12.00000000), 1 × vector equilibrium 12, vector)",
+      "GeometricMnemonic(12 (12.00000000), Denominator in rational approximation of √2, rational_approximation)",
+      "GeometricMnemonic(123454321 (123454321.00000000), 123454321 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(1 (1.00000000), 1 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(1 (1.00000000), tetrahedral_number sphere packing for layer 1, ivm_lattice)",
+      "GeometricMnemonic(1 (1.00000000), octahedral_number sphere packing for layer 1, ivm_lattice)",
+      "GeometricMnemonic(1 (1.00000000), cubic_number sphere packing for layer 1, ivm_lattice)",
+      "GeometricMnemonic(1 (1.00000000), fibonacci_sphere sphere packing for layer 1, ivm_lattice)",
+      "GeometricMnemonic(314 (314.00000000), 314 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(314 (314.00000000), Numerator in rational approximation of π, rational_approximation)",
+      "GeometricMnemonic(19 (19.00000000), 19 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(19 (19.00000000), octahedral_number sphere packing for layer 3, ivm_lattice)",
+      "GeometricMnemonic(19 (19.00000000), Numerator in rational approximation of e, rational_approximation)",
+      "GeometricMnemonic(665 (665.00000000), 665 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(240 (240.00000000), 240 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(240 (240.00000000), 60 × octahedron volume, octahedron)",
+      "GeometricMnemonic(240 (240.00000000), 80 × cube volume, cube)",
+      "GeometricMnemonic(240 (240.00000000), 12 × cuboctahedron volume, cuboctahedron)",
+      "GeometricMnemonic(240 (240.00000000), 40 × rhombic_dodecahedron volume, rhombic)",
+      "GeometricMnemonic(240 (240.00000000), 2 × rhombic_triacontahedron volume, rhombic)",
+      "GeometricMnemonic(240 (240.00000000), 40 × tetrahedron edges (6), tetrahedron)",
+      "GeometricMnemonic(240 (240.00000000), 20 × octahedron edges (12), octahedron)",
+      "GeometricMnemonic(240 (240.00000000), 20 × cube edges (12), cube)",
+      "GeometricMnemonic(240 (240.00000000), 10 × cuboctahedron edges (24), cuboctahedron)",
+      "GeometricMnemonic(240 (240.00000000), 8 × icosahedron edges (30), icosahedron)",
+      "GeometricMnemonic(240 (240.00000000), 8 × dodecahedron edges (30), dodecahedron)",
+      "GeometricMnemonic(240 (240.00000000), 60 × tetrahedron faces (4), tetrahedron)",
+      "GeometricMnemonic(240 (240.00000000), 30 × octahedron faces (8), octahedron)",
+      "GeometricMnemonic(240 (240.00000000), 40 × cube faces (6), cube)",
+      "GeometricMnemonic(240 (240.00000000), 12 × icosahedron faces (20), icosahedron)",
+      "GeometricMnemonic(240 (240.00000000), 20 × dodecahedron faces (12), dodecahedron)",
+      "GeometricMnemonic(240 (240.00000000), 5 × vector equilibrium 48, vector)",
+      "GeometricMnemonic(42 (42.00000000), 42 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(42 (42.00000000), 14 × cube volume, cube)",
+      "GeometricMnemonic(42 (42.00000000), 7 × rhombic_dodecahedron volume, rhombic)",
+      "GeometricMnemonic(42 (42.00000000), 7 × tetrahedron edges (6), tetrahedron)",
+      "GeometricMnemonic(42 (42.00000000), 7 × cube faces (6), cube)",
+      "GeometricMnemonic(42 (42.00000000), 3 × cuboctahedron faces (14), cuboctahedron)",
+      "GeometricMnemonic(1001 (1001.00000000), 1001 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(377 (377.00000000), 377 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(377 (377.00000000), fibonacci_sphere sphere packing for layer 14, ivm_lattice)",
+      "GeometricMnemonic(377 (377.00000000), Numerator in rational approximation of φ, rational_approximation)",
+      "GeometricMnemonic(377 (377.00000000), Denominator in rational approximation of φ, rational_approximation)",
+      "GeometricMnemonic(355 (355.00000000), 355 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(355 (355.00000000), Numerator in rational approximation of π, rational_approximation)",
+      "GeometricMnemonic(10 (10.00000000), 10 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(10 (10.00000000), tetrahedral_number sphere packing for layer 3, ivm_lattice)",
+      "GeometricMnemonic(10 (10.00000000), Denominator in rational approximation of π, rational_approximation)",
+      "GeometricMnemonic(10 (10.00000000), Denominator in rational approximation of √3, rational_approximation)",
       "GeometricMnemonic(36 (36.00000000), 36 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(36 (36.00000000), 9 × octahedron volume, octahedron)",
       "GeometricMnemonic(36 (36.00000000), 12 × cube volume, cube)",
@@ -1409,12 +1444,6 @@
       "GeometricMnemonic(36 (36.00000000), 6 × cube faces (6), cube)",
       "GeometricMnemonic(36 (36.00000000), 3 × dodecahedron faces (12), dodecahedron)",
       "GeometricMnemonic(36 (36.00000000), 3 × vector equilibrium 12, vector)",
-      "GeometricMnemonic(377 (377.00000000), 377 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(377 (377.00000000), fibonacci_sphere sphere packing for layer 14, ivm_lattice)",
-      "GeometricMnemonic(377 (377.00000000), Numerator in rational approximation of φ, rational_approximation)",
-      "GeometricMnemonic(377 (377.00000000), Denominator in rational approximation of φ, rational_approximation)",
-      "GeometricMnemonic(314 (314.00000000), 314 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(314 (314.00000000), Numerator in rational approximation of π, rational_approximation)",
       "GeometricMnemonic(40 (40.00000000), 40 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(40 (40.00000000), 10 × octahedron volume, octahedron)",
       "GeometricMnemonic(40 (40.00000000), 2 × cuboctahedron volume, cuboctahedron)",
@@ -1422,20 +1451,13 @@
       "GeometricMnemonic(40 (40.00000000), 5 × octahedron faces (8), octahedron)",
       "GeometricMnemonic(40 (40.00000000), 2 × icosahedron faces (20), icosahedron)",
       "GeometricMnemonic(40 (40.00000000), 5 × vector equilibrium 8, vector)",
-      "GeometricMnemonic(1001 (1001.00000000), 1001 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(19 (19.00000000), 19 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(19 (19.00000000), octahedral_number sphere packing for layer 3, ivm_lattice)",
-      "GeometricMnemonic(19 (19.00000000), Numerator in rational approximation of e, rational_approximation)",
-      "GeometricMnemonic(577 (577.00000000), 577 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(577 (577.00000000), Numerator in rational approximation of φ, rational_approximation)",
-      "GeometricMnemonic(355 (355.00000000), 355 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(355 (355.00000000), Numerator in rational approximation of π, rational_approximation)",
-      "GeometricMnemonic(42 (42.00000000), 42 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(42 (42.00000000), 14 × cube volume, cube)",
-      "GeometricMnemonic(42 (42.00000000), 7 × rhombic_dodecahedron volume, rhombic)",
-      "GeometricMnemonic(42 (42.00000000), 7 × tetrahedron edges (6), tetrahedron)",
-      "GeometricMnemonic(42 (42.00000000), 7 × cube faces (6), cube)",
-      "GeometricMnemonic(42 (42.00000000), 3 × cuboctahedron faces (14), cuboctahedron)",
+      "GeometricMnemonic(239 (239.00000000), 239 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(3141 (3141.00000000), 3141 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(3141 (3141.00000000), 1047 × cube volume, cube)",
+      "GeometricMnemonic(92 (92.00000000), 92 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(92 (92.00000000), 23 × octahedron volume, octahedron)",
+      "GeometricMnemonic(92 (92.00000000), 23 × tetrahedron faces (4), tetrahedron)",
+      "GeometricMnemonic(31415 (31415.00000000), 31415 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(48 (48.00000000), 48 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(48 (48.00000000), 12 × octahedron volume, octahedron)",
       "GeometricMnemonic(48 (48.00000000), 16 × cube volume, cube)",
@@ -1449,36 +1471,14 @@
       "GeometricMnemonic(48 (48.00000000), 8 × cube faces (6), cube)",
       "GeometricMnemonic(48 (48.00000000), 4 × dodecahedron faces (12), dodecahedron)",
       "GeometricMnemonic(48 (48.00000000), 1 × vector equilibrium 48, vector)",
-      "GeometricMnemonic(92 (92.00000000), 92 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(92 (92.00000000), 23 × octahedron volume, octahedron)",
-      "GeometricMnemonic(92 (92.00000000), 23 × tetrahedron faces (4), tetrahedron)",
-      "GeometricMnemonic(12 (12.00000000), 12 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(12 (12.00000000), 3 × octahedron volume, octahedron)",
-      "GeometricMnemonic(12 (12.00000000), 4 × cube volume, cube)",
-      "GeometricMnemonic(12 (12.00000000), 2 × rhombic_dodecahedron volume, rhombic)",
-      "GeometricMnemonic(12 (12.00000000), 2 × tetrahedron edges (6), tetrahedron)",
-      "GeometricMnemonic(12 (12.00000000), 1 × octahedron edges (12), octahedron)",
-      "GeometricMnemonic(12 (12.00000000), 1 × cube edges (12), cube)",
-      "GeometricMnemonic(12 (12.00000000), 3 × tetrahedron faces (4), tetrahedron)",
-      "GeometricMnemonic(12 (12.00000000), 2 × cube faces (6), cube)",
-      "GeometricMnemonic(12 (12.00000000), 1 × dodecahedron faces (12), dodecahedron)",
-      "GeometricMnemonic(12 (12.00000000), 1 × vector equilibrium 12, vector)",
-      "GeometricMnemonic(12 (12.00000000), Denominator in rational approximation of √2, rational_approximation)",
-      "GeometricMnemonic(314159 (314159.00000000), 314159 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(1 (1.00000000), 1 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(1 (1.00000000), tetrahedral_number sphere packing for layer 1, ivm_lattice)",
-      "GeometricMnemonic(1 (1.00000000), octahedral_number sphere packing for layer 1, ivm_lattice)",
-      "GeometricMnemonic(1 (1.00000000), cubic_number sphere packing for layer 1, ivm_lattice)",
-      "GeometricMnemonic(1 (1.00000000), fibonacci_sphere sphere packing for layer 1, ivm_lattice)",
+      "GeometricMnemonic(35 (35.00000000), 35 × tetrahedron volume, tetrahedron)",
+      "GeometricMnemonic(35 (35.00000000), tetrahedral_number sphere packing for layer 5, ivm_lattice)",
       "GeometricMnemonic(6 (6.00000000), 6 × tetrahedron volume, tetrahedron)",
       "GeometricMnemonic(6 (6.00000000), 2 × cube volume, cube)",
       "GeometricMnemonic(6 (6.00000000), 1 × rhombic_dodecahedron volume, rhombic)",
       "GeometricMnemonic(6 (6.00000000), 1 × tetrahedron edges (6), tetrahedron)",
       "GeometricMnemonic(6 (6.00000000), 1 × cube faces (6), cube)",
-      "GeometricMnemonic(6 (6.00000000), octahedral_number sphere packing for layer 2, ivm_lattice)",
-      "GeometricMnemonic(665 (665.00000000), 665 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(12321 (12321.00000000), 12321 × tetrahedron volume, tetrahedron)",
-      "GeometricMnemonic(12321 (12321.00000000), 4107 × cube volume, cube)"
+      "GeometricMnemonic(6 (6.00000000), octahedral_number sphere packing for layer 2, ivm_lattice)"
     ]
   },
   "insights": [

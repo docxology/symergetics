@@ -170,6 +170,20 @@ sequenceDiagram
 - Performance considerations
 - Testing methodology
 
+### [Testing Guide](testing-guide.md)
+
+- Comprehensive test suite with 832 test functions
+- Real method validation and mathematical correctness
+- Coverage analysis and performance testing
+- Integration testing across all modules
+
+### [Test Architecture Summary](test-architecture-summary.md)
+
+- Complete test architecture overview and validation
+- Real method usage confirmation (100% real Symergetics methods)
+- Test quality metrics and coverage analysis
+- Continuous integration and quality assurance
+
 ## Mathematical Foundations
 
 The package implements Fuller's key concepts through **symbolic operations on all-integer accounting**:

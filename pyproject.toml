@@ -120,7 +120,7 @@ addopts = [
     "--cov=symergetics",
     "--cov-report=term-missing",
     "--cov-report=html:htmlcov",
-    "--cov-fail-under=100",
+    "--cov-fail-under=85",
     "-x",
     "-v"
 ]

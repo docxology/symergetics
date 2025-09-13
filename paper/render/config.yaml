@@ -9,7 +9,7 @@ metadata:
   orcid: "0000-0001-6232-9096"
   affiliation: "Independent Researcher"
   institution: "Active Inference Institute"
-  date: "September 10, 2025"
+  date: "September 13, 2025"
   version: "1.0.0"
 
 # PDF formatting options
@@ -56,17 +56,23 @@ sections:
   - file: "05_computational_methods.md"
     order: 5
     include_in_toc: true
-  - file: "06_geometric_applications.md"
+  - file: "06_results.md"
     order: 6
     include_in_toc: true
-  - file: "07_pattern_discovery.md"
+  - file: "07_geometric_applications.md"
     order: 7
     include_in_toc: true
-  - file: "08_research_applications.md"
+  - file: "08_pattern_discovery.md"
     order: 8
     include_in_toc: true
-  - file: "09_conclusion.md"
+  - file: "09_research_applications.md"
     order: 9
+    include_in_toc: true
+  - file: "10_ongoing_questions_inquiries.md"
+    order: 10
+    include_in_toc: true
+  - file: "11_conclusion.md"
+    order: 11
     include_in_toc: true
 
 # Image handling

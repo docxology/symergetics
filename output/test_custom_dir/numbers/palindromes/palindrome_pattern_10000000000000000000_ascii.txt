@@ -1,0 +1,50 @@
+Palindromic Pattern Analysis: 100,000,000,000,000,000,000
+============================================================
+
+Number: 100000000000000000000
+Is Palindromic: False
+Length: 21 digits
+
+Palindromic Patterns Found: 18
+Patterns (longest first):
+  00000000000000000000
+  0000000000000000000
+  000000000000000000
+  00000000000000000
+  0000000000000000
+  000000000000000
+  00000000000000
+  0000000000000
+  000000000000
+  00000000000
+  ... and 8 more
+
+Symmetric Patterns: 1
+  Type: central_symmetry
+  Pairs: 9
+
+Digit Pattern:
+1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    * * * * * * * * * * * * * * * * * *  
+(* = part of palindromic pattern)
+
+Palindromic Density: 428.571%
+
+Digit Frequency Analysis:
+  0:   20 ( 95.2%) ███████████████████████████████████████████████
+  1:    1 (  4.8%) ██
+  2:    0 (  0.0%) 
+  3:    0 (  0.0%) 
+  4:    0 (  0.0%) 
+  5:    0 (  0.0%) 
+  6:    0 (  0.0%) 
+  7:    0 (  0.0%) 
+  8:    0 (  0.0%) 
+  9:    0 (  0.0%) 
+
+Statistical Analysis:
+  Entropy: 0.276 bits (max: 3.322 for uniform distribution)
+  Assessment: Low entropy - highly structured digit patterns
+  Most common digit: 0 (20 times)
+  Least common digit: 1 (1 times)
+  Unique digits used: 2/10 possible digits

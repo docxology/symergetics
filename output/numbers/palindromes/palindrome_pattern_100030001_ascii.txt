@@ -10,9 +10,9 @@ Patterns (longest first):
   100030001
   0001
   0003
-  000
   001
   003
+  000
 
 Symmetric Patterns: 1
   Type: central_symmetry

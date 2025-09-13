@@ -266,7 +266,7 @@ Integrate with the main project build:
 
 ```bash
 # Add to run.py or CI/CD pipeline
-python -m paper.render.pdf_renderer --output synergetics_paper.pdf
+python -m paper.render.pdf_renderer --output symergetics_paper.pdf
 ```
 
 ### Continuous Integration

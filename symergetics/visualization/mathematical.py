@@ -446,7 +446,9 @@ def _plot_pattern_analysis_matplotlib(number: Union[int, str],
 
     digits = [int(d) for d in num_str]
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(_config["figure_size"][0] * 1.5, _config["figure_size"][1] * 1.5))
+    fig, axes = plt.subplots(2, 2, figsize=(_config["figure_size"][0] * 1.5, _config["figure_size"][1] * 1.5))
+    ax1, ax2 = axes[0]
+    ax3, ax4 = axes[1]
 
     # Plot 1: Digit sequence
     positions = list(range(len(digits)))
