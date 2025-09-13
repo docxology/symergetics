@@ -82,7 +82,7 @@ class ScientificPaperRenderer:
 
         # Paper metadata
         self.metadata = {
-            'title': 'Symergetics: Symbolic Synergetics for Rational Arithmetic, Geometric Pattern Discovery, All-Integer Accounting',
+            'title': 'Symergetics: Symbolic Synergetics for Rational Arithmetic, Geometric Pattern Discovery, and All-Integer Accounting',
             'author': 'Daniel Ari Friedman',
             'email': 'daniel@activeinference.institute',
             'orcid': '0000-0001-6232-9096',
@@ -606,8 +606,9 @@ class ScientificPaperRenderer:
         text = re.sub(r'__([^_\n]+)__', r'<b>\1</b>', text)
 
         # Process italic *text* and _text_ - very conservative approach
-        text = re.sub(r'(?<![\w\*])\*([^*\n,.;:!?]+)\*(?!\w)', r'<i>\1</i>', text)
-        text = re.sub(r'(?<![\w_])_([^_\n,.;:!?]+)_(?!\w)', r'<i>\1</i>', text)
+        # Only process italic if there's at least 2 characters between markers
+        text = re.sub(r'(?<![\w\*])\*([^*\n]{2,})\*(?!\w)', r'<i>\1</i>', text)
+        text = re.sub(r'(?<![\w_])_([^_\n]{2,})_(?!\w)', r'<i>\1</i>', text)
 
         # Process links [text](url) - convert to ReportLab hyperlink format
         text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" color="red">\1</a>', text)
@@ -888,6 +889,7 @@ class ScientificPaperRenderer:
         author_info = []
         keywords = []
         repository = ""
+        doi = ""
         date = ""
         version = ""
         quote = ""
@@ -913,6 +915,9 @@ class ScientificPaperRenderer:
                 continue  # Skip the label
             elif line.startswith('**Repository:**') and current_section == "title_page":
                 continue  # Skip the label
+            elif line.startswith('**DOI:**') and current_section == "title_page":
+                doi = line[7:].strip()
+                continue
             elif line.startswith('**Date:**') and current_section == "title_page":
                 date = line[8:].strip()
                 continue
@@ -954,30 +959,36 @@ class ScientificPaperRenderer:
             flowables.append(Paragraph(title, self.styles['PaperTitle']))
             flowables.append(Spacer(1, 40))
         
-        # Author information
+        # Author information - use plain text to avoid markdown processing
         if author_info:
             author_text = "<br/>".join(author_info)
             flowables.append(Paragraph(author_text, self.styles['AuthorInfo']))
             flowables.append(Spacer(1, 30))
         
-        # Keywords
+        # Keywords - use plain text to avoid markdown processing
         if keywords:
             keywords_text = f"<b>Keywords:</b> {', '.join(keywords)}"
             flowables.append(Paragraph(keywords_text, self.styles['BodyText']))
             flowables.append(Spacer(1, 20))
         
-        # Repository
+        # Repository - use plain text to avoid markdown processing
         if repository:
             flowables.append(Paragraph(f"<b>Repository:</b> {repository}", self.styles['BodyText']))
             flowables.append(Spacer(1, 20))
         
-        # Date and version
+        # DOI - use plain text to avoid markdown processing
+        if doi:
+            flowables.append(Paragraph(f"<b>DOI:</b> {doi}", self.styles['BodyText']))
+            flowables.append(Spacer(1, 20))
+        
+        # Date and version - use plain text to avoid asterisk issues
         if date or version:
             meta_text = []
             if date:
                 meta_text.append(f"<b>Date:</b> {date}")
             if version:
                 meta_text.append(f"<b>Version:</b> {version}")
+            # Use plain text without markdown processing
             flowables.append(Paragraph(" | ".join(meta_text), self.styles['BodyText']))
             flowables.append(Spacer(1, 40))
         

@@ -1,4 +1,4 @@
-# Symergetics: Exact Rational Arithmetic for Geometric Pattern Discovery and All-Integer Accounting
+# Symergetics: Symbolic Synergetics for Rational Arithmetic, Geometric Pattern Discovery, and All-Integer Accounting
 
 ## Title Page
 
@@ -16,8 +16,7 @@ Symergetics, Synergetics, Buckminster Fuller, rational arithmetic, geometric pat
 **Repository:**  
 Symergetics Package: https://github.com/docxology/symergetics
 
-**Paper DOI:** 
-10.5281/zenodo.17114390
+**DOI:** 10.5281/zenodo.17114390
 
 **Date:** September 13, 2025  
 **Version:** 1.0.0

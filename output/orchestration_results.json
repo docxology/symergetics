@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-09-13 12:25:18",
-  "total_duration": 12.547606945037842,
+  "timestamp": "2025-09-13 12:40:09",
+  "total_duration": 12.850057125091553,
   "examples": [
     {
       "script": "comprehensive_visualizations_demo.py",
       "success": false,
-      "duration": 0.04511308670043945,
+      "duration": 0.05032706260681152,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/comprehensive_visualizations_demo.py\", line 33, in <module>\n    from symergetics.core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -13,7 +13,7 @@
     {
       "script": "coordinate_systems_demo.py",
       "success": false,
-      "duration": 0.06589412689208984,
+      "duration": 0.06691098213195801,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/coordinate_systems_demo.py\", line 25, in <module>\n    from symergetics.core.coordinates import QuadrayCoordinate, TETRAHEDRON_VERTICES, IVM_NEIGHBORS, ORIGIN\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -21,7 +21,7 @@
     {
       "script": "geometric_mnemonics_demo.py",
       "success": false,
-      "duration": 0.0641322135925293,
+      "duration": 0.0699310302734375,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/geometric_mnemonics_demo.py\", line 42, in <module>\n    from symergetics.core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -29,7 +29,7 @@
     {
       "script": "integration_demo.py",
       "success": false,
-      "duration": 0.06217002868652344,
+      "duration": 0.06457209587097168,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/integration_demo.py\", line 25, in <module>\n    from symergetics.core.numbers import SymergeticsNumber, rational_sqrt\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -37,7 +37,7 @@
     {
       "script": "mathematical_patterns_demo.py",
       "success": false,
-      "duration": 0.060114145278930664,
+      "duration": 0.06866812705993652,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/mathematical_patterns_demo.py\", line 24, in <module>\n    from symergetics.core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -45,7 +45,7 @@
     {
       "script": "number_theory_demo.py",
       "success": false,
-      "duration": 0.07293009757995605,
+      "duration": 0.06934380531311035,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/number_theory_demo.py\", line 26, in <module>\n    from symergetics.core.numbers import SymergeticsNumber, rational_sqrt, rational_pi\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -53,7 +53,7 @@
     {
       "script": "organized_output_demo.py",
       "success": false,
-      "duration": 0.07235288619995117,
+      "duration": 0.06614232063293457,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/organized_output_demo.py\", line 19, in <module>\n    from symergetics.visualization import (\n    ...<3 lines>...\n    )\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -61,7 +61,7 @@
     {
       "script": "png_visualization_demo.py",
       "success": false,
-      "duration": 0.06890606880187988,
+      "duration": 0.05788707733154297,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/png_visualization_demo.py\", line 10, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -69,7 +69,7 @@
     {
       "script": "symergetics_core_demo.py",
       "success": false,
-      "duration": 0.07235002517700195,
+      "duration": 0.06848812103271484,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/symergetics_core_demo.py\", line 28, in <module>\n    from symergetics.core.numbers import SymergeticsNumber, rational_sqrt, rational_pi\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/__init__.py\", line 23, in <module>\n    from .core.numbers import SymergeticsNumber\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/__init__.py\", line 8, in <module>\n    from .coordinates import QuadrayCoordinate\n  File \"/Users/4d/Documents/GitHub/symergetics/symergetics/core/coordinates.py\", line 22, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -77,7 +77,7 @@
     {
       "script": "visualization_demo.py",
       "success": false,
-      "duration": 0.06293892860412598,
+      "duration": 0.06477022171020508,
       "error": "Traceback (most recent call last):\n  File \"/Users/4d/Documents/GitHub/symergetics/examples/visualization_demo.py\", line 26, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n",
       "stdout": "",
       "runner": "uv"
@@ -88,7 +88,7 @@
     "successful": 0,
     "failed": 10,
     "output_files": 221,
-    "output_size_mb": 35.22163963317871
+    "output_size_mb": 35.22164249420166
   },
   "log_files": {
     "orchestration_log": "/Users/4d/Documents/GitHub/symergetics/logs/orchestration.log",

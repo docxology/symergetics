@@ -944,6 +944,7 @@ def main():
     """Main paper generation workflow with full orchestration"""
     print_header("SYMERGETICS PAPER GENERATOR")
     print("Generating scientific paper with integrated visualizations...")
+    print(f"Title: Symergetics: Symbolic Synergetics for Rational Arithmetic, Geometric Pattern Discovery, and All-Integer Accounting")
     print(f"Author: Daniel Ari Friedman")
     print(f"ORCID: 0000-0001-6232-9096")
     print()
