@@ -1,6 +1,10 @@
 # Synergetics
 
+[![DOI](https://zenodo.org/badge/1053524519.svg)](https://doi.org/10.5281/zenodo.17114383)
+
 **Symbolic Operations on All-Integer Accounting**: Exact rational arithmetic implementing Buckminster Fuller's Synergetics through geometric ratios from high-frequency shapes in Quadray/4D coordinates. Research-grade precision for pattern discovery and mathematical analysis.
+
+**Paper DOI**: [10.5281/zenodo.17114390](https://doi.org/10.5281/zenodo.17114390)
 
 ## Core Approach
 
@@ -18,8 +22,8 @@ This package implements **symbolic operations on all-integer accounting based up
 - Quadray (Fuller.4D) coordinate system and IVM lattice utilities
 - Polyhedral volumes (tetrahedron, octahedron, cube, cuboctahedron) in exact IVM ratios
 - Scheherazade numbers (1001^n), palindromes, SSRCD analysis, primorials
-- Configurable visualizations (matplotlib/ASCII) saving to `output/`
-- Rigorously tested with a comprehensive test suite
+- Multiple visualization backends (matplotlib, plotly, ASCII) with organized output
+- Comprehensive test suite with 977 test functions and 90%+ coverage
 
 ## Install & Test
 
@@ -68,7 +72,9 @@ result = plot_polyhedron('tetrahedron')
 print(result['files'])  # saved assets in output/
 ```
 
-Backends: `matplotlib`, `ascii`. All artifacts are saved under `output/`.
+**Backends**: `matplotlib`, `plotly`, `ascii`  
+**Output**: Organized by type (geometric, mathematical, numbers) under `output/`  
+**Features**: 3D polyhedra, coordinate systems, pattern analysis, batch processing
 
 ## Documentation
 
@@ -81,4 +87,19 @@ Backends: `matplotlib`, `ascii`. All artifacts are saved under `output/`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Apache License 2.0 — see [LICENSE](LICENSE).
+
+## Citation
+
+If you use this software in your research, please cite:
+
+```bibtex
+@software{symergetics2024,
+  title={Symergetics: Symbolic Operations on All-Integer Accounting},
+  author={Daniel Ari Friedman (docxology)},
+  year={2025},
+  publisher={Zenodo},
+  doi={10.5281/zenodo.17114383},
+  url={https://doi.org/10.5281/zenodo.17114383}
+}
+```

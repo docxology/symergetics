@@ -27,7 +27,7 @@ from matplotlib.patches import FancyBboxPatch
 import seaborn as sns
 
 # Add the project root to the path
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent  # Go up one level from paper/ to project root
 sys.path.insert(0, str(project_root))
 
 from symergetics.core.coordinates import QuadrayCoordinate
