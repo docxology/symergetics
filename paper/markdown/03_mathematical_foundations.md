@@ -3,7 +3,7 @@
 
 ### The Synergetics Framework
 
-Synergetics establishes exact mathematical relationships through geometric ratios derived from regular polyhedra. The core principle requires "symbolic operations on all-integer accounting based upon ratios geometrically based upon high-frequency shapes" ([Fuller, 1975](https://www.rwgrayprojects.com/synergetics/)), demanding exact rational arithmetic that floating-point systems cannot provide. This framework recognizes that natural systems operate through precise geometric relationships expressed as exact rational ratios.
+Synergetics establishes exact mathematical relationships through geometric ratios derived from regular polyhedra. The core principle requires "symbolic operations on all-integer accounting based upon ratios geometrically based upon high-frequency shapes" ([Fuller and Applewhite](https://www.rwgrayprojects.com/synergetics/)), demanding exact rational arithmetic that floating-point systems cannot provide. This framework recognizes that natural systems operate through precise geometric relationships expressed as exact rational ratios.
 
 The mathematical foundation rests on the tetrahedron as the fundamental geometric unit, with all other polyhedra defined through exact volume relationships. The tetrahedron's volume of 1 IVM unit establishes the basis for all geometric calculations, with the octahedron equaling exactly 4 tetrahedra and the cube equaling exactly 3 tetrahedra. These relationships form the mathematical language for describing universal patterns from molecular to cosmic scales.
 
@@ -27,15 +27,7 @@ The mathematical foundation rests on the tetrahedron as the fundamental geometri
 
 **Mathematical Definition:** A point in Quadray coordinates is represented as (a, b, c, d) where at least one coordinate is zero after normalization. The coordinates are non-negative integers in the IVM lattice, with the constraint that the sum remains constant after normalization. The normalization process subtracts the minimum coordinate from all four coordinates, ensuring at least one is zero while maintaining tetrahedral symmetry.
 
-**Coordinate Transformations:** The system supports exact conversion between Quadray and Cartesian coordinates using the Urner embedding matrix. The transformation equations are:
-
-$$x = \frac{a - b}{\sqrt{2}}$$
-
-$$y = \frac{a + b - 2c}{\sqrt{6}}$$
-
-$$z = \frac{a + b + c - 3d}{\sqrt{12}}$$
-
-These transformations preserve all geometric relationships exactly, enabling seamless integration with traditional geometric analysis tools. Complete implementation details are available in the [coordinate transformation module](https://github.com/docxology/symergetics/tree/main/symergetics/core/coordinates).
+**Coordinate Transformations:** The system supports exact conversion between Quadray and Cartesian coordinates using the Urner embedding matrix. These transformations preserve all geometric relationships exactly, enabling seamless integration with traditional geometric analysis tools. Complete implementation details are available in the [coordinate transformation module](https://github.com/docxology/symergetics/tree/main/symergetics/core/coordinates).
 
 
 ### Isotropic Vector Matrix (IVM) Units
