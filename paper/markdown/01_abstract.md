@@ -1,6 +1,6 @@
 ## Abstract
 
-Floating-point arithmetic introduces systematic approximation errors that obscure fundamental mathematical relationships in geometric calculations, producing results like 2.999999999999999 instead of the exact integer 3. These compounding and confounding precision losses stymie a full-featured implementation of Buckminster Fuller's Synergetics framework, which requires symbolic operations on all-integer accounting based upon ratios geometrically based upon high-frequency shapes.
+Floating-point arithmetic introduces systematic approximation errors that obscure fundamental mathematical relationships in geometric calculations, producing results like 3.999999999999999 instead of the exact integer 4. These compounding and confounding precision losses stymie a full-featured implementation of Buckminster Fuller's Synergetics framework, which requires symbolic operations on all-integer accounting using ratios geometrically based upon high-frequency shapes.
 
 Here we present Symergetics (Symbolic Synergetics), an open source Python package which provides exact rational arithmetic methods framed within the vectorial geometry of the Synergetics framework. The package implements a Quadray coordinate system for tetrahedral geometry within the Isotropic Vector Matrix (IVM) lattice, exact volume calculations for Platonic solids using IVM units (tetrahedron = 1, octahedron = 4, cube = 3, cuboctahedron = 20), and pattern analysis algorithms for Scheherazade numbers (1001^n) and primorial sequences using exact arithmetic.
 
