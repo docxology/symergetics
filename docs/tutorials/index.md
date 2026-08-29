@@ -455,9 +455,9 @@ exact_result = SymergeticsNumber(1, 3) + SymergeticsNumber(1, 6)
 
 ## Next Steps
 
-1. **Explore Research Applications**: See the [research documentation](research/)
-2. **Study the API**: Check the [API reference](api/)
-3. **Run Examples**: Try the [examples](examples/)
+1. **Explore Research Applications**: See the [research documentation](../research/)
+2. **Study the API**: Check the [API reference](../api/)
+3. **Run Examples**: Try the [examples](../examples/)
 4. **Contribute**: Help improve the package!
 
 Remember: **"Mathematics is the language of energy expressed in comprehensible, rational terms."**
