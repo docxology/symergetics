@@ -1,16 +1,4 @@
-# Geometric Visualizations
+# geometric/
 
-## Subcategories
-
-### polyhedra/
-3D polyhedron visualizations
-
-### coordinates/
-Quadray coordinate system plots
-
-### lattice/
-IVM lattice structures
-
-### transformations/
-Geometric transformations
-
+Geometric outputs: coordinate renders (`coordinates/`), lattice views (`lattice/`),
+and polyhedron visualizations (`polyhedra/`).

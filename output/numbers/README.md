@@ -1,16 +1,4 @@
-# Numbers Visualizations
+# numbers/
 
-## Subcategories
-
-### palindromes/
-Palindromic number patterns
-
-### scheherazade/
-Scheherazade number analysis
-
-### primorials/
-Primorial distributions
-
-### mnemonics/
-Memory aid visualizations
-
+Outputs of the number-theory demos: mnemonics, palindromes, primorials,
+scheherazade.
