@@ -16,11 +16,23 @@ Author: Symergetics Team
 Based on QuadMath implementation by docxology
 """
 
-from fractions import Fraction
-from typing import Union, Tuple, List, Optional, Dict, Any, Iterable
 import math
+from typing import Dict, Optional, Tuple, Union
+
 import numpy as np
+
 from .numbers import SymergeticsNumber
+
+
+def _snap_to_int(value: float) -> int:
+    """Round to the nearest integer with exact halves rounding away from zero.
+
+    Python's round() uses banker's rounding, which maps 0.5 -> 0 and would
+    snap genuine lattice points (whose pseudoinverse solution has exact .5
+    components) to the wrong coordinates.
+    """
+    return int(math.copysign(math.floor(abs(value) + 0.5), value))
+
 
 
 class QuadrayCoordinate:
@@ -54,11 +66,10 @@ class QuadrayCoordinate:
             Following QuadMath convention, coordinates are converted to integers
             and normalized so that at least one component is zero.
         """
-        # Convert to integers (IVM convention)
-        self.a = int(float(a) if hasattr(a, '__float__') else float(a.value) if hasattr(a, 'value') else float(a))
-        self.b = int(float(b) if hasattr(b, '__float__') else float(b.value) if hasattr(b, 'value') else float(b))
-        self.c = int(float(c) if hasattr(c, '__float__') else float(c.value) if hasattr(c, 'value') else float(c))
-        self.d = int(float(d) if hasattr(d, '__float__') else float(d.value) if hasattr(d, 'value') else float(d))
+        self.a = _snap_to_int(float(a.value) if hasattr(a, 'value') else float(a))
+        self.b = _snap_to_int(float(b.value) if hasattr(b, 'value') else float(b))
+        self.c = _snap_to_int(float(c.value) if hasattr(c, 'value') else float(c))
+        self.d = _snap_to_int(float(d.value) if hasattr(d, 'value') else float(d))
 
         if normalize:
             self._normalize_ivm()
@@ -176,8 +187,20 @@ class QuadrayCoordinate:
         embedding_pinv = np.linalg.pinv(embedding)
         quadray_solution = embedding_pinv @ xyz_vector
         
-        # Convert to integers and normalize using IVM convention
-        a, b, c, d = [int(round(coord)) for coord in quadray_solution]
+        # The (1,1,1,1) kernel splits the lattice into two phase classes:
+        # integer quadray solutions and half-integer ones. Try both the
+        # unshifted and the half-shifted rounding and keep the candidate
+        # whose embedding is closest to the requested point.
+        best = None
+        best_err = None
+        for shift in (0.0, 0.5):
+            candidate = tuple(_snap_to_int(coord + shift) for coord in quadray_solution)
+            err_vec = embedding @ np.array(candidate, dtype=float) - xyz_vector
+            err = float(np.dot(err_vec, err_vec))
+            if best_err is None or err < best_err:
+                best_err = err
+                best = candidate
+        a, b, c, d = best
         
         return cls(a, b, c, d, normalize=True)
 
@@ -289,24 +312,27 @@ TETRAHEDRON_VERTICES = [
     QuadrayCoordinate(2, 0, 1, 1),    # Vertex 3
 ]
 
-# Cube vertices (volume = 3 in tetrahedra)
+# Cube vertices (volume = 3 in tetrahedra): face diagonal equals the tetra edge
+# (cube edge = tetra edge / sqrt(2)). In XYZ these are the 8 points
+# (+/-1, +/-1, +/-1), i.e. the 4 Urner basis directions and their complements.
 CUBE_VERTICES = [
-    QuadrayCoordinate(1, 1, 1, -3),   # Vertex 1
-    QuadrayCoordinate(1, 1, -1, 1),   # Vertex 2
-    QuadrayCoordinate(1, -1, 1, 1),   # Vertex 3
-    QuadrayCoordinate(1, -1, -1, -1), # Vertex 4
-    QuadrayCoordinate(-1, 1, 1, 1),   # Vertex 5
-    QuadrayCoordinate(-1, 1, -1, -1), # Vertex 6
-    QuadrayCoordinate(-1, -1, 1, -1), # Vertex 7
-    QuadrayCoordinate(-1, -1, -1, 3), # Vertex 8
+    QuadrayCoordinate(1, 0, 0, 0),    # +col1
+    QuadrayCoordinate(0, 1, 0, 0),    # +col2
+    QuadrayCoordinate(0, 0, 1, 0),    # +col3
+    QuadrayCoordinate(0, 0, 0, 1),    # +col4
+    QuadrayCoordinate(0, 1, 1, 1),    # -col1
+    QuadrayCoordinate(1, 0, 1, 1),    # -col2
+    QuadrayCoordinate(1, 1, 0, 1),    # -col3
+    QuadrayCoordinate(1, 1, 1, 0),    # -col4
 ]
 
-# Octahedron vertices (volume = 4 in tetrahedra)
+# Octahedron vertices (volume = 4 in tetrahedra): the 6 IVM points at one edge
+# length from the origin along the +axis pair sums, ordered [+X,-X,+Y,-Y,+Z,-Z].
 OCTAHEDRON_VERTICES = [
-    QuadrayCoordinate(2, 0, 0, -2),   # +X
-    QuadrayCoordinate(-2, 0, 0, 2),   # -X
-    QuadrayCoordinate(0, 2, 0, -2),   # +Y
-    QuadrayCoordinate(0, -2, 0, 2),   # -Y
-    QuadrayCoordinate(0, 0, 2, -2),   # +Z
-    QuadrayCoordinate(0, 0, -2, 2),   # -Z
+    QuadrayCoordinate(1, 0, 0, 1),    # +X
+    QuadrayCoordinate(0, 1, 1, 0),    # -X
+    QuadrayCoordinate(1, 1, 0, 0),    # +Y
+    QuadrayCoordinate(0, 0, 1, 1),    # -Y
+    QuadrayCoordinate(1, 0, 1, 0),    # +Z
+    QuadrayCoordinate(0, 1, 0, 1),    # -Z
 ]

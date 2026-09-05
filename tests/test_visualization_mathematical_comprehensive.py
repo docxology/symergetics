@@ -7,13 +7,14 @@ to achieve 90%+ test coverage, focusing on edge cases, error handling, and
 comprehensive functionality testing.
 """
 
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
 import json
-from typing import List, Dict, Any
+import os
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Test data and fixtures
 TEST_DATA_DIR = Path(__file__).parent / "test_data"
@@ -24,7 +25,9 @@ class TestPlotContinuedFractionConvergenceComprehensive:
 
     def test_plot_continued_fraction_convergence_matplotlib(self):
         """Test continued fraction convergence plotting with matplotlib."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
              patch('matplotlib.pyplot.savefig') as mock_savefig, \
@@ -44,7 +47,9 @@ class TestPlotContinuedFractionConvergenceComprehensive:
     @pytest.mark.skip(reason="Plotly backend not implemented for continued fraction convergence")
     def test_plot_continued_fraction_convergence_plotly(self):
         """Test continued fraction convergence plotting with plotly."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         with patch('plotly.graph_objects.Figure') as mock_figure, \
              patch('plotly.graph_objects.Scatter') as mock_scatter, \
@@ -64,7 +69,9 @@ class TestPlotContinuedFractionConvergenceComprehensive:
     @pytest.mark.skip(reason="ASCII backend not implemented for continued fraction convergence")
     def test_plot_continued_fraction_convergence_ascii(self):
         """Test continued fraction convergence plotting with ASCII backend."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         result = plot_continued_fraction_convergence(
             value=3.14159,
@@ -78,7 +85,9 @@ class TestPlotContinuedFractionConvergenceComprehensive:
 
     def test_plot_continued_fraction_convergence_integer(self):
         """Test continued fraction convergence plotting with integer value."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
              patch('matplotlib.pyplot.savefig') as mock_savefig, \
@@ -96,7 +105,9 @@ class TestPlotContinuedFractionConvergenceComprehensive:
 
     def test_plot_continued_fraction_convergence_few_terms(self):
         """Test continued fraction convergence plotting with few terms."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
              patch('matplotlib.pyplot.savefig') as mock_savefig, \
@@ -114,9 +125,11 @@ class TestPlotContinuedFractionConvergenceComprehensive:
 
     def test_plot_continued_fraction_convergence_invalid_backend(self):
         """Test continued fraction convergence plotting with invalid backend."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
-        with pytest.raises(ValueError, match="Convergence visualization requires matplotlib backend"):
+        with pytest.raises(ValueError, match="Convergence visualization requires matplotlib or plotly backend"):
             plot_continued_fraction_convergence(
                 value=3.14159,
                 max_terms=15,
@@ -125,7 +138,9 @@ class TestPlotContinuedFractionConvergenceComprehensive:
 
     def test_plot_continued_fraction_convergence_error_handling(self):
         """Test continued fraction convergence plotting error handling."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
              patch('matplotlib.pyplot.savefig') as mock_savefig, \
@@ -366,7 +381,7 @@ class TestPlotPatternAnalysisRadarComprehensive:
         """Test pattern analysis radar plotting with invalid backend."""
         from symergetics.visualization.mathematical import plot_pattern_analysis_radar
         
-        with pytest.raises(ValueError, match="Radar visualization requires matplotlib backend"):
+        with pytest.raises(ValueError, match="Radar visualization requires matplotlib or plotly backend"):
             plot_pattern_analysis_radar(
                 sequence="121123211234321",
                 backend='invalid'
@@ -467,10 +482,12 @@ class TestMathematicalVisualizationErrorHandling:
 
     def test_invalid_data_structures(self):
         """Test handling of invalid data structures."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         # Test with invalid value type - should raise ValueError
-        with pytest.raises(ValueError, match="invalid literal for int"):
+        with pytest.raises(ValueError, match="requires a real number"):
             plot_continued_fraction_convergence(
                 value="invalid",
                 max_terms=15,
@@ -479,7 +496,9 @@ class TestMathematicalVisualizationErrorHandling:
 
     def test_extreme_data_values(self):
         """Test handling of extreme data values."""
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
              patch('matplotlib.pyplot.savefig') as mock_savefig, \
@@ -503,9 +522,9 @@ class TestMathematicalVisualizationIntegration:
     def test_multiple_mathematical_visualizations(self):
         """Test multiple mathematical visualization types."""
         from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
             plot_base_conversion_matrix,
-            plot_pattern_analysis_radar
+            plot_continued_fraction_convergence,
+            plot_pattern_analysis_radar,
         )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
@@ -542,9 +561,9 @@ class TestMathematicalVisualizationIntegration:
     def test_visualization_metadata_consistency(self):
         """Test that visualization metadata is consistent across functions."""
         from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
             plot_base_conversion_matrix,
-            plot_pattern_analysis_radar
+            plot_continued_fraction_convergence,
+            plot_pattern_analysis_radar,
         )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
@@ -585,7 +604,10 @@ class TestMathematicalVisualizationPerformance:
     def test_visualization_execution_time(self):
         """Test that visualizations execute within reasonable time."""
         import time
-        from symergetics.visualization.mathematical import plot_continued_fraction_convergence
+
+        from symergetics.visualization.mathematical import (
+            plot_continued_fraction_convergence,
+        )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
              patch('matplotlib.pyplot.savefig') as mock_savefig, \
@@ -607,6 +629,7 @@ class TestMathematicalVisualizationPerformance:
     def test_large_sequence_performance(self):
         """Test performance with large sequences."""
         import time
+
         from symergetics.visualization.mathematical import plot_pattern_analysis_radar
         
         # Create a very long sequence

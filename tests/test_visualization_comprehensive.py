@@ -3,21 +3,22 @@ Comprehensive real tests for visualization modules.
 Tests actual functionality without mocks.
 """
 
-import pytest
-import numpy as np
-from fractions import Fraction
-import tempfile
 import os
+import tempfile
+from fractions import Fraction
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from symergetics.core.numbers import SymergeticsNumber
-from symergetics.core.constants import SymergeticsConstants
+import numpy as np
+import pytest
+
 from symergetics.computation.analysis import analyze_mathematical_patterns
 from symergetics.computation.palindromes import analyze_number_for_synergetics
 from symergetics.computation.primorials import primorial, scheherazade_power
-from symergetics.utils.conversion import rational_to_float, float_to_exact_rational
-from symergetics.utils.mnemonics import mnemonic_encode, create_memory_aid
+from symergetics.core.constants import SymergeticsConstants
+from symergetics.core.numbers import SymergeticsNumber
+from symergetics.utils.conversion import float_to_exact_rational, rational_to_float
+from symergetics.utils.mnemonics import create_memory_aid, mnemonic_encode
 from symergetics.utils.reporting import generate_statistical_summary
 
 
@@ -108,10 +109,9 @@ class TestVisualizationGeometry:
     
     def test_visualize_coordinate_systems(self):
         """Test coordinate system visualization."""
-        from symergetics.visualization.geometry import plot_quadray_coordinate
-        
         # Test with a coordinate
         from symergetics.core.coordinates import QuadrayCoordinate
+        from symergetics.visualization.geometry import plot_quadray_coordinate
         coord = QuadrayCoordinate(1, 0, 0, 0)
         
         result = plot_quadray_coordinate(
@@ -184,7 +184,9 @@ class TestVisualizationAdvanced:
     
     def test_visualize_comprehensive_analysis(self):
         """Test comprehensive analysis visualization."""
-        from symergetics.visualization.advanced import create_statistical_analysis_dashboard
+        from symergetics.visualization.advanced import (
+            create_statistical_analysis_dashboard,
+        )
         
         # Test with real comprehensive data
         analysis_data = [
@@ -242,7 +244,9 @@ class TestVisualizationAdvanced:
     
     def test_visualize_cross_module_analysis(self):
         """Test cross-module analysis visualization."""
-        from symergetics.visualization.advanced import create_comparative_analysis_visualization
+        from symergetics.visualization.advanced import (
+            create_comparative_analysis_visualization,
+        )
         
         # Test with real cross-module data
         domain1_data = [
@@ -284,8 +288,8 @@ class TestVisualizationIntegration:
     
     def test_visualization_pipeline_integration(self):
         """Test complete visualization pipeline."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis
         from symergetics.visualization.geometry import plot_polyhedron
+        from symergetics.visualization.mathematical import plot_pattern_analysis
         from symergetics.visualization.numbers import plot_palindromic_pattern
         
         # Test with real integrated data

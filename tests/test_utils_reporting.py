@@ -3,21 +3,23 @@
 Tests for reporting methods in symergetics.utils.reporting
 """
 
-import pytest
-import json
 import csv
+import json
 import os
 import tempfile
 from pathlib import Path
+
+import pytest
+
 from symergetics.utils.reporting import (
-    generate_statistical_summary,
-    generate_comparative_report,
-    export_report_to_json,
-    export_report_to_csv,
-    export_report_to_markdown,
-    generate_performance_report,
+    AnalysisSummary,
     ReportMetrics,
-    AnalysisSummary
+    export_report_to_csv,
+    export_report_to_json,
+    export_report_to_markdown,
+    generate_comparative_report,
+    generate_performance_report,
+    generate_statistical_summary,
 )
 
 
@@ -182,7 +184,7 @@ class TestReportExport:
             # Verify file was created and contains valid JSON
             assert os.path.exists(temp_path)
 
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 loaded_data = json.load(f)
 
             assert loaded_data['title'] == 'Test Report'
@@ -210,7 +212,7 @@ class TestReportExport:
             assert os.path.exists(temp_path)
 
             # Verify CSV content
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 content = f.read()
 
             assert 'Key' in content
@@ -241,7 +243,7 @@ class TestReportExport:
             assert os.path.exists(temp_path)
 
             # Verify Markdown content
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 content = f.read()
 
             assert '# Test Report' in content
@@ -303,7 +305,7 @@ class TestReportExport:
         try:
             export_report_to_json(report_data, temp_path, indent=2)
 
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 loaded_data = json.load(f)
 
             assert loaded_data['data']['level1']['level2']['value'] == 42
@@ -538,7 +540,7 @@ class TestEdgeCases:
             export_report_to_json(large_data, temp_path)
 
             # Verify it was written
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 loaded = json.load(f)
 
             assert len(loaded['data']) == 1000

@@ -15,16 +15,15 @@ Features:
 Author: Symergetics Team
 """
 
-from typing import Dict, Any, Optional, Union, List
-import os
 import json
+import os
 from pathlib import Path
-
+from typing import Any, Dict, List, Optional
 
 # Default configuration with organized output structure
 DEFAULT_CONFIG = {
     "output_dir": "output",
-    "backend": "matplotlib",  # matplotlib, plotly, bokeh, ascii
+    "backend": "matplotlib",  # matplotlib, plotly, ascii
     "organize_by_type": True,  # Organize outputs into type-based subdirectories
     "include_timestamps": False,  # Include timestamps in filenames for uniqueness
     "figure_size": (10, 8),
@@ -95,7 +94,15 @@ def set_config(config: Dict[str, Any]) -> None:
         config: Configuration dictionary to merge with defaults
     """
     global _config
-    _config.update(config)
+    for key, value in config.items():
+        # One-level deep merge so partial overrides of nested sections
+        # (e.g. a custom 'colors' entry) keep the remaining defaults.
+        if isinstance(value, dict) and isinstance(_config.get(key), dict):
+            merged = dict(_config[key])
+            merged.update(value)
+            _config[key] = merged
+        else:
+            _config[key] = value
 
 
 def get_config() -> Dict[str, Any]:
@@ -159,8 +166,8 @@ def get_organized_output_path(category: str, subcategory: str, filename: str) ->
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         name, ext = os.path.splitext(filename)
         filename = f"{name}_{timestamp}{ext}"
-    
     return output_dir / filename
+    
 
 
 def create_output_structure_readme():
@@ -169,7 +176,7 @@ def create_output_structure_readme():
         return
     
     base_dir = Path(_config["output_dir"])
-    base_dir.mkdir(exist_ok=True)
+    base_dir.mkdir(parents=True, exist_ok=True)
     
     # Main README
     main_readme = base_dir / "README.md"
@@ -193,7 +200,7 @@ def create_output_structure_readme():
     # Category READMEs
     for category, subcategories in _config["output_structure"].items():
         cat_dir = base_dir / category
-        cat_dir.mkdir(exist_ok=True)
+        cat_dir.mkdir(parents=True, exist_ok=True)
         
         cat_readme = cat_dir / "README.md"
         with open(cat_readme, 'w') as f:
@@ -261,60 +268,15 @@ def load_config(filename: str = "visualization_config.json") -> None:
     config_path = output_dir / filename
 
     if config_path.exists():
-        with open(config_path, 'r') as f:
+        with open(config_path) as f:
             loaded_config = json.load(f)
             set_config(loaded_config)
 
 
 # Import visualization modules
 from .geometry import *
-from .numbers import *
 from .mathematical import *
-
-__all__ = [
-    # Configuration
-    "set_config",
-    "get_config",
-    "reset_config",
-    "save_config",
-    "load_config",
-
-    # Geometry visualizations
-    "plot_polyhedron",
-    "plot_quadray_coordinate",
-    "plot_ivm_lattice",
-    "plot_coordinate_transformation",
-
-    # Enhanced geometry visualizations
-    "plot_polyhedron_3d",
-    "plot_polyhedron_graphical_abstract",
-    "plot_polyhedron_wireframe",
-
-    # Number visualizations
-    "plot_palindromic_pattern",
-    "plot_scheherazade_pattern",
-    "plot_primorial_distribution",
-    "plot_mnemonic_visualization",
-    "plot_palindromic_heatmap",
-    "plot_scheherazade_network",
-    "plot_primorial_spectrum",
-
-    # Mathematical visualizations
-    "plot_continued_fraction",
-    "plot_base_conversion",
-    "plot_pattern_analysis",
-    "plot_ssrcd_analysis",
-    "plot_continued_fraction_convergence",
-    "plot_base_conversion_matrix",
-    "plot_pattern_analysis_radar",
-
-    # Utility functions
-    "batch_visualize",
-    "create_animation",
-    "export_visualization",
-    "batch_process",
-    "create_visualization_report"
-]
+from .numbers import *
 
 
 # Utility functions
@@ -373,8 +335,10 @@ def batch_visualize(visualization_tasks: List[Dict[str, Any]],
 
             # New mathematical visualizations
             'plot_continued_fraction_convergence': plot_continued_fraction_convergence,
-            'plot_base_conversion_matrix': plot_base_conversion_matrix,
             'plot_pattern_analysis_radar': plot_pattern_analysis_radar,
+
+            # Animation
+            'create_animation': create_animation,
         }
 
         if func_name in func_map:
@@ -399,36 +363,104 @@ def create_animation(frames: List[Dict[str, Any]],
                     output_filename: str = "animation",
                     fps: Optional[int] = None) -> Dict[str, Any]:
     """
-    Create an animation from a sequence of visualization frames.
+    Create an animated GIF from a sequence of frame specifications.
+
+    Each frame renders a rotating synergetic polyhedron. A frame dict may
+    override:
+        'polyhedron': name understood by plot_polyhedron ('tetrahedron',
+            'octahedron', 'cube', 'cuboctahedron'; default per frame index)
+        'azimuth': view azimuth in degrees (default: evenly spread over 360)
+        'elevation': view elevation in degrees (default 20)
 
     Args:
-        frames: List of frame specifications
+        frames: List of frame specifications (dicts); length gives the frame count
         output_filename: Output filename (without extension)
-        fps: Frames per second
+        fps: Frames per second (defaults to the configured animation fps)
 
     Returns:
         Dict: Animation metadata and file paths
-
-    Note:
-        This is a placeholder for animation functionality.
-        Full implementation would require additional animation libraries.
     """
+    if not frames:
+        raise ValueError("create_animation requires at least one frame")
+
     fps = fps or _config["animation"]["fps"]
 
-    output_dir = ensure_output_dir()
-    metadata = {
-        'type': 'animation_placeholder',
-        'frames': len(frames),
-        'fps': fps,
-        'duration': len(frames) / fps,
-        'output_filename': output_filename
-    }
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from PIL import Image
+    except ImportError as e:
+        raise ImportError(f"Animation requires matplotlib and pillow: {e}")
 
-    # For now, just return metadata
-    # Full implementation would create actual animations
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+    from ..geometry.polyhedra import (
+        create_cube,
+        create_cuboctahedron,
+        create_octahedron,
+        create_unit_tetrahedron,
+    )
+
+    shape_factories = {
+        'tetrahedron': create_unit_tetrahedron,
+        'octahedron': create_octahedron,
+        'cube': create_cube,
+        'cuboctahedron': create_cuboctahedron,
+    }
+    default_shapes = ['tetrahedron', 'octahedron', 'cube', 'cuboctahedron']
+    colors_cfg = get_config()["colors"]
+    frame_images = []
+    for index, frame in enumerate(frames):
+        shape = frame.get('polyhedron', default_shapes[index % len(default_shapes)])
+        if shape not in shape_factories:
+            raise ValueError(
+                f"Unknown polyhedron '{shape}'. Available: {sorted(shape_factories)}")
+        azimuth = frame.get('azimuth', 360.0 * index / len(frames))
+        elevation = frame.get('elevation', 20.0)
+
+        polyhedron = shape_factories[shape]()
+        vertices = np.array(polyhedron.to_xyz_vertices())
+        vertex_index = {v: i for i, v in enumerate(polyhedron.vertices)}
+
+        figure = plt.figure(figsize=get_config()["figure_size"])
+        axis = figure.add_subplot(111, projection='3d')
+        face_tris = [
+            [vertices[vertex_index[v]] for v in face[m:m + 3]]
+            for face in polyhedron.faces()
+            for m in range(1, len(face) - 1)
+        ]
+        axis.add_collection3d(Poly3DCollection(
+            face_tris, facecolors=colors_cfg["primary"], alpha=0.35,
+            edgecolors=colors_cfg["secondary"]))
+        axis.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
+                     color=colors_cfg["accent"], s=30)
+        axis.set_box_aspect((1, 1, 1))
+        axis.set_axis_off()
+        axis.view_init(elev=elevation, azim=azimuth)
+        figure.canvas.draw()
+        buffer = np.asarray(figure.canvas.buffer_rgba())[:, :, :3]
+        frame_images.append(Image.fromarray(buffer))
+        plt.close(figure)
+
+    output_path = get_organized_output_path('geometric', 'animations',
+                                            f"{output_filename}.gif")
+    frame_duration_ms = int(1000 / fps)
+    frame_images[0].save(
+        str(output_path), save_all=True, append_images=frame_images[1:],
+        duration=frame_duration_ms, loop=0)
+
     return {
-        'files': [],
-        'metadata': metadata
+        'files': [str(output_path)],
+        'metadata': {
+            'type': 'animation',
+            'frames': len(frames),
+            'fps': fps,
+            'duration': len(frames) / fps,
+            'output_filename': output_filename,
+            'backend': 'matplotlib'
+        }
     }
 
 
@@ -544,7 +576,7 @@ def create_visualization_report(results: List[Dict[str, Any]],
 
             f.write("\n")
 
-        f.write(f"Summary:\n")
+        f.write("Summary:\n")
         f.write(f"- Successful: {successful}\n")
         f.write(f"- Failed: {failed}\n")
         f.write(f"- Total files generated: {total_files}\n")
@@ -553,26 +585,37 @@ def create_visualization_report(results: List[Dict[str, Any]],
 
 
 # Import visualization modules to make functions available
-from .geometry import (
-    plot_polyhedron, plot_quadray_coordinate, plot_ivm_lattice,
-    plot_polyhedron_3d, plot_polyhedron_graphical_abstract, plot_polyhedron_wireframe
-)
-from .numbers import (
-    plot_palindromic_pattern, plot_scheherazade_pattern, plot_primorial_distribution,
-    plot_palindromic_heatmap, plot_scheherazade_network, plot_primorial_spectrum
-)
-from .mathematical import (
-    plot_continued_fraction, plot_base_conversion, plot_pattern_analysis,
-    plot_continued_fraction_convergence, plot_base_conversion_matrix, plot_pattern_analysis_radar
-)
 from .advanced import (
     create_comparative_analysis_visualization,
+    create_geometric_mnemonics_visualization,
+    create_mega_graphical_abstract,
     create_pattern_discovery_visualization,
     create_statistical_analysis_dashboard,
-    create_geometric_mnemonics_visualization,
-    create_mega_graphical_abstract
 )
-
+from .geometry import (
+    plot_ivm_lattice,
+    plot_polyhedron,
+    plot_polyhedron_3d,
+    plot_polyhedron_graphical_abstract,
+    plot_polyhedron_wireframe,
+    plot_quadray_coordinate,
+)
+from .mathematical import (
+    plot_base_conversion,
+    plot_base_conversion_matrix,
+    plot_continued_fraction,
+    plot_continued_fraction_convergence,
+    plot_pattern_analysis,
+    plot_pattern_analysis_radar,
+)
+from .numbers import (
+    plot_palindromic_heatmap,
+    plot_palindromic_pattern,
+    plot_primorial_distribution,
+    plot_primorial_spectrum,
+    plot_scheherazade_network,
+    plot_scheherazade_pattern,
+)
 
 __all__ = [
     # Configuration functions
@@ -595,12 +638,28 @@ __all__ = [
     "plot_base_conversion",
     "plot_pattern_analysis",
 
+    # Enhanced geometry visualizations
+    "plot_coordinate_transformation",
+    "plot_polyhedron_3d",
+    "plot_polyhedron_graphical_abstract",
+    "plot_polyhedron_wireframe",
+
     # Advanced visualizations
     "create_comparative_analysis_visualization",
     "create_pattern_discovery_visualization",
     "create_statistical_analysis_dashboard",
     "create_geometric_mnemonics_visualization",
     "create_mega_graphical_abstract",
+
+    # Extended number and mathematical visualizations
+    "plot_mnemonic_visualization",
+    "plot_palindromic_heatmap",
+    "plot_scheherazade_network",
+    "plot_primorial_spectrum",
+    "plot_ssrcd_analysis",
+    "plot_continued_fraction_convergence",
+    "plot_base_conversion_matrix",
+    "plot_pattern_analysis_radar",
     
     # Utility functions
     "batch_visualize",

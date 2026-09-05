@@ -1,20 +1,20 @@
-# STATUS — symergetics (as of 2026-08-31)
+# STATUS — symergetics (as of 2026-09-05)
 
 Executable truth over prose truth: every claim below names the command that
 verifies it. Re-run instead of trusting this file.
 
-- **State:** working tree has ~88 untracked files, all under `output/`
-  (regenerable build artifacts + docs-fleet AGENTS/README residue in output
-  subtrees). Verify: `git status --porcelain | grep -v '^?? output/' | wc -l`
-  (expect 0 non-output dirty files).
-- **Branch:** `main`, in sync with origin at time of writing. Verify:
-  `git status -sb`.
-- **Tests:** `uv run pytest tests/core/test_coordinates.py -q` → 25 passed in
-  371 s (2026-08-31, external-drive I/O). NOTE: a single-file run fails the
-  pyproject 85% coverage floor (8.19%) even when tests pass — use `--no-cov`
-  for quick checks or run the full `uv run pytest tests/ -q` (background;
-  full collection exceeds 5 min here). Full-suite receipt: not yet recorded —
-  see TODO.md Major item.
+- **State:** working tree carries the 2026-09-05 review fixes (package, tests,
+  run.py, docs); `output/` artifacts are regenerable and its `test_custom_dir`
+  residue was removed. Verify: `git status --porcelain | grep -v '^?? output/'`.
+- **Branch:** `main`, no commits made by the review (changes left in the
+  working tree). Verify: `git status -sb`.
+- **Tests:** full suite receipt 2026-09-05 (final tree): `uv run pytest tests/ -q`
+  → **997 passed, 20 skipped**, coverage **85.85%** (floor 85% reached), 9 min.
+  Pre-fix baseline (same machine): 954 passed, 20 skipped with `--no-cov`, 279 s.
+  Plotly backends are implemented for every numbers/mathematical/geometry plot
+  and covered by tests; `tests/core/` twins merged into the `tests/` root;
+  1017 tests collected across 39 modules. Quick single-file checks still need
+  `--no-cov` (per-file coverage floor gotcha below).
 - **Demo outputs:** everything under `output/` is regenerable via `run.py` /
   `examples/` scripts; never hand-edit. Verify: `ls output/`.
 - **Paper:** last build `paper/output/symergetics_paper_20250913_124855.pdf`.

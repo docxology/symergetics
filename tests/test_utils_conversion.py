@@ -4,24 +4,26 @@ Tests for utils.conversion module - Conversion utilities.
 Tests rational/float conversions, coordinate transformations, and number base conversions.
 """
 
-import pytest
 import math
+
+import pytest
+
+from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.core.numbers import SymergeticsNumber
 from symergetics.utils.conversion import (
-    rational_to_float,
-    float_to_exact_rational,
-    decimal_to_fraction,
-    xyz_to_quadray,
-    quadray_to_xyz,
+    best_rational_approximation,
     continued_fraction_approximation,
     convergents_from_continued_fraction,
-    best_rational_approximation,
-    format_as_mixed_number,
-    scientific_notation_to_rational,
+    convert_between_bases,
     coordinate_system_info,
-    convert_between_bases
+    decimal_to_fraction,
+    float_to_exact_rational,
+    format_as_mixed_number,
+    quadray_to_xyz,
+    rational_to_float,
+    scientific_notation_to_rational,
+    xyz_to_quadray,
 )
-from symergetics.core.numbers import SymergeticsNumber
-from symergetics.core.coordinates import QuadrayCoordinate
 
 
 class TestRationalFloatConversion:
@@ -163,7 +165,7 @@ class TestCoordinateSystemInfo:
         info = coordinate_system_info('quadray')
         assert info['description'] == 'Four-coordinate tetrahedral system (a,b,c,d)'
         assert info['dimensions'] == 4
-        assert info['constraint'] == 'a + b + c + d = 0 (after normalization)'
+        assert info['constraint'] == 'non-negative integers with min(a, b, c, d) = 0'
 
     def test_cartesian_info(self):
         """Test Cartesian coordinate system info."""

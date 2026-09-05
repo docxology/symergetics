@@ -14,8 +14,10 @@ Key Features:
 Author: Symergetics Team
 """
 
-from typing import List, Tuple, Union, Optional, Callable
+from typing import Callable, List, Optional, Tuple, Union
+
 import numpy as np
+
 from ..core.coordinates import QuadrayCoordinate, urner_embedding
 from ..core.numbers import SymergeticsNumber
 from .polyhedra import SymergeticsPolyhedron

@@ -3,15 +3,16 @@ Comprehensive real tests for core modules.
 Tests actual functionality to improve coverage.
 """
 
-import pytest
-import numpy as np
-from fractions import Fraction
 import math
 import sys
+from fractions import Fraction
 
-from symergetics.core.numbers import SymergeticsNumber, rational_sqrt, rational_pi
+import numpy as np
+import pytest
+
 from symergetics.core.constants import SymergeticsConstants
 from symergetics.core.coordinates import QuadrayCoordinate, urner_embedding
+from symergetics.core.numbers import SymergeticsNumber, rational_pi, rational_sqrt
 
 
 class TestSymergeticsNumberComprehensive:
@@ -329,11 +330,11 @@ class TestSymergeticsConstantsComprehensive:
         assert abs(sqrt2_approx.to_float() - math.sqrt(2)) < 1e-10
     
     def test_edge_length_ratios_comprehensive(self):
-        """Test comprehensive edge length ratios."""
+        """Test comprehensive diameter-to-edge ratios."""
         constants = SymergeticsConstants()
         
-        # Test edge length ratios
-        ratios = constants.EDGE_LENGTH_RATIOS
+        # Test diameter-to-edge ratios
+        ratios = constants.DIAMETER_TO_EDGE_RATIOS
         assert len(ratios) > 0
         
         # Test specific ratios

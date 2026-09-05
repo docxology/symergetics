@@ -14,18 +14,19 @@ Features:
 Author: Symergetics Team
 """
 
-from typing import Dict, Any, Optional, Union, List, Tuple
+from typing import Any, Dict, List, Optional, Union
+
 import numpy as np
-from pathlib import Path
-import warnings
 
 from ..core.coordinates import QuadrayCoordinate, urner_embedding
 from ..geometry.polyhedra import (
-    Tetrahedron, Octahedron, Cube, Cuboctahedron,
-    SymergeticsPolyhedron
+    Cube,
+    Cuboctahedron,
+    Octahedron,
+    SymergeticsPolyhedron,
+    Tetrahedron,
 )
-from . import ensure_output_dir, get_organized_output_path
-from . import _config
+from . import ensure_output_dir, get_config, get_organized_output_path
 
 
 def plot_polyhedron(polyhedron: Union[str, SymergeticsPolyhedron],
@@ -65,7 +66,7 @@ def plot_polyhedron(polyhedron: Union[str, SymergeticsPolyhedron],
     else:
         poly_obj = polyhedron
 
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_polyhedron_matplotlib(poly_obj, **kwargs)
@@ -92,7 +93,7 @@ def _plot_polyhedron_matplotlib(polyhedron: SymergeticsPolyhedron,
         raise ImportError("matplotlib is required for matplotlib backend")
 
     # Create figure
-    fig = plt.figure(figsize=_config["figure_size"])
+    fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
     # Get vertex coordinates
@@ -106,7 +107,7 @@ def _plot_polyhedron_matplotlib(polyhedron: SymergeticsPolyhedron,
     # Plot vertices
     if show_vertices:
         ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-                  color=_config["colors"]["primary"], s=50, alpha=1.0)
+                  color=get_config()["colors"]["primary"], s=50, alpha=1.0)
 
     # Plot edges
     if show_edges:
@@ -121,9 +122,9 @@ def _plot_polyhedron_matplotlib(polyhedron: SymergeticsPolyhedron,
                         start = face_vertices[i]
                         end = face_vertices[(i + 1) % len(face_vertices)]
                         ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]],
-                               color=_config["colors"]["secondary"], linewidth=2)
-        except:
-            # Fallback: connect all vertices (may not be optimal)
+                               color=get_config()["colors"]["secondary"], linewidth=2)
+        except (AttributeError, NotImplementedError, ValueError):
+            # Polyhedra without face data: fall back to plain vertex scatter
             pass
 
     # Plot faces
@@ -138,9 +139,9 @@ def _plot_polyhedron_matplotlib(polyhedron: SymergeticsPolyhedron,
                         face_collection = Poly3DCollection([face_vertices],
                                                          alpha=alpha,
                                                          facecolors=[face_colors[i]],
-                                                         edgecolors=_config["colors"]["secondary"])
+                                                         edgecolors=get_config()["colors"]["secondary"])
                         ax.add_collection3d(face_collection)
-        except:
+        except (AttributeError, NotImplementedError, ValueError):
             pass
 
     # Set labels and title
@@ -162,18 +163,18 @@ def _plot_polyhedron_matplotlib(polyhedron: SymergeticsPolyhedron,
     base_filename = f"{type(polyhedron).__name__.lower()}_3d"
     files = []
 
-    for fmt in _config["formats"]:
+    for fmt in get_config()["formats"]:
         if fmt == "html":
             continue  # matplotlib doesn't support HTML directly
 
         filename = f"{base_filename}.{fmt}"
         filepath = get_organized_output_path('geometric', 'polyhedra', filename)
         fig.savefig(filepath, 
-                    dpi=_config["dpi"], 
-                    facecolor=_config["png_options"]["facecolor"],
-                    bbox_inches=_config["png_options"]["bbox_inches"],
-                    pad_inches=_config["png_options"]["pad_inches"],
-                    transparent=_config["png_options"]["transparent"])
+                    dpi=get_config()["dpi"], 
+                    facecolor=get_config()["png_options"]["facecolor"],
+                    bbox_inches=get_config()["png_options"]["bbox_inches"],
+                    pad_inches=get_config()["png_options"]["pad_inches"],
+                    transparent=get_config()["png_options"]["transparent"])
         files.append(str(filepath))
 
     plt.close(fig)
@@ -217,23 +218,40 @@ def _plot_polyhedron_plotly(polyhedron: SymergeticsPolyhedron,
         mode='markers',
         marker=dict(
             size=8,
-            color=_config["colors"]["primary"],
+            color=get_config()["colors"]["primary"],
             opacity=1.0
         ),
         name='Vertices'
     ))
 
-    # Add edges (simplified - connect all vertices)
-    for i in range(len(vertices)):
-        for j in range(i + 1, len(vertices)):
-            fig.add_trace(go.Scatter3d(
-                x=[vertices[i, 0], vertices[j, 0]],
-                y=[vertices[i, 1], vertices[j, 1]],
-                z=[vertices[i, 2], vertices[j, 2]],
-                mode='lines',
-                line=dict(color=_config["colors"]["secondary"], width=3),
-                showlegend=False
-            ))
+    # Add real edges (derived from the polyhedron's faces, not a complete graph)
+    vertex_index = {v: i for i, v in enumerate(polyhedron.vertices)}
+    for a, b in polyhedron.edges():
+        pa, pb = vertices[vertex_index[a]], vertices[vertex_index[b]]
+        fig.add_trace(go.Scatter3d(
+            x=[pa[0], pb[0]],
+            y=[pa[1], pb[1]],
+            z=[pa[2], pb[2]],
+            mode='lines',
+            line=dict(color=get_config()["colors"]["secondary"], width=3),
+            showlegend=False
+        ))
+
+    # Add faces as a translucent surface mesh
+    face_i, face_j, face_k = [], [], []
+    for face in polyhedron.faces():
+        for m in range(1, len(face) - 1):
+            face_i.append(vertex_index[face[0]])
+            face_j.append(vertex_index[face[m]])
+            face_k.append(vertex_index[face[m + 1]])
+    if face_i:
+        fig.add_trace(go.Mesh3d(
+            x=x, y=y, z=z, i=face_i, j=face_j, k=face_k,
+            opacity=0.3,
+            color=get_config()["colors"]["primary"],
+            flatshading=True,
+            name='Faces'
+        ))
 
     # Update layout
     fig.update_layout(
@@ -243,8 +261,8 @@ def _plot_polyhedron_plotly(polyhedron: SymergeticsPolyhedron,
             yaxis_title='Y',
             zaxis_title='Z'
         ),
-        width=_config["figure_size"][0] * 100,
-        height=_config["figure_size"][1] * 100
+        width=get_config()["figure_size"][0] * 100,
+        height=get_config()["figure_size"][1] * 100
     )
 
     # Save plot using organized structure
@@ -290,34 +308,42 @@ def _plot_polyhedron_3d_plotly(polyhedron: SymergeticsPolyhedron,
     # Create figure
     fig = go.Figure()
 
-    # Add surface if requested
+    # Add surface as a translucent mesh built from the polyhedron's faces
+    vertex_index = {v: i for i, v in enumerate(polyhedron.vertices)}
     if show_surface:
-        # Create a simple surface using the vertices
-        # This is a basic implementation - could be enhanced with proper triangulation
+        face_i, face_j, face_k = [], [], []
+        for face in polyhedron.faces():
+            for m in range(1, len(face) - 1):
+                face_i.append(vertex_index[face[0]])
+                face_j.append(vertex_index[face[m]])
+                face_k.append(vertex_index[face[m + 1]])
+        if face_i:
+            fig.add_trace(go.Mesh3d(
+                x=x, y=y, z=z, i=face_i, j=face_j, k=face_k,
+                opacity=0.4,
+                color='lightblue',
+                flatshading=True,
+                name='Faces'
+            ))
         fig.add_trace(go.Scatter3d(
             x=x, y=y, z=z,
             mode='markers',
-            marker=dict(
-                size=8,
-                color='lightblue',
-                opacity=0.8
-            ),
+            marker=dict(size=8, color='lightblue', opacity=0.8),
             name='Vertices'
         ))
 
-    # Add wireframe if requested
+    # Add wireframe from the polyhedron's real edges
     if show_wireframe:
-        # Add edges (simplified - would need proper edge detection for complex polyhedra)
-        for i in range(len(vertices)):
-            for j in range(i + 1, len(vertices)):
-                fig.add_trace(go.Scatter3d(
-                    x=[vertices[i][0], vertices[j][0]],
-                    y=[vertices[i][1], vertices[j][1]],
-                    z=[vertices[i][2], vertices[j][2]],
-                    mode='lines',
-                    line=dict(color='black', width=2),
-                    showlegend=False
-                ))
+        for a, b in polyhedron.edges():
+            pa, pb = vertices[vertex_index[a]], vertices[vertex_index[b]]
+            fig.add_trace(go.Scatter3d(
+                x=[pa[0], pb[0]],
+                y=[pa[1], pb[1]],
+                z=[pa[2], pb[2]],
+                mode='lines',
+                line=dict(color='black', width=2),
+                showlegend=False
+            ))
 
     # Update layout
     fig.update_layout(
@@ -444,12 +470,14 @@ def plot_quadray_coordinate(coord: QuadrayCoordinate,
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_quadray_matplotlib(coord, show_lattice, lattice_size, **kwargs)
     elif backend == "ascii":
         return _plot_quadray_ascii(coord, show_lattice, lattice_size, **kwargs)
+    elif backend == "plotly":
+        return _plot_quadray_plotly(coord, show_lattice, lattice_size, **kwargs)
     else:
         raise ValueError(f"Unsupported backend for Quadray visualization: {backend}")
 
@@ -465,14 +493,14 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
-    fig = plt.figure(figsize=_config["figure_size"])
+    fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
     # Convert coordinate to XYZ
     x, y, z = coord.to_xyz()
 
     # Plot the main coordinate
-    ax.scatter([x], [y], [z], color=_config["colors"]["primary"],
+    ax.scatter([x], [y], [z], color=get_config()["colors"]["primary"],
               s=200, alpha=1.0, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})')
 
     # Add direction vectors for quadray axes
@@ -518,7 +546,7 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
         if lattice_points:
             lattice_array = np.array(lattice_points)
             ax.scatter(lattice_array[:, 0], lattice_array[:, 1], lattice_array[:, 2],
-                      color=_config["colors"]["grid"], s=20, alpha=0.3, label='IVM Lattice')
+                      color=get_config()["colors"]["grid"], s=20, alpha=0.3, label='IVM Lattice')
 
     # Set labels and title
     ax.set_xlabel('X')
@@ -544,9 +572,9 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
 
     # Create a custom legend with direction vectors
     legend_elements = [
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=_config["colors"]["primary"],
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=get_config()["colors"]["primary"],
                   markersize=10, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})'),
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=_config["colors"]["grid"],
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=get_config()["colors"]["grid"],
                   markersize=6, alpha=0.3, label='IVM Lattice') if show_lattice else None,
         plt.Line2D([0], [0], color='red', linewidth=2, label='A-axis'),
         plt.Line2D([0], [0], color='green', linewidth=2, label='B-axis'),
@@ -560,7 +588,7 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     # Save plot using organized structure
     filename = f"quadray_coordinate_{coord.a}_{coord.b}_{coord.c}_{coord.d}.png"
     filepath = get_organized_output_path('geometric', 'coordinates', filename)
-    fig.savefig(filepath, dpi=_config["dpi"], bbox_inches='tight')
+    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
     plt.close(fig)
 
     return {
@@ -640,12 +668,14 @@ def plot_ivm_lattice(size: int = 5,
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_ivm_lattice_matplotlib(size, highlight_coordinates, **kwargs)
     elif backend == "ascii":
         return _plot_ivm_lattice_ascii(size, highlight_coordinates, **kwargs)
+    elif backend == "plotly":
+        return _plot_ivm_lattice_plotly(size, highlight_coordinates, **kwargs)
     else:
         raise ValueError(f"Unsupported backend for IVM lattice: {backend}")
 
@@ -660,7 +690,7 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
-    fig = plt.figure(figsize=_config["figure_size"])
+    fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
     # Generate lattice points
@@ -678,14 +708,14 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
 
         # Plot all lattice points
         ax.scatter(lattice_array[:, 0], lattice_array[:, 1], lattice_array[:, 2],
-                  color=_config["colors"]["grid"], s=20, alpha=0.4, label='IVM Lattice')
+                  color=get_config()["colors"]["grid"], s=20, alpha=0.4, label='IVM Lattice')
 
     # Highlight specific coordinates if provided
     if highlight_coordinates:
         for i, coord in enumerate(highlight_coordinates):
             x, y, z = coord.to_xyz()
             ax.scatter([x], [y], [z],
-                      color=_config["colors"]["accent"],
+                      color=get_config()["colors"]["accent"],
                       s=100, alpha=1.0,
                       label=f'Highlight {i+1}: ({coord.a},{coord.b},{coord.c},{coord.d})')
 
@@ -711,7 +741,7 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
     # Save plot using organized structure
     filename = f"ivm_lattice_size_{size}.png"
     filepath = get_organized_output_path('geometric', 'lattice', filename)
-    fig.savefig(filepath, dpi=_config["dpi"], bbox_inches='tight')
+    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
     plt.close(fig)
 
     return {
@@ -797,7 +827,7 @@ def plot_coordinate_transformation(coord: QuadrayCoordinate,
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_transformation_matplotlib(coord, transform_func, steps, **kwargs)
@@ -857,7 +887,7 @@ def plot_polyhedron_3d(polyhedron: Union[str, SymergeticsPolyhedron],
     else:
         poly_obj = polyhedron
 
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_polyhedron_3d_matplotlib(poly_obj, show_wireframe, show_surface,
@@ -883,7 +913,7 @@ def _plot_polyhedron_3d_matplotlib(polyhedron: SymergeticsPolyhedron,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
-    fig = plt.figure(figsize=(_config["figure_size"][0] * 1.2, _config["figure_size"][1] * 1.2))
+    fig = plt.figure(figsize=(get_config()["figure_size"][0] * 1.2, get_config()["figure_size"][1] * 1.2))
     ax = fig.add_subplot(111, projection='3d')
 
     vertices_xyz = polyhedron.to_xyz_vertices()
@@ -904,8 +934,8 @@ def _plot_polyhedron_3d_matplotlib(polyhedron: SymergeticsPolyhedron,
                         start = face_vertices[i]
                         end = face_vertices[(i + 1) % len(face_vertices)]
                         ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]],
-                               color=_config["colors"]["secondary"], linewidth=2, alpha=0.8)
-        except:
+                               color=get_config()["colors"]["secondary"], linewidth=2, alpha=0.8)
+        except (AttributeError, NotImplementedError, ValueError):
             pass
 
     # Enhanced surface rendering
@@ -921,28 +951,28 @@ def _plot_polyhedron_3d_matplotlib(polyhedron: SymergeticsPolyhedron,
                         face_collection = Poly3DCollection([face_vertices],
                                                          alpha=0.7,
                                                          facecolors=[face_colors[i]],
-                                                         edgecolors=_config["colors"]["secondary"],
+                                                         edgecolors=get_config()["colors"]["secondary"],
                                                          linewidths=1)
                         ax.add_collection3d(face_collection)
-        except:
+        except (AttributeError, NotImplementedError, ValueError):
             pass
 
     # Add vertex labels
     for i, vertex in enumerate(vertices):
         ax.text(vertex[0], vertex[1], vertex[2], f'V{i}',
-               color=_config["colors"]["primary"], fontsize=8, ha='center')
+               color=get_config()["colors"]["primary"], fontsize=8, ha='center')
 
     # Set camera position
     ax.view_init(elev=elevation, azim=azimuth)
 
     # Enhanced labels and styling
-    ax.set_xlabel('X', fontsize=_config["fonts"]["label"]["size"])
-    ax.set_ylabel('Y', fontsize=_config["fonts"]["label"]["size"])
-    ax.set_zlabel('Z', fontsize=_config["fonts"]["label"]["size"])
+    ax.set_xlabel('X', fontsize=get_config()["fonts"]["label"]["size"])
+    ax.set_ylabel('Y', fontsize=get_config()["fonts"]["label"]["size"])
+    ax.set_zlabel('Z', fontsize=get_config()["fonts"]["label"]["size"])
 
     title = f'{type(polyhedron).__name__} - 3D Enhanced View\nVolume: {polyhedron.volume()} IVM units'
-    ax.set_title(title, fontsize=_config["fonts"]["title"]["size"],
-                fontweight=_config["fonts"]["title"]["weight"])
+    ax.set_title(title, fontsize=get_config()["fonts"]["title"]["size"],
+                fontweight=get_config()["fonts"]["title"]["weight"])
 
     # Enhanced axis limits
     max_range = np.ptp(vertices, axis=0).max() / 2.0
@@ -955,24 +985,24 @@ def _plot_polyhedron_3d_matplotlib(polyhedron: SymergeticsPolyhedron,
 
     # Add grid and enhance appearance
     ax.grid(True, alpha=0.3)
-    ax.set_facecolor(_config["colors"]["background"])
+    ax.set_facecolor(get_config()["colors"]["background"])
 
     # Save with enhanced settings
     base_filename = f"{type(polyhedron).__name__.lower()}_3d_enhanced"
     files = []
 
-    for fmt in _config["formats"]:
+    for fmt in get_config()["formats"]:
         if fmt == "html":
             continue
 
         filename = f"{base_filename}.{fmt}"
         filepath = get_organized_output_path('geometric', 'polyhedra', filename)
         fig.savefig(filepath,
-                    dpi=_config["dpi"],
-                    facecolor=_config["png_options"]["facecolor"],
-                    bbox_inches=_config["png_options"]["bbox_inches"],
-                    pad_inches=_config["png_options"]["pad_inches"],
-                    transparent=_config["png_options"]["transparent"])
+                    dpi=get_config()["dpi"],
+                    facecolor=get_config()["png_options"]["facecolor"],
+                    bbox_inches=get_config()["png_options"]["bbox_inches"],
+                    pad_inches=get_config()["png_options"]["pad_inches"],
+                    transparent=get_config()["png_options"]["transparent"])
         files.append(str(filepath))
 
     plt.close(fig)
@@ -1026,7 +1056,7 @@ def plot_polyhedron_graphical_abstract(polyhedron: Union[str, SymergeticsPolyhed
     else:
         poly_obj = polyhedron
 
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_polyhedron_graphical_abstract_matplotlib(poly_obj,
@@ -1061,14 +1091,14 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
     # Subplot 1: 3D View
     ax1 = fig.add_subplot(221, projection='3d')
     ax1.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-               color=_config["colors"]["primary"], s=50, alpha=0.8)
+               color=get_config()["colors"]["primary"], s=50, alpha=0.8)
     ax1.set_title('3D Structure', fontsize=12, fontweight='bold')
     ax1.set_xlabel('X')
     ax1.set_ylabel('Y')
     ax1.set_zlabel('Z')
 
     # Subplot 2: 2D Projections
-    ax2.scatter(vertices[:, 0], vertices[:, 1], color=_config["colors"]["secondary"], s=50, alpha=0.8)
+    ax2.scatter(vertices[:, 0], vertices[:, 1], color=get_config()["colors"]["secondary"], s=50, alpha=0.8)
     ax2.set_title('XY Projection', fontsize=12, fontweight='bold')
     ax2.set_xlabel('X')
     ax2.set_ylabel('Y')
@@ -1126,17 +1156,17 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
     base_filename = f"{type(polyhedron).__name__.lower()}_graphical_abstract"
     files = []
 
-    for fmt in _config["formats"]:
+    for fmt in get_config()["formats"]:
         if fmt == "html":
             continue
 
         filename = f"{base_filename}.{fmt}"
         filepath = get_organized_output_path('geometric', 'polyhedra', filename)
         fig.savefig(filepath,
-                    dpi=_config["dpi"],
-                    facecolor=_config["png_options"]["facecolor"],
-                    bbox_inches=_config["png_options"]["bbox_inches"],
-                    pad_inches=_config["png_options"]["pad_inches"])
+                    dpi=get_config()["dpi"],
+                    facecolor=get_config()["png_options"]["facecolor"],
+                    bbox_inches=get_config()["png_options"]["bbox_inches"],
+                    pad_inches=get_config()["png_options"]["pad_inches"])
         files.append(str(filepath))
 
     plt.close(fig)
@@ -1188,7 +1218,7 @@ def plot_polyhedron_wireframe(polyhedron: Union[str, SymergeticsPolyhedron],
     else:
         poly_obj = polyhedron
 
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_polyhedron_wireframe_matplotlib(poly_obj, elevation, azimuth, **kwargs)
@@ -1207,7 +1237,7 @@ def _plot_polyhedron_wireframe_matplotlib(polyhedron: SymergeticsPolyhedron,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
-    fig = plt.figure(figsize=_config["figure_size"])
+    fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
     vertices_xyz = polyhedron.to_xyz_vertices()
@@ -1218,7 +1248,7 @@ def _plot_polyhedron_wireframe_matplotlib(polyhedron: SymergeticsPolyhedron,
 
     # Plot vertices as small dots
     ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-              color=_config["colors"]["primary"], s=30, alpha=0.6)
+              color=get_config()["colors"]["primary"], s=30, alpha=0.6)
 
     # Draw edges
     try:
@@ -1231,9 +1261,9 @@ def _plot_polyhedron_wireframe_matplotlib(polyhedron: SymergeticsPolyhedron,
 
                 # Plot edges
                 ax.plot(face_vertices[:, 0], face_vertices[:, 1], face_vertices[:, 2],
-                       color=_config["colors"]["secondary"], linewidth=2, alpha=0.8)
-    except:
-        # Fallback: connect all vertices (may create extra edges)
+                       color=get_config()["colors"]["secondary"], linewidth=2, alpha=0.8)
+    except (AttributeError, NotImplementedError, ValueError):
+        # Polyhedra without face data: skip wireframe rather than fake edges
         pass
 
     # Set camera position
@@ -1262,14 +1292,14 @@ def _plot_polyhedron_wireframe_matplotlib(polyhedron: SymergeticsPolyhedron,
     base_filename = f"{type(polyhedron).__name__.lower()}_wireframe"
     files = []
 
-    for fmt in _config["formats"]:
+    for fmt in get_config()["formats"]:
         if fmt == "html":
             continue
 
         filename = f"{base_filename}.{fmt}"
         filepath = get_organized_output_path('geometric', 'polyhedra', filename)
         fig.savefig(filepath,
-                    dpi=_config["dpi"],
+                    dpi=get_config()["dpi"],
                     facecolor='white',
                     bbox_inches='tight',
                     pad_inches=0.1)
@@ -1297,13 +1327,13 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
                                    **kwargs) -> Dict[str, Any]:
     """Plot coordinate transformation using matplotlib."""
     try:
+        import matplotlib.animation as animation
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.animation as animation
     except ImportError:
         raise ImportError("matplotlib is required for transformation animation")
 
-    fig = plt.figure(figsize=_config["figure_size"])
+    fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
     # Generate transformation path
@@ -1314,7 +1344,7 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
         try:
             current = transform_func(current)
             path_coords.append(current)
-        except:
+        except (ValueError, TypeError, ZeroDivisionError):
             break  # Stop if transformation fails
 
     # Convert to XYZ coordinates
@@ -1324,16 +1354,16 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
     # Plot transformation path
     if len(path_array) > 1:
         ax.plot(path_array[:, 0], path_array[:, 1], path_array[:, 2],
-               color=_config["colors"]["primary"], linewidth=3,
+               color=get_config()["colors"]["primary"], linewidth=3,
                label='Transformation Path')
 
         # Plot start and end points
         ax.scatter([path_array[0, 0]], [path_array[0, 1]], [path_array[0, 2]],
-                  color=_config["colors"]["secondary"], s=150, alpha=1.0,
+                  color=get_config()["colors"]["secondary"], s=150, alpha=1.0,
                   label='Start')
 
         ax.scatter([path_array[-1, 0]], [path_array[-1, 1]], [path_array[-1, 2]],
-                  color=_config["colors"]["accent"], s=150, alpha=1.0,
+                  color=get_config()["colors"]["accent"], s=150, alpha=1.0,
                   label='End')
 
     # Set labels and title
@@ -1347,7 +1377,7 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
     # Save plot using organized structure
     filename = f"coordinate_transformation_{len(path_coords)}_steps.png"
     filepath = get_organized_output_path('geometric', 'transformations', filename)
-    fig.savefig(filepath, dpi=_config["dpi"], bbox_inches='tight')
+    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
     plt.close(fig)
 
     return {
@@ -1358,5 +1388,124 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
             'start_coordinate': (coord.a, coord.b, coord.c, coord.d),
             'end_coordinate': (path_coords[-1].a, path_coords[-1].b, path_coords[-1].c, path_coords[-1].d),
             'backend': 'matplotlib'
+        }
+    }
+
+
+# ---------------------------------------------------------------------------
+# Plotly backends for coordinate and lattice plots
+# ---------------------------------------------------------------------------
+
+def _plotly_grid(width_scale: float = 1.0, height_scale: float = 1.0):
+    """Return (plotly modules, width, height) for the configured figure size."""
+    try:
+        import plotly.graph_objects as go
+    except ImportError:
+        raise ImportError("plotly is required for plotly backend")
+    size = get_config()["figure_size"]
+    return go, int(size[0] * 100 * width_scale), int(size[1] * 100 * height_scale)
+
+
+def _plot_quadray_plotly(coord: QuadrayCoordinate, show_lattice: bool = True,
+                         lattice_size: int = 3, **kwargs) -> Dict[str, Any]:
+    """Plot a Quadray coordinate (and optionally its IVM shell) using plotly."""
+    go, width, height = _plotly_grid()
+    colors_cfg = get_config()["colors"]
+
+    fig = go.Figure()
+    if show_lattice:
+        lattice_points = []
+        for a in range(-lattice_size, lattice_size + 1):
+            for b in range(-lattice_size, lattice_size + 1):
+                for c in range(-lattice_size, lattice_size + 1):
+                    for d in range(-lattice_size, lattice_size + 1):
+                        if abs(a) + abs(b) + abs(c) + abs(d) <= lattice_size:
+                            lattice_points.append(
+                                QuadrayCoordinate(a, b, c, d, normalize=False).to_xyz())
+        if lattice_points:
+            arr = np.array(lattice_points)
+            fig.add_trace(go.Scatter3d(
+                x=arr[:, 0], y=arr[:, 1], z=arr[:, 2], mode='markers',
+                marker=dict(size=3, color=colors_cfg["grid"], opacity=0.5),
+                name='IVM Lattice'))
+
+    xyz = np.array(coord.to_xyz())
+    fig.add_trace(go.Scatter3d(
+        x=[xyz[0]], y=[xyz[1]], z=[xyz[2]], mode='markers',
+        marker=dict(size=10, color=colors_cfg["accent"]),
+        name=f'Quadray {coord.as_tuple()}'))
+    basis = np.array([[1 if j == i else 0 for j in range(4)] for i in range(4)],
+                     dtype=float)
+    basis_xyz = basis @ urner_embedding().T
+    for i, name in enumerate('ABCD'):
+        fig.add_trace(go.Scatter3d(
+            x=[0, basis_xyz[i, 0]], y=[0, basis_xyz[i, 1]], z=[0, basis_xyz[i, 2]],
+            mode='lines', line=dict(color=colors_cfg["secondary"], width=4),
+            name=f'Basis {name}', showlegend=i == 0))
+
+    fig.update_layout(title=f'Quadray Coordinate {coord.as_tuple()}',
+                      width=width, height=height)
+
+    filepath = get_organized_output_path('geometric', 'coordinates',
+                                         f"quadray_coordinate_plotly_{abs(hash(coord.as_tuple())) % 10000}.html")
+    fig.write_html(str(filepath), include_plotlyjs='cdn')
+
+    return {
+        'files': [str(filepath)],
+        'metadata': {
+            'type': 'quadray_coordinate',
+            'coordinate': coord.as_tuple(),
+            'show_lattice': show_lattice,
+            'lattice_size': lattice_size,
+            'backend': 'plotly'
+        }
+    }
+
+
+def _plot_ivm_lattice_plotly(size: int = 5,
+                             highlight_coordinates: Optional[List[QuadrayCoordinate]] = None,
+                             **kwargs) -> Dict[str, Any]:
+    """Plot the IVM lattice using plotly."""
+    go, width, height = _plotly_grid()
+    colors_cfg = get_config()["colors"]
+
+    lattice_points = []
+    for a in range(-size, size + 1):
+        for b in range(-size, size + 1):
+            for c in range(-size, size + 1):
+                for d in range(-size, size + 1):
+                    if abs(a) + abs(b) + abs(c) + abs(d) <= size:
+                        lattice_points.append(
+                            QuadrayCoordinate(a, b, c, d, normalize=False).to_xyz())
+
+    fig = go.Figure()
+    if lattice_points:
+        arr = np.array(lattice_points)
+        fig.add_trace(go.Scatter3d(
+            x=arr[:, 0], y=arr[:, 1], z=arr[:, 2], mode='markers',
+            marker=dict(size=3, color=colors_cfg["grid"], opacity=0.4),
+            name='IVM Lattice'))
+
+    if highlight_coordinates:
+        highlighted = np.array([c.to_xyz() for c in highlight_coordinates])
+        fig.add_trace(go.Scatter3d(
+            x=highlighted[:, 0], y=highlighted[:, 1], z=highlighted[:, 2],
+            mode='markers', marker=dict(size=8, color=colors_cfg["accent"]),
+            name='Highlighted'))
+
+    fig.update_layout(title=f'IVM Lattice (size {size})', width=width, height=height)
+
+    filepath = get_organized_output_path('geometric', 'lattice',
+                                         f"ivm_lattice_plotly_size_{size}.html")
+    fig.write_html(str(filepath), include_plotlyjs='cdn')
+
+    return {
+        'files': [str(filepath)],
+        'metadata': {
+            'type': 'ivm_lattice',
+            'size': size,
+            'lattice_points': len(lattice_points),
+            'highlighted': len(highlight_coordinates or []),
+            'backend': 'plotly'
         }
     }

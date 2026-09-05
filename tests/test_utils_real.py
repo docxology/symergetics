@@ -5,33 +5,35 @@ Tests actual utility functions with real Symergetics methods.
 All tests use real functions and avoid mocks.
 """
 
-import pytest
 from fractions import Fraction
-from symergetics.core.numbers import SymergeticsNumber
+
+import pytest
+
 from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.core.numbers import SymergeticsNumber
 from symergetics.utils.conversion import (
-    rational_to_float,
-    float_to_exact_rational,
-    decimal_to_fraction,
-    xyz_to_quadray,
-    quadray_to_xyz,
+    best_rational_approximation,
     continued_fraction_approximation,
     convergents_from_continued_fraction,
-    best_rational_approximation,
+    decimal_to_fraction,
+    float_to_exact_rational,
     format_as_mixed_number,
-    scientific_notation_to_rational
+    quadray_to_xyz,
+    rational_to_float,
+    scientific_notation_to_rational,
+    xyz_to_quadray,
 )
 from symergetics.utils.mnemonics import (
-    mnemonic_encode,
-    mnemonic_decode,
+    create_memory_aid,
     format_large_number,
+    mnemonic_decode,
+    mnemonic_encode,
     ungroup_number,
-    create_memory_aid
 )
 from symergetics.utils.reporting import (
-    generate_statistical_summary,
     generate_comparative_report,
-    generate_performance_report
+    generate_performance_report,
+    generate_statistical_summary,
 )
 
 

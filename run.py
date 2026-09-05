@@ -16,16 +16,16 @@ Options:
     --help         Show this help message
 """
 
-import sys
-import subprocess
 import argparse
-import time
+import json
 import logging
 import logging.handlers
-from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
-import json
 import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class SymergeticsOrchestrator:
@@ -188,7 +188,7 @@ class SymergeticsOrchestrator:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=300,  # 5 minute timeout
+                timeout=1800,  # 30 minute timeout (full suite collection is slow on cold I/O)
                 env=command_env  # Use the prepared environment
             )
             execution_time = time.time() - start_time
@@ -350,7 +350,7 @@ class SymergeticsOrchestrator:
             return True
         else:
             self.log(f"⚠️ {total_tests - successful_tests} test groups failed, but continuing with examples", "WARNING", "PARTIAL_SUCCESS")
-            return True  # Still return True to continue with examples
+            return False  # Honest result; main() continues with examples anyway
 
     def _analyze_test_failures(self, failed_tests: List[str], test_results: List[Tuple[str, bool]]):
         """Analyze and provide detailed reporting on test failures."""
@@ -454,7 +454,7 @@ class SymergeticsOrchestrator:
                 'success': False,
                 'duration': 300,
                 'error': 'Timeout after 5 minutes',
-                'runner': runner
+                'runner': "uv" if len(runner_cmd) > 1 and runner_cmd[0] == "uv" else "python"
             }
         except FileNotFoundError as e:
             elapsed = time.time() - start_time
@@ -464,8 +464,8 @@ class SymergeticsOrchestrator:
                 'script': script_name,
                 'success': False,
                 'duration': elapsed,
-                'error': f"Runner not found: {runner}",
-                'runner': runner
+                'error': f"Runner not found: {runner_cmd}",
+                'runner': "uv" if len(runner_cmd) > 1 and runner_cmd[0] == "uv" else "python"
             }
         except Exception as e:
             elapsed = time.time() - start_time
@@ -476,7 +476,7 @@ class SymergeticsOrchestrator:
                 'success': False,
                 'duration': elapsed,
                 'error': str(e),
-                'runner': runner
+                'runner': "uv" if len(runner_cmd) > 1 and runner_cmd[0] == "uv" else "python"
             }
             
     def run_all_examples(self) -> List[Dict[str, Any]]:
@@ -519,39 +519,39 @@ class SymergeticsOrchestrator:
                     output_files += 1
                     try:
                         output_size += file_path.stat().st_size
-                    except:
+                    except OSError:
                         pass
         
         print("\n" + "="*80)
         print("🎯 SYMERGETICS PACKAGE ORCHESTRATION SUMMARY")
         print("="*80)
         
-        print(f"\n⏱️ EXECUTION STATISTICS:")
+        print("\n⏱️ EXECUTION STATISTICS:")
         print(f"   Total execution time: {total_duration:.1f} seconds")
         print(f"   Examples attempted: {len(example_results)}")
         print(f"   Examples successful: {len(successful_examples)}")
         print(f"   Examples failed: {len(failed_examples)}")
         print(f"   Success rate: {len(successful_examples)/len(example_results)*100:.1f}%" if example_results else "   No examples run")
         
-        print(f"\n📁 OUTPUT STATISTICS:")
+        print("\n📁 OUTPUT STATISTICS:")
         print(f"   Output files generated: {output_files}")
         print(f"   Total output size: {output_size/1024/1024:.2f} MB")
         print(f"   Output directory: {self.output_dir}")
         
         if successful_examples:
-            print(f"\n✅ SUCCESSFUL EXAMPLES:")
+            print("\n✅ SUCCESSFUL EXAMPLES:")
             for result in successful_examples:
                 duration = result.get('duration', 0)
                 print(f"   • {result['script']} ({duration:.1f}s)")
                 
         if failed_examples:
-            print(f"\n❌ FAILED EXAMPLES:")
+            print("\n❌ FAILED EXAMPLES:")
             for result in failed_examples:
                 duration = result.get('duration', 0)
                 error = result.get('error', 'Unknown error')[:100]
                 print(f"   • {result['script']} ({duration:.1f}s) - {error}")
                 
-        print(f"\n🎨 SYMERGETICS FEATURES DEMONSTRATED:")
+        print("\n🎨 SYMERGETICS FEATURES DEMONSTRATED:")
 
         # Analyze and categorize results
         visualization_count = 0
@@ -570,47 +570,47 @@ class SymergeticsOrchestrator:
         print(f"   📊 Core Calculations: {calculation_count} mathematical operations")
         print(f"   🔍 Pattern Analysis: {analysis_count} discovery algorithms")
         print(f"   🎨 Visualizations: {visualization_count} graphical outputs")
-        print(f"   ✓ Integer-accounting mathematics with exact rational arithmetic")
-        print(f"   ✓ Ratio-based geometry with polyhedron volume relationships")
-        print(f"   ✓ Quadmath coordinate system (Quadray coordinates)")
-        print(f"   ✓ Organized output structure for scalable file management")
-        print(f"   ✓ Comprehensive visualization capabilities (ASCII & PNG)")
-        print(f"   ✓ Mathematical pattern analysis (palindromes, Scheherazade, primorials)")
-        print(f"   ✓ Advanced number theory computations")
-        print(f"   ✓ Geometric transformations and coordinate conversions")
-        print(f"   ✓ Mega graphical abstract with 17-panel comprehensive overview")
-        print(f"   ✓ Decimal-to-sphere-packing natural language expressions")
-        print(f"   ✓ Enhanced 3D visualizations with larger fonts")
+        print("   ✓ Integer-accounting mathematics with exact rational arithmetic")
+        print("   ✓ Ratio-based geometry with polyhedron volume relationships")
+        print("   ✓ Quadmath coordinate system (Quadray coordinates)")
+        print("   ✓ Organized output structure for scalable file management")
+        print("   ✓ Comprehensive visualization capabilities (ASCII & PNG)")
+        print("   ✓ Mathematical pattern analysis (palindromes, Scheherazade, primorials)")
+        print("   ✓ Advanced number theory computations")
+        print("   ✓ Geometric transformations and coordinate conversions")
+        print("   ✓ Mega graphical abstract with 17-panel comprehensive overview")
+        print("   ✓ Decimal-to-sphere-packing natural language expressions")
+        print("   ✓ Enhanced 3D visualizations with larger fonts")
 
         # Show computational highlights
-        print(f"\n⚡ COMPUTATIONAL HIGHLIGHTS:")
-        print(f"   • SymergeticsNumber: Exact rational arithmetic (no floating-point errors)")
-        print(f"   • QuadrayCoordinate: 4D tetrahedral coordinate transformations")
-        print(f"   • Polyhedral volumes: Integer relationships (Tetra:1, Octa:4, Cube:3)")
-        print(f"   • Continued fractions: π ≈ [3;7,15,1,292,...] with exact convergents")
-        print(f"   • Palindrome analysis: Symmetric number pattern detection")
-        print(f"   • Primorial sequences: Product of first n primes")
-        print(f"   • Geometric mnemonics: Shape-based number relationships")
-        print(f"   • Vector equilibrium: Perfect sphere packing ratios")
+        print("\n⚡ COMPUTATIONAL HIGHLIGHTS:")
+        print("   • SymergeticsNumber: Exact rational arithmetic (no floating-point errors)")
+        print("   • QuadrayCoordinate: 4D tetrahedral coordinate transformations")
+        print("   • Polyhedral volumes: Integer relationships (Tetra:1, Octa:4, Cube:3)")
+        print("   • Continued fractions: π ≈ [3;7,15,1,292,...] with exact convergents")
+        print("   • Palindrome analysis: Symmetric number pattern detection")
+        print("   • Primorial sequences: Product of first n primes")
+        print("   • Geometric mnemonics: Shape-based number relationships")
+        print("   • Vector equilibrium: Perfect sphere packing ratios")
 
         # Show visualization capabilities
-        print(f"\n🎯 VISUALIZATION CAPABILITIES:")
-        print(f"   • 3D Platonic solids with volume ratios and relationships")
-        print(f"   • Close-packed sphere arrangements and coordination numbers")
-        print(f"   • Frequency hierarchies and shape scaling relationships")
-        print(f"   • Decimal to symbolic rational conversion visualizations")
-        print(f"   • Vector Equilibrium (VE) energy balance diagrams")
-        print(f"   • Mathematical pattern analysis with convergence plots")
-        print(f"   • Polyhedron 3D rendering with wireframe and surface options")
-        print(f"   • Coordinate system projections (Quadray to Cartesian)")
-        print(f"   • IVM lattice sphere packing visualizations")
-        print(f"   • Continued fraction convergence and approximation plots")
-        print(f"   • Pattern analysis radar charts and symmetry visualizations")
-        print(f"   • Mega graphical abstract (32\"×24\" @ 300 DPI with 17 panels)")
+        print("\n🎯 VISUALIZATION CAPABILITIES:")
+        print("   • 3D Platonic solids with volume ratios and relationships")
+        print("   • Close-packed sphere arrangements and coordination numbers")
+        print("   • Frequency hierarchies and shape scaling relationships")
+        print("   • Decimal to symbolic rational conversion visualizations")
+        print("   • Vector Equilibrium (VE) energy balance diagrams")
+        print("   • Mathematical pattern analysis with convergence plots")
+        print("   • Polyhedron 3D rendering with wireframe and surface options")
+        print("   • Coordinate system projections (Quadray to Cartesian)")
+        print("   • IVM lattice sphere packing visualizations")
+        print("   • Continued fraction convergence and approximation plots")
+        print("   • Pattern analysis radar charts and symmetry visualizations")
+        print("   • Mega graphical abstract (32\"×24\" @ 300 DPI with 17 panels)")
 
         # Show output organization
         if self.output_dir.exists():
-            print(f"\n📁 OUTPUT ORGANIZATION:")
+            print("\n📁 OUTPUT ORGANIZATION:")
             print(f"   • Mathematical visualizations: {self.output_dir}/mathematical/")
             print(f"   • Geometric models: {self.output_dir}/geometric/")
             print(f"   • Number patterns: {self.output_dir}/numbers/")
@@ -618,26 +618,24 @@ class SymergeticsOrchestrator:
             print(f"   • Mega abstract: {self.output_dir}/mathematical/mega_graphical_abstract.png")
 
         # Performance metrics
-        print(f"\n⏱️ PERFORMANCE METRICS:")
+        print("\n⏱️ PERFORMANCE METRICS:")
         print(f"   • Total execution time: {total_duration:.1f} seconds")
         print(f"   • Average time per example: {total_duration/len(example_results):.2f} seconds")
         print(f"   • Throughput: {len(example_results)/total_duration:.2f} examples/second")
         print(f"   • Output efficiency: {output_size/(1024*1024*total_duration):.2f} MB/second")
 
         # Quality metrics
-        print(f"\n⭐ QUALITY METRICS:")
-        print(f"   • Test coverage: 77% across all modules")
-        print(f"   • Test count: 544 passing tests")
-        print(f"   • Error handling: Comprehensive exception management")
-        print(f"   • Documentation: Complete API documentation")
-        print(f"   • Precision: Research-grade mathematical accuracy")
+        print("\n⭐ QUALITY METRICS:")
+        print("   • Error handling: Comprehensive exception management")
+        print("   • Documentation: Complete API documentation")
+        print("   • Precision: Research-grade mathematical accuracy")
         
-        print(f"\n📖 NEXT STEPS:")
-        print(f"   • Explore the organized output/ directory structure")
-        print(f"   • Review individual example outputs for detailed insights")
-        print(f"   • Run specific examples individually: uv run python examples/<script>.py")
-        print(f"   • Check the README files in output/ subdirectories")
-        print(f"   • Use the package in your own mathematical research!")
+        print("\n📖 NEXT STEPS:")
+        print("   • Explore the organized output/ directory structure")
+        print("   • Review individual example outputs for detailed insights")
+        print("   • Run specific examples individually: uv run python examples/<script>.py")
+        print("   • Check the README files in output/ subdirectories")
+        print("   • Use the package in your own mathematical research!")
         
         # Save detailed results to JSON
         results_file = self.output_dir / "orchestration_results.json"
@@ -678,7 +676,7 @@ class SymergeticsOrchestrator:
             json_log_file = logs_dir / "orchestration_detailed.log"
             if json_log_file.exists():
                 log_entries = []
-                with open(json_log_file, 'r') as f:
+                with open(json_log_file) as f:
                     for line in f:
                         try:
                             log_entries.append(json.loads(line.strip()))
@@ -753,7 +751,7 @@ Examples:
         orchestrator.logger.warning("Keyboard interrupt received, shutting down gracefully")
         success = False
     except Exception as e:
-        orchestrator.log(f"Orchestration failed with unexpected exception", "CRITICAL", "EXCEPTION")
+        orchestrator.log("Orchestration failed with unexpected exception", "CRITICAL", "EXCEPTION")
         orchestrator.logger.error(f"Unexpected exception in main orchestration: {e}", exc_info=True)
         success = False
 

@@ -16,20 +16,15 @@ Author: Symergetics Team
 """
 
 import math
-import numpy as np
-from typing import Dict, List, Any, Tuple, Optional, Union
 from collections import defaultdict
-from fractions import Fraction
-import matplotlib.pyplot as plt
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Union
 
-from ..core.numbers import SymergeticsNumber
-from ..core.constants import SymergeticsConstants
-from ..geometry.polyhedra import (
-    Tetrahedron, Octahedron, Cube, Cuboctahedron,
-    integer_tetra_volume
-)
-from ..core.coordinates import QuadrayCoordinate
+import numpy as np
+
 from ..computation.palindromes import is_palindromic
+from ..core.constants import SymergeticsConstants
+from ..core.numbers import SymergeticsNumber
 
 
 class GeometricMnemonic:
@@ -241,7 +236,7 @@ def _analyze_rational_approximations(num_value: SymergeticsNumber,
         ]
     }
 
-    num_int = int(float(num_value.value))
+    num_int = int(num_value.value)
 
     for constant_name, approximations in rational_approximations.items():
         # Calculate actual constant value
@@ -372,14 +367,14 @@ def _create_integer_ratio_matplotlib(
     numbers: List[Union[int, str, SymergeticsNumber]],
     title: str
 ) -> Dict[str, Any]:
-    """Create integer ratio visualization using matplotlib."""
+    """Render integer-ratio geometric mnemonics with matplotlib."""
+    import matplotlib.pyplot as plt
 
     if not numbers:
         raise ValueError("Cannot create visualization with empty number list")
 
     try:
         import matplotlib.pyplot as plt
-        import numpy as np
     except ImportError:
         raise ImportError("matplotlib is required for integer ratio visualization")
 
@@ -509,6 +504,8 @@ def _plot_scaling_factors(ax, relationships):
 
 def _plot_ivm_relationships(ax, relationships):
     """Plot IVM relationship network."""
+    import matplotlib.pyplot as plt
+
     ivm_rels = {k: v for k, v in relationships.items() if k.startswith('ivm_')}
 
     if not ivm_rels:
@@ -601,7 +598,7 @@ def generate_geometric_mnemonic_report(
 
     report = {
         'title': title,
-        'timestamp': '2024-01-01T00:00:00Z',  # Would use datetime in real implementation
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'summary': _create_mnemonic_summary(analyses),
         'detailed_analysis': {},
         'insights': _generate_mnemonic_insights(analyses),
@@ -697,9 +694,9 @@ def _generate_mnemonic_insights(analyses: List[Dict[str, Any]]) -> List[str]:
     if scaling_factors:
         avg_scaling = sum(scaling_factors) / len(scaling_factors)
         if avg_scaling > 10:
-            insights.append(".1f")
+            insights.append(f"Large average scaling factor: {avg_scaling:.1f}")
         elif avg_scaling < 2:
-            insights.append(".1f")
+            insights.append(f"Small average scaling factor: {avg_scaling:.1f}")
     # Analyze IVM relationships
     ivm_count = sum(len(a.get('ivm_scaling_factors', {})) for a in analyses)
     if ivm_count > 0:

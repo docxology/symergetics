@@ -6,22 +6,58 @@ This module contains tests to improve code coverage for areas that are
 currently not well tested, aiming to reach 95%+ coverage.
 """
 
-import pytest
 import math
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from symergetics.computation.primorials import (
+    is_prime,
+    next_prime,
+    prime_count_up_to,
+    prime_factors,
+    primorial,
+    scheherazade_power,
+)
 
 # Import the main modules to test
 from symergetics.core.constants import SymergeticsConstants
-from symergetics.core.numbers import SymergeticsNumber, rational_sqrt, rational_pi
 from symergetics.core.coordinates import QuadrayCoordinate
-from symergetics.geometry.transformations import translate, scale, reflect, rotate_around_axis
-from symergetics.computation.primorials import primorial, scheherazade_power, is_prime, next_prime, prime_count_up_to, prime_factors
-from symergetics.utils.conversion import continued_fraction_approximation, convergents_from_continued_fraction, best_rational_approximation
-from symergetics.utils.mnemonics import mnemonic_encode, mnemonic_decode, format_large_number, ungroup_number, create_memory_aid
-from symergetics.visualization.geometry import plot_polyhedron_3d, plot_polyhedron_graphical_abstract, plot_polyhedron_wireframe
-from symergetics.visualization.numbers import plot_palindromic_heatmap, plot_scheherazade_network, plot_primorial_spectrum
-from symergetics.visualization.mathematical import plot_continued_fraction_convergence, plot_base_conversion_matrix, plot_pattern_analysis_radar
+from symergetics.core.numbers import SymergeticsNumber, rational_pi, rational_sqrt
+from symergetics.geometry.transformations import (
+    reflect,
+    rotate_around_axis,
+    scale,
+    translate,
+)
+from symergetics.utils.conversion import (
+    best_rational_approximation,
+    continued_fraction_approximation,
+    convergents_from_continued_fraction,
+)
+from symergetics.utils.mnemonics import (
+    create_memory_aid,
+    format_large_number,
+    mnemonic_decode,
+    mnemonic_encode,
+    ungroup_number,
+)
+from symergetics.visualization.geometry import (
+    plot_polyhedron_3d,
+    plot_polyhedron_graphical_abstract,
+    plot_polyhedron_wireframe,
+)
+from symergetics.visualization.mathematical import (
+    plot_base_conversion_matrix,
+    plot_continued_fraction_convergence,
+    plot_pattern_analysis_radar,
+)
+from symergetics.visualization.numbers import (
+    plot_palindromic_heatmap,
+    plot_primorial_spectrum,
+    plot_scheherazade_network,
+)
 
 
 class TestConstantsCoverage:

@@ -3,24 +3,25 @@ Comprehensive integration tests across all modules.
 Tests real functionality and interactions between modules.
 """
 
-import pytest
-import numpy as np
-from fractions import Fraction
-import tempfile
 import os
+import tempfile
+from fractions import Fraction
 from pathlib import Path
 
-from symergetics.core.numbers import SymergeticsNumber
-from symergetics.core.constants import SymergeticsConstants
-from symergetics.core.coordinates import QuadrayCoordinate, urner_embedding
+import numpy as np
+import pytest
+
 from symergetics.computation.analysis import analyze_mathematical_patterns
+from symergetics.computation.geometric_mnemonics import analyze_geometric_mnemonics
 from symergetics.computation.palindromes import analyze_number_for_synergetics
 from symergetics.computation.primorials import primorial, scheherazade_power
-from symergetics.computation.geometric_mnemonics import analyze_geometric_mnemonics
-from symergetics.geometry.polyhedra import Tetrahedron, Octahedron, Cube, Cuboctahedron
-from symergetics.geometry.transformations import translate, scale
-from symergetics.utils.conversion import rational_to_float, float_to_exact_rational
-from symergetics.utils.mnemonics import mnemonic_encode, create_memory_aid
+from symergetics.core.constants import SymergeticsConstants
+from symergetics.core.coordinates import QuadrayCoordinate, urner_embedding
+from symergetics.core.numbers import SymergeticsNumber
+from symergetics.geometry.polyhedra import Cube, Cuboctahedron, Octahedron, Tetrahedron
+from symergetics.geometry.transformations import scale, translate
+from symergetics.utils.conversion import float_to_exact_rational, rational_to_float
+from symergetics.utils.mnemonics import create_memory_aid, mnemonic_encode
 from symergetics.utils.reporting import generate_statistical_summary
 
 
@@ -340,8 +341,8 @@ class TestFullWorkflowIntegration:
     
     def test_visualization_workflow_integration(self):
         """Test visualization workflow integration."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis
         from symergetics.visualization.geometry import plot_polyhedron
+        from symergetics.visualization.mathematical import plot_pattern_analysis
         from symergetics.visualization.numbers import plot_palindromic_pattern
         
         # Test data

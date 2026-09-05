@@ -2,228 +2,169 @@
 """
 Visualization Init Coverage Tests
 
-This module contains tests to improve code coverage for visualization.__init__.py module,
-focusing on the missing lines identified in the coverage report.
+Covers the public surface of symergetics.visualization.__init__ with real
+function calls (no mocks), writing into temporary output directories.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+import os
+import tempfile
+from pathlib import Path
 
-# Import the visualization module
+import pytest
+
+from symergetics.core.coordinates import QuadrayCoordinate
 from symergetics.visualization import (
-    plot_polyhedron, plot_quadray_coordinate, plot_ivm_lattice,
-    plot_palindromic_pattern, plot_scheherazade_pattern, plot_primorial_distribution,
-    plot_continued_fraction, plot_base_conversion, plot_pattern_analysis,
-    plot_ssrcd_analysis,
-    # New functions
-    plot_polyhedron_3d, plot_polyhedron_graphical_abstract, plot_polyhedron_wireframe,
-    plot_palindromic_heatmap, plot_scheherazade_network, plot_primorial_spectrum,
-    plot_continued_fraction_convergence, plot_base_conversion_matrix, plot_pattern_analysis_radar
+    batch_visualize,
+    ensure_output_dir,
+    get_config,
+    get_organized_output_path,
+    list_output_structure,
+    reset_config,
+    set_config,
 )
 
 
+@pytest.fixture(autouse=True)
+def temp_output_config():
+    """Run every test against a temporary output directory, then reset config."""
+    with tempfile.TemporaryDirectory() as tmp:
+        set_config({'output_dir': tmp})
+        yield tmp
+        reset_config()
+
+
+def _assert_rendered(result):
+    """Assert a plot result references real, non-empty files."""
+    assert 'files' in result and result['files']
+    for file_path in result['files']:
+        assert os.path.exists(file_path)
+        assert os.path.getsize(file_path) > 0
+    assert 'metadata' in result
+
+
 class TestVisualizationInitFunctionMap:
-    """Test the function mapping and batch processing in __init__.py."""
+    """batch_visualize must dispatch to the real visualization functions."""
 
-    @patch('symergetics.visualization.plot_polyhedron')
-    @patch('symergetics.visualization.plot_quadray_coordinate')
-    def test_batch_visualize_with_original_functions(self, mock_plot_quadray, mock_plot_polyhedron):
+    def test_batch_visualize_with_original_functions(self, temp_output_config):
         """Test batch_visualize with original visualization functions."""
-        from symergetics.visualization import batch_visualize
-
-        # Mock return values
-        mock_plot_polyhedron.return_value = {'files': ['poly.png'], 'metadata': {}}
-        mock_plot_quadray.return_value = {'files': ['coord.png'], 'metadata': {}}
-
         tasks = [
             {'function': 'plot_polyhedron', 'args': ['tetrahedron']},
-            {'function': 'plot_quadray_coordinate', 'args': [[1, 2, 3, 4]]}
+            {'function': 'plot_quadray_coordinate',
+             'args': [QuadrayCoordinate(1, 2, 3, 4)]},
         ]
 
         result = batch_visualize(tasks)
 
-        # Should call the functions and return results
         assert len(result) == 2
-        assert result[0] == {'files': ['poly.png'], 'metadata': {}}
-        assert result[1] == {'files': ['coord.png'], 'metadata': {}}
+        _assert_rendered(result[0])
+        _assert_rendered(result[1])
+        assert result[0]['metadata']['type'] == 'polyhedron_3d'
 
-    @patch('symergetics.visualization.plot_polyhedron_3d')
-    @patch('symergetics.visualization.plot_palindromic_heatmap')
-    def test_batch_visualize_with_new_functions(self, mock_plot_heatmap, mock_plot_3d):
-        """Test batch_visualize with new visualization functions."""
-        from symergetics.visualization import batch_visualize
-
-        # Mock return values
-        mock_plot_3d.return_value = {'files': ['3d.png'], 'metadata': {}}
-        mock_plot_heatmap.return_value = {'files': ['heatmap.png'], 'metadata': {}}
-
+    def test_batch_visualize_with_new_functions(self, temp_output_config):
+        """Test batch_visualize dispatches the enhanced functions too."""
         tasks = [
             {'function': 'plot_polyhedron_3d', 'args': ['tetrahedron']},
-            {'function': 'plot_palindromic_heatmap', 'args': [100, 120]}
+            {'function': 'plot_palindromic_pattern', 'args': [12321]},
         ]
 
         result = batch_visualize(tasks)
 
-        # Should call the functions and return results
         assert len(result) == 2
-        assert result[0] == {'files': ['3d.png'], 'metadata': {}}
-        assert result[1] == {'files': ['heatmap.png'], 'metadata': {}}
+        _assert_rendered(result[0])
+        _assert_rendered(result[1])
 
     def test_batch_visualize_invalid_function(self):
         """Test batch_visualize with invalid function name."""
-        from symergetics.visualization import batch_visualize
-
         tasks = [
             {'function': 'invalid_function', 'args': []}
         ]
 
         result = batch_visualize(tasks)
 
-        # Should return error dict for invalid function
         assert len(result) == 1
         assert 'error' in result[0]
         assert 'Unknown visualization function' in result[0]['error']
 
     def test_batch_visualize_empty_tasks(self):
         """Test batch_visualize with empty tasks list."""
-        from symergetics.visualization import batch_visualize
-
         result = batch_visualize([])
-
-        # Should return empty list
         assert result == []
 
 
 class TestVisualizationInitUtilityFunctions:
     """Test utility functions in visualization __init__.py."""
 
-    def test_get_organized_output_path(self):
-        """Test get_organized_output_path function."""
-        from symergetics.visualization import get_organized_output_path
-        from pathlib import Path
-
-        # Test with parameters
+    def test_get_organized_output_path(self, temp_output_config):
+        """Test get_organized_output_path returns a real path under output_dir."""
         result = get_organized_output_path('test', 'category', 'file.png')
-
-        # Should return a Path object
         assert isinstance(result, Path)
+        assert temp_output_config in str(result)
 
-    def test_ensure_output_dir(self):
-        """Test ensure_output_dir function."""
-        from symergetics.visualization import ensure_output_dir
-        from pathlib import Path
-
+    def test_ensure_output_dir(self, temp_output_config):
+        """Test ensure_output_dir creates the directory."""
         result = ensure_output_dir()
-
-        # Should return a Path object
         assert isinstance(result, Path)
+        assert result.exists()
 
-    def test_list_output_structure(self):
-        """Test list_output_structure function."""
-        from symergetics.visualization import list_output_structure
-
+    def test_list_output_structure(self, temp_output_config):
+        """Test list_output_structure returns structure info."""
         result = list_output_structure()
-
-        # Should return a dict
         assert isinstance(result, dict)
 
-    def test_batch_visualize_with_kwargs(self):
-        """Test batch_visualize with kwargs in tasks."""
-        from symergetics.visualization import batch_visualize
-
+    def test_batch_visualize_with_kwargs(self, temp_output_config):
+        """Test batch_visualize forwards kwargs to the real functions."""
         tasks = [
-            {'function': 'plot_polyhedron', 'args': ['tetrahedron'], 'kwargs': {'wireframe': True}}
+            {'function': 'plot_polyhedron',
+             'args': ['tetrahedron'],
+             'kwargs': {'show_vertices': False}},
         ]
 
-        with patch('symergetics.visualization.plot_polyhedron') as mock_plot:
-            mock_plot.return_value = {'files': ['test.png'], 'metadata': {}}
-            result = batch_visualize(tasks)
+        result = batch_visualize(tasks)
 
-            # Should pass kwargs to the function
-            mock_plot.assert_called_once()
-            call_args = mock_plot.call_args
-            assert call_args.kwargs['wireframe'] == True
+        assert len(result) == 1
+        _assert_rendered(result[0])
 
 
 class TestVisualizationInitErrorHandling:
-    """Test error handling in visualization __init__.py."""
+    """Test error handling in visualization __init__.py with real failures."""
 
     def test_batch_visualize_with_function_error(self):
-        """Test batch_visualize when a function raises an error."""
-        from symergetics.visualization import batch_visualize
+        """A failing plot task yields an error entry, not a crash."""
+        # 'invalid' is not a number, so plot_base_conversion raises ValueError
+        tasks = [
+            {'function': 'plot_base_conversion', 'args': ['invalid']}
+        ]
 
-        with patch('symergetics.visualization.plot_polyhedron') as mock_plot:
-            mock_plot.side_effect = ValueError("Test error")
+        result = batch_visualize(tasks)
 
-            tasks = [
-                {'function': 'plot_polyhedron', 'args': ['tetrahedron']}
-            ]
+        assert len(result) == 1
+        assert 'error' in result[0]
 
-            result = batch_visualize(tasks)
+    def test_batch_visualize_partial_success(self, temp_output_config):
+        """One valid and one failing task produce one result and one error."""
+        tasks = [
+            {'function': 'plot_polyhedron', 'args': ['tetrahedron']},
+            {'function': 'plot_base_conversion', 'args': ['invalid']},
+        ]
 
-            # Should handle error gracefully
-            assert len(result) == 1
-            assert 'error' in result[0]
+        result = batch_visualize(tasks)
 
-    def test_batch_visualize_partial_success(self):
-        """Test batch_visualize with some successes and some failures."""
-        from symergetics.visualization import batch_visualize
-
-        with patch('symergetics.visualization.plot_polyhedron') as mock_plot, \
-             patch('symergetics.visualization.plot_quadray_coordinate') as mock_coord:
-
-            mock_plot.return_value = {'files': ['poly.png'], 'metadata': {}}
-            mock_coord.side_effect = RuntimeError("Coord error")
-
-            tasks = [
-                {'function': 'plot_polyhedron', 'args': ['tetrahedron']},
-                {'function': 'plot_quadray_coordinate', 'args': [[1, 2, 3, 4]]}
-            ]
-
-            result = batch_visualize(tasks)
-
-            # Should have one success and one error
-            assert len(result) == 2
-            assert result[0] == {'files': ['poly.png'], 'metadata': {}}
-            assert 'error' in result[1]
+        assert len(result) == 2
+        _assert_rendered(result[0])
+        assert 'error' in result[1]
 
 
 class TestVisualizationInitConfiguration:
     """Test configuration functions in visualization __init__.py."""
 
-    def test_get_config_default(self):
-        """Test get_config with default values."""
-        from symergetics.visualization import get_config
-
+    def test_config_round_trip(self, temp_output_config):
+        """set_config is visible through get_config and reset_config restores."""
+        set_config({'backend': 'plotly', 'dpi': 150})
         config = get_config()
+        assert config['backend'] == 'plotly'
+        assert config['dpi'] == 150
 
-        # Should return a dictionary with default values
-        assert isinstance(config, dict)
-        assert 'backend' in config
-        assert 'output_dir' in config
-
-    def test_set_config(self):
-        """Test set_config function."""
-        from symergetics.visualization import set_config, get_config
-
-        # Set custom config
-        set_config({'backend': 'plotly', 'custom_param': 'value'})
-
-        # Get config and verify
-        config = get_config()
-        assert config.get('backend') == 'plotly'
-        assert config.get('custom_param') == 'value'
-
-    def test_reset_config(self):
-        """Test reset_config function."""
-        from symergetics.visualization import set_config, reset_config, get_config
-
-        # Set custom config
-        set_config({'backend': 'plotly'})
-
-        # Reset config
         reset_config()
-
-        # Should be back to defaults
         config = get_config()
-        assert config.get('backend') != 'plotly'  # Should not be plotly anymore
+        assert config['backend'] == 'matplotlib'
+        assert config['output_dir'] == temp_output_config or config['output_dir'] == 'output'

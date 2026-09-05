@@ -3,14 +3,16 @@
 Tests for advanced analysis methods in symergetics.computation.analysis
 """
 
-import pytest
 import math
+
+import pytest
+
 from symergetics.computation.analysis import (
+    ComparativeAnalysis,
+    PatternMetrics,
     analyze_mathematical_patterns,
     compare_mathematical_domains,
     generate_comprehensive_report,
-    PatternMetrics,
-    ComparativeAnalysis
 )
 from symergetics.core.numbers import SymergeticsNumber
 

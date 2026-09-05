@@ -7,13 +7,14 @@ to achieve 90%+ test coverage, focusing on edge cases, error handling, and
 comprehensive functionality testing.
 """
 
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
 import json
-from typing import List, Dict, Any
+import os
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Test data and fixtures
 TEST_DATA_DIR = Path(__file__).parent / "test_data"
@@ -465,7 +466,7 @@ class TestAnalysisIntegration:
         from symergetics.computation.analysis import (
             analyze_mathematical_patterns,
             compare_mathematical_domains,
-            generate_comprehensive_report
+            generate_comprehensive_report,
         )
         
         # Analyze two numbers
@@ -509,7 +510,7 @@ class TestAnalysisIntegration:
         """Test cross-validation between analysis functions."""
         from symergetics.computation.analysis import (
             analyze_mathematical_patterns,
-            compare_mathematical_domains
+            compare_mathematical_domains,
         )
         
         # Test with same data in different formats
@@ -533,6 +534,7 @@ class TestAnalysisPerformance:
     def test_analysis_execution_time(self):
         """Test that analysis functions execute within reasonable time."""
         import time
+
         from symergetics.computation.analysis import analyze_mathematical_patterns
         
         number = 12345678987654321
@@ -548,6 +550,7 @@ class TestAnalysisPerformance:
     def test_large_number_performance(self):
         """Test performance with large numbers."""
         import time
+
         from symergetics.computation.analysis import analyze_mathematical_patterns
         
         number = 10**100  # Very large number
@@ -563,6 +566,7 @@ class TestAnalysisPerformance:
     def test_domain_comparison_performance(self):
         """Test performance of domain comparison."""
         import time
+
         from symergetics.computation.analysis import compare_mathematical_domains
         
         domain1_data = [{'is_palindromic': True, 'length': 5} for _ in range(100)]
@@ -579,6 +583,7 @@ class TestAnalysisPerformance:
     def test_report_generation_performance(self):
         """Test performance of report generation."""
         import time
+
         from symergetics.computation.analysis import generate_comprehensive_report
         
         analysis_data = {

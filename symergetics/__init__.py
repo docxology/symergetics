@@ -20,31 +20,31 @@ __author__ = "Symergetics Team"
 __license__ = "MIT"
 
 # Import core classes for easy access
-from .core.numbers import SymergeticsNumber
-from .core.coordinates import QuadrayCoordinate
-from .core.constants import SymergeticsConstants
-
-# Import geometry classes
-from .geometry.polyhedra import (
-    Tetrahedron,
-    Octahedron,
-    Cube,
-    Cuboctahedron,
-    SymergeticsPolyhedron
-)
+from .computation.palindromes import extract_palindromic_patterns, is_palindromic
 
 # Import computation functions
 from .computation.primorials import primorial, scheherazade_power
-from .computation.palindromes import is_palindromic, extract_palindromic_patterns
+from .core.constants import SymergeticsConstants
+from .core.coordinates import QuadrayCoordinate
+from .core.numbers import SymergeticsNumber
+
+# Import geometry classes
+from .geometry.polyhedra import (
+    Cube,
+    Cuboctahedron,
+    Octahedron,
+    SymergeticsPolyhedron,
+    Tetrahedron,
+)
 
 # Import utilities
 from .utils.conversion import (
+    float_to_exact_rational,
+    quadray_to_xyz,
     rational_to_float,
     xyz_to_quadray,
-    quadray_to_xyz,
-    float_to_exact_rational
 )
-from .utils.mnemonics import mnemonic_encode, mnemonic_decode
+from .utils.mnemonics import mnemonic_decode, mnemonic_encode
 
 __all__ = [
     # Core

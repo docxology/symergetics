@@ -119,15 +119,15 @@ def demonstrate_ratio_based_geometry():
     print(f"\n3. Edge Length Scaling:")
     print("-" * 30)
     
-    # Show how edge lengths relate to volumes
+    # Show how vertex-pair distances (diameters) relate to edge lengths
     constants = SymergeticsConstants()
-    ratios = constants.EDGE_LENGTH_RATIOS
+    ratios = constants.DIAMETER_TO_EDGE_RATIOS
     
     for shape, ratio in ratios.items():
         if hasattr(ratio, 'value'):
-            print(f"{shape.capitalize()}: edge ratio = {ratio.value} = {float(ratio.value):.6f}")
+            print(f"{shape.capitalize()}: diameter/edge = {ratio.value} = {float(ratio.value):.6f}")
         else:
-            print(f"{shape.capitalize()}: edge ratio = {ratio}")
+            print(f"{shape.capitalize()}: diameter/edge = {ratio}")
         
     print(f"\n✓ All volume relationships are exact rational numbers")
     print(f"✓ Edge length ratios maintain geometric precision")

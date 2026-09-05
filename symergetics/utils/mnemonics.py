@@ -14,8 +14,10 @@ Key Features:
 Author: Symergetics Team
 """
 
-from typing import Union, Dict, List, Tuple, Optional
+import math
 import re
+from typing import Dict, Optional, Union
+
 from ..core.numbers import SymergeticsNumber
 
 
@@ -32,10 +34,10 @@ def mnemonic_encode(number: Union[int, SymergeticsNumber],
         str: Memorable representation of the number
 
     Examples:
-        >>> mnemonic_encode(1001)  # Scheherazade base
-        "1,001 (Scheherazade base: 7×11×13)"
-        >>> mnemonic_encode(30030)  # Primorial 13
-        "30,030 (13# primorial)"
+        >>> mnemonic_encode(1001, style='grouped')  # Scheherazade base
+        '1,001 (Scheherazade base (7×11×13); raw: 1001)'
+        >>> mnemonic_encode(30030, style='grouped')  # Primorial 13
+        '30,030 (13# primorial (2×3×5×7×11×13); raw: 30030)'
     """
     if isinstance(number, SymergeticsNumber):
         if number.value.denominator != 1:
@@ -80,26 +82,47 @@ def mnemonic_decode(mnemonic: str) -> Union[int, str]:
     """
     Decode a mnemonic representation back to a number.
 
+    Understands the output of mnemonic_encode: sign prefixes ('negative'),
+    grouping characters, and the 'raw: <number>' payload embedded by the
+    grouped style.
+
     Args:
         mnemonic: Mnemonic string to decode
 
     Returns:
         Union[int, str]: Decoded number or error message
     """
-    # Remove formatting characters
-    clean = re.sub(r'[,\s]', '', mnemonic)
+    text = mnemonic.strip()
+    sign = 1
+    if text.lower().startswith('negative'):
+        sign = -1
+        text = text[len('negative'):].strip()
 
-    # Try to extract number
+    clean = re.sub(r'[,\s]', '', text)
     try:
-        return int(clean)
+        return sign * int(clean)
     except ValueError:
-        return f"Could not decode: {mnemonic}"
+        pass
+
+    # Fall back to the explicit raw payload appended by mnemonic_encode
+    match = re.search(r'raw:\s*([+-]?\d+)', mnemonic)
+    if match:
+        return sign * int(match.group(1))
+
+    # Fall back to the first embedded digit run
+    match = re.search(r'\d+', clean)
+    if match:
+        return sign * int(match.group())
+
+    return f"Could not decode: {mnemonic}"
 
 
 def format_large_number(number: Union[int, SymergeticsNumber],
                        grouping: int = 3) -> str:
     """
     Format a large number with grouped digits for readability.
+
+    The sign is preserved (e.g. -1234 -> '-1,234').
 
     Args:
         number: Number to format
@@ -110,21 +133,23 @@ def format_large_number(number: Union[int, SymergeticsNumber],
 
     Examples:
         >>> format_large_number(1234567890)
-        "1,234,567,890"
+        '1,234,567,890'
         >>> format_large_number(1006015020015006001, grouping=4)
-        "1006,0150,2001,5006,001"
+        '1006,0150,2001,5006,001'
     """
     if isinstance(number, SymergeticsNumber):
         if number.value.denominator != 1:
             return str(number.value)
-        num_str = str(number.value.numerator)
+        value = number.value.numerator
     else:
-        num_str = str(abs(int(number)))
+        value = int(number)
+    sign = '-' if value < 0 else ''
+    num_str = str(abs(value))
 
     # Add commas for grouping
     length = len(num_str)
     if grouping <= 0:
-        return num_str
+        return sign + num_str
 
     if grouping == 3:
         # Standard right-based grouping: 1,234,567,890
@@ -132,11 +157,11 @@ def format_large_number(number: Union[int, SymergeticsNumber],
         for i in range(length, 0, -grouping):
             start = max(0, i - grouping)
             groups.append(num_str[start:i])
-        return ','.join(reversed(groups))
+        return sign + ','.join(reversed(groups))
     else:
         # Left-based fixed-width grouping: grouping=4 -> 1234,5678,90
         groups = [num_str[i:i + grouping] for i in range(0, length, grouping)]
-        return ','.join(groups)
+        return sign + ','.join(groups)
 
 
 def ungroup_number(grouped: str) -> int:
@@ -151,7 +176,6 @@ def ungroup_number(grouped: str) -> int:
         >>> ungroup_number('1234 5678 90') -> 1234567890
         >>> ungroup_number('1_002_001') -> 1002001
     """
-    import re
     cleaned = re.sub(r'[,_\s]', '', str(grouped))
     if cleaned == '' or cleaned == '-':
         raise ValueError('Invalid grouped number')
@@ -177,13 +201,16 @@ def create_memory_aid(number: Union[int, SymergeticsNumber]) -> Dict[str, str]:
             return aids
         num = number.value.numerator
     else:
-        num = abs(int(number))
+        num = int(number)
+
+    sign_prefix = 'negative ' if num < 0 else ''
+    magnitude = abs(num)
 
     aids['grouped'] = format_large_number(num)
-    aids['scientific'] = _scientific_notation(num)
-    aids['words'] = _number_to_words(num)
-    aids['patterns'] = _pattern_based(num)
-    aids['synergetics_context'] = _synergetics_context(num)
+    aids['scientific'] = sign_prefix + _scientific_notation(magnitude)
+    aids['words'] = sign_prefix + _number_to_words(magnitude)
+    aids['patterns'] = sign_prefix + _pattern_based(magnitude)
+    aids['synergetics_context'] = _synergetics_context(magnitude)
 
     return aids
 
@@ -198,7 +225,6 @@ def _scientific_notation(num: int) -> str:
     if num == 0:
         return "0"
 
-    import math
     exponent = int(math.log10(abs(num)))
     mantissa = num / (10 ** exponent)
 
@@ -382,7 +408,7 @@ def visualize_number_pattern(number: Union[int, SymergeticsNumber],
     visualization += "Pattern visualization:\n"
 
     # Simple ASCII visualization
-    for i, digit in enumerate(digits[:width]):
+    for digit in digits[:width]:
         bar_length = (digit * width) // 9 if max_digit > 0 else 0
         visualization += f"{digit}: {'█' * bar_length}\n"
 

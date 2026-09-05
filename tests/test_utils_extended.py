@@ -4,31 +4,33 @@ Extended tests for utils modules - Additional coverage for utility functions.
 Tests advanced conversion scenarios, mnemonic operations, and edge cases.
 """
 
-import pytest
 import math
+from fractions import Fraction
+
+import pytest
+
+from symergetics.core.numbers import SymergeticsNumber
 from symergetics.utils.conversion import (
-    rational_to_float,
-    float_to_exact_rational,
-    decimal_to_fraction,
-    scientific_notation_to_rational,
+    best_rational_approximation,
     continued_fraction_approximation,
     convergents_from_continued_fraction,
-    best_rational_approximation,
-    format_as_mixed_number,
+    convert_between_bases,
     coordinate_system_info,
-    convert_between_bases
+    decimal_to_fraction,
+    float_to_exact_rational,
+    format_as_mixed_number,
+    rational_to_float,
+    scientific_notation_to_rational,
 )
 from symergetics.utils.mnemonics import (
-    mnemonic_encode,
-    mnemonic_decode,
-    format_large_number,
-    create_memory_aid,
-    visualize_number_pattern,
     compare_number_patterns,
-    generate_synergetics_mnemonics
+    create_memory_aid,
+    format_large_number,
+    generate_synergetics_mnemonics,
+    mnemonic_decode,
+    mnemonic_encode,
+    visualize_number_pattern,
 )
-from symergetics.core.numbers import SymergeticsNumber
-from fractions import Fraction
 
 
 class TestConversionExtended:
@@ -104,9 +106,9 @@ class TestConversionExtended:
         result = format_as_mixed_number(SymergeticsNumber(5))
         assert result == "5"
 
-        # Negative fraction
+        # Negative fraction: floor convention, -7/3 = -3 + 2/3
         result = format_as_mixed_number(SymergeticsNumber(-7, 3))
-        assert "2 1/3" in result or "-2 1/3" in result
+        assert result == "-3 2/3"
 
         # Very small fraction
         result = format_as_mixed_number(SymergeticsNumber(1, 100))

@@ -16,20 +16,22 @@ Features:
 Author: Symergetics Team
 """
 
-from typing import Dict, Any, Optional, Union, List, Tuple
-import numpy as np
-from pathlib import Path
 import math
+from typing import Any, Dict, Optional, Union
 
-from ..core.numbers import SymergeticsNumber
+import numpy as np
+
 from ..computation.palindromes import (
-    is_palindromic, extract_palindromic_patterns,
-    find_repeated_patterns, calculate_palindromic_density,
-    find_symmetric_patterns, analyze_scheherazade_ssrcd
+    analyze_scheherazade_ssrcd,
+    calculate_palindromic_density,
+    extract_palindromic_patterns,
+    find_symmetric_patterns,
+    is_palindromic,
 )
-from ..computation.primorials import primorial, scheherazade_power, COMMON_PRIMORIALS
+from ..computation.primorials import primorial, scheherazade_power
+from ..core.numbers import SymergeticsNumber
 from ..utils.mnemonics import create_memory_aid, format_large_number
-from . import _config, ensure_output_dir, get_organized_output_path
+from . import get_config, get_organized_output_path
 
 
 def plot_palindromic_pattern(number: Union[int, SymergeticsNumber],
@@ -46,12 +48,14 @@ def plot_palindromic_pattern(number: Union[int, SymergeticsNumber],
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_palindrome_matplotlib(number, **kwargs)
     elif backend == "ascii":
         return _plot_palindrome_ascii(number, **kwargs)
+    elif backend == "plotly":
+        return _plot_palindrome_plotly(number, **kwargs)
     else:
         raise ValueError(f"Unsupported backend: {backend}")
 
@@ -60,8 +64,8 @@ def _plot_palindrome_matplotlib(number: Union[int, SymergeticsNumber],
                                **kwargs) -> Dict[str, Any]:
     """Plot palindromic patterns using matplotlib."""
     try:
-        import matplotlib.pyplot as plt
         import matplotlib.patches as patches
+        import matplotlib.pyplot as plt
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
@@ -85,7 +89,7 @@ def _plot_palindrome_matplotlib(number: Union[int, SymergeticsNumber],
                 }
             }
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(_config["figure_size"][0], _config["figure_size"][1] * 1.5))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(get_config()["figure_size"][0], get_config()["figure_size"][1] * 1.5))
 
     # Top plot: Digit pattern
     digits = [int(d) for d in num_str]
@@ -100,7 +104,7 @@ def _plot_palindrome_matplotlib(number: Union[int, SymergeticsNumber],
             if digits[i - radius] == digits[i + radius]:
                 is_palindrome_digit = True
                 break
-        colors.append(_config["colors"]["accent"] if is_palindrome_digit else _config["colors"]["primary"])
+        colors.append(get_config()["colors"]["accent"] if is_palindrome_digit else get_config()["colors"]["primary"])
 
     bars = ax1.bar(positions, digits, color=colors, alpha=0.7)
     ax1.set_title(f'Palindromic Pattern Analysis: {format_large_number(int(num_str) if num_str.isdigit() else 0)}')
@@ -135,11 +139,11 @@ def _plot_palindrome_matplotlib(number: Union[int, SymergeticsNumber],
     filename = f"palindrome_pattern_{num_str[:20]}.png"
     filepath = get_organized_output_path('numbers', 'palindromes', filename)
     fig.savefig(filepath, 
-                dpi=_config["dpi"], 
-                facecolor=_config["png_options"]["facecolor"],
-                bbox_inches=_config["png_options"]["bbox_inches"],
-                pad_inches=_config["png_options"]["pad_inches"],
-                transparent=_config["png_options"]["transparent"])
+                dpi=get_config()["dpi"], 
+                facecolor=get_config()["png_options"]["facecolor"],
+                bbox_inches=get_config()["png_options"]["bbox_inches"],
+                pad_inches=get_config()["png_options"]["pad_inches"],
+                transparent=get_config()["png_options"]["transparent"])
     plt.close(fig)
 
     # Get pattern analysis
@@ -264,14 +268,14 @@ def _plot_palindrome_ascii(number: Union[int, SymergeticsNumber],
             entropy -= prob * math.log2(prob)
     
     lines.append("")
-    lines.append(f"Statistical Analysis:")
+    lines.append("Statistical Analysis:")
     lines.append(f"  Entropy: {entropy:.3f} bits (max: 3.322 for uniform distribution)")
     if entropy > 3.0:
-        lines.append(f"  Assessment: High entropy - relatively uniform digit distribution")
+        lines.append("  Assessment: High entropy - relatively uniform digit distribution")
     elif entropy > 2.0:
-        lines.append(f"  Assessment: Medium entropy - some pattern structure present")
+        lines.append("  Assessment: Medium entropy - some pattern structure present")
     else:
-        lines.append(f"  Assessment: Low entropy - highly structured digit patterns")
+        lines.append("  Assessment: Low entropy - highly structured digit patterns")
     
     # Most and least common digits (among digits that actually appear)
     appearing_digits = [(k, v) for k, v in digit_counts.items() if v > 0]
@@ -319,15 +323,14 @@ def plot_scheherazade_pattern(power: int,
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_scheherazade_matplotlib(power, **kwargs)
     elif backend == "ascii":
         return _plot_scheherazade_ascii(power, **kwargs)
     elif backend == "plotly":
-        # Fallback to matplotlib for now
-        return _plot_scheherazade_matplotlib(power, **kwargs)
+        return _plot_scheherazade_plotly(power, **kwargs)
     else:
         raise ValueError(f"Unsupported backend: {backend}")
 
@@ -346,10 +349,10 @@ def _plot_scheherazade_matplotlib(power: int, **kwargs) -> Dict[str, Any]:
     num_str = analysis['number_string']
     digits = [int(d) for d in num_str]
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(_config["figure_size"][0] * 1.5, _config["figure_size"][1] * 1.5))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Plot 1: Digit distribution
-    ax1.hist(digits, bins=range(11), alpha=0.7, color=_config["colors"]["primary"], edgecolor='black')
+    ax1.hist(digits, bins=range(11), alpha=0.7, color=get_config()["colors"]["primary"], edgecolor='black')
     ax1.set_title(f'Scheherazade Number 1001^{power}')
     ax1.set_xlabel('Digit Value')
     ax1.set_ylabel('Frequency')
@@ -357,7 +360,7 @@ def _plot_scheherazade_matplotlib(power: int, **kwargs) -> Dict[str, Any]:
 
     # Plot 2: Digit sequence
     positions = list(range(len(digits)))
-    ax2.plot(positions, digits, 'o-', alpha=0.7, color=_config["colors"]["secondary"], markersize=3)
+    ax2.plot(positions, digits, 'o-', alpha=0.7, color=get_config()["colors"]["secondary"], markersize=3)
     ax2.set_title('Digit Sequence')
     ax2.set_xlabel('Position')
     ax2.set_ylabel('Digit Value')
@@ -365,7 +368,7 @@ def _plot_scheherazade_matplotlib(power: int, **kwargs) -> Dict[str, Any]:
 
     # Plot 3: Running digit sum
     running_sum = np.cumsum(digits)
-    ax3.plot(positions, running_sum, color=_config["colors"]["accent"], linewidth=2)
+    ax3.plot(positions, running_sum, color=get_config()["colors"]["accent"], linewidth=2)
     ax3.set_title('Cumulative Digit Sum')
     ax3.set_xlabel('Position')
     ax3.set_ylabel('Cumulative Sum')
@@ -381,7 +384,7 @@ def _plot_scheherazade_matplotlib(power: int, **kwargs) -> Dict[str, Any]:
             score = len(set(window)) / len(window)  # Diversity measure
             pattern_density.append(score)
 
-        ax4.plot(range(len(pattern_density)), pattern_density, 's-', color=_config["colors"]["primary"])
+        ax4.plot(range(len(pattern_density)), pattern_density, 's-', color=get_config()["colors"]["primary"])
         ax4.set_title(f'Pattern Diversity (Window Size {window_size})')
         ax4.set_xlabel('Window Position')
         ax4.set_ylabel('Diversity Score')
@@ -394,11 +397,11 @@ def _plot_scheherazade_matplotlib(power: int, **kwargs) -> Dict[str, Any]:
     filename = f"scheherazade_pattern_1001_power_{power}.png"
     filepath = get_organized_output_path('numbers', 'scheherazade', filename)
     fig.savefig(filepath, 
-                dpi=_config["dpi"], 
-                facecolor=_config["png_options"]["facecolor"],
-                bbox_inches=_config["png_options"]["bbox_inches"],
-                pad_inches=_config["png_options"]["pad_inches"],
-                transparent=_config["png_options"]["transparent"])
+                dpi=get_config()["dpi"], 
+                facecolor=get_config()["png_options"]["facecolor"],
+                bbox_inches=get_config()["png_options"]["bbox_inches"],
+                pad_inches=get_config()["png_options"]["pad_inches"],
+                transparent=get_config()["png_options"]["transparent"])
     plt.close(fig)
 
     return {
@@ -483,14 +486,14 @@ def _plot_scheherazade_ascii(power: int, **kwargs) -> Dict[str, Any]:
             prob = count / total_digits
             entropy -= prob * math.log2(prob)
     
-    lines.append(f"Statistical Analysis:")
+    lines.append("Statistical Analysis:")
     lines.append(f"  Entropy: {entropy:.3f} bits (max: 3.322 for uniform distribution)")
     if entropy > 3.0:
-        lines.append(f"  Assessment: High entropy - relatively uniform digit distribution")
+        lines.append("  Assessment: High entropy - relatively uniform digit distribution")
     elif entropy > 2.0:
-        lines.append(f"  Assessment: Medium entropy - some pattern structure present")
+        lines.append("  Assessment: Medium entropy - some pattern structure present")
     else:
-        lines.append(f"  Assessment: Low entropy - highly structured digit patterns")
+        lines.append("  Assessment: Low entropy - highly structured digit patterns")
     lines.append("")
 
     # Save to file using organized structure
@@ -527,12 +530,14 @@ def plot_primorial_distribution(max_n: int = 20,
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_primorials_matplotlib(max_n, **kwargs)
     elif backend == "ascii":
         return _plot_primorials_ascii(max_n, **kwargs)
+    elif backend == "plotly":
+        return _plot_primorials_plotly(max_n, **kwargs)
     else:
         raise ValueError(f"Unsupported backend: {backend}")
 
@@ -555,20 +560,20 @@ def _plot_primorials_matplotlib(max_n: int = 20, **kwargs) -> Dict[str, Any]:
             n_values.append(n)
             primorial_values.append(float(p.value))
             log_values.append(math.log(float(p.value)))
-        except:
-            break  # Stop if primorial becomes too large
+        except (ValueError, OverflowError):
+            break  # Stop if primorial becomes too large to render
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(_config["figure_size"][0] * 1.5, _config["figure_size"][1] * 1.5))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Plot 1: Linear primorial values
-    ax1.plot(n_values, primorial_values, 'o-', color=_config["colors"]["primary"], linewidth=2, markersize=6)
+    ax1.plot(n_values, primorial_values, 'o-', color=get_config()["colors"]["primary"], linewidth=2, markersize=6)
     ax1.set_title('Primorial Values')
     ax1.set_xlabel('n')
     ax1.set_ylabel('n#')
     ax1.grid(True, alpha=0.3)
 
     # Plot 2: Logarithmic primorial values
-    ax2.plot(n_values, log_values, 's-', color=_config["colors"]["secondary"], linewidth=2, markersize=6)
+    ax2.plot(n_values, log_values, 's-', color=get_config()["colors"]["secondary"], linewidth=2, markersize=6)
     ax2.set_title('Primorial Values (Log Scale)')
     ax2.set_xlabel('n')
     ax2.set_ylabel('log(n#)')
@@ -581,7 +586,7 @@ def _plot_primorials_matplotlib(max_n: int = 20, **kwargs) -> Dict[str, Any]:
             rate = log_values[i] - log_values[i-1]
             growth_rates.append(rate)
 
-        ax3.plot(n_values[1:], growth_rates, '^-', color=_config["colors"]["accent"], linewidth=2, markersize=6)
+        ax3.plot(n_values[1:], growth_rates, '^-', color=get_config()["colors"]["accent"], linewidth=2, markersize=6)
         ax3.set_title('Growth Rate (log difference)')
         ax3.set_xlabel('n')
         ax3.set_ylabel('Δlog(n#)')
@@ -598,7 +603,7 @@ def _plot_primorials_matplotlib(max_n: int = 20, **kwargs) -> Dict[str, Any]:
                 factorial_ratios.append(ratio)
 
         if factorial_ratios:
-            ax4.plot(n_values[:len(factorial_ratios)], factorial_ratios, 'd-', color=_config["colors"]["primary"], linewidth=2, markersize=6)
+            ax4.plot(n_values[:len(factorial_ratios)], factorial_ratios, 'd-', color=get_config()["colors"]["primary"], linewidth=2, markersize=6)
             ax4.set_title('Primorial / Factorial Ratio')
             ax4.set_xlabel('n')
             ax4.set_ylabel('n# / n!')
@@ -611,11 +616,11 @@ def _plot_primorials_matplotlib(max_n: int = 20, **kwargs) -> Dict[str, Any]:
     filename = f"primorial_distribution_max_n_{max_n}.png"
     filepath = get_organized_output_path('numbers', 'primorials', filename)
     fig.savefig(filepath, 
-                dpi=_config["dpi"], 
-                facecolor=_config["png_options"]["facecolor"],
-                bbox_inches=_config["png_options"]["bbox_inches"],
-                pad_inches=_config["png_options"]["pad_inches"],
-                transparent=_config["png_options"]["transparent"])
+                dpi=get_config()["dpi"], 
+                facecolor=get_config()["png_options"]["facecolor"],
+                bbox_inches=get_config()["png_options"]["bbox_inches"],
+                pad_inches=get_config()["png_options"]["pad_inches"],
+                transparent=get_config()["png_options"]["transparent"])
     plt.close(fig)
 
     return {
@@ -692,14 +697,14 @@ def _plot_primorials_ascii(max_n: int = 20, **kwargs) -> Dict[str, Any]:
                 entropy -= prob * math.log2(prob)
         
         lines.append("")
-        lines.append(f"Statistical Properties:")
+        lines.append("Statistical Properties:")
         lines.append(f"  Digit Entropy: {entropy:.3f} bits (max: 3.322 for uniform)")
         if entropy > 3.0:
-            lines.append(f"  Assessment: High entropy - digits appear relatively random")
+            lines.append("  Assessment: High entropy - digits appear relatively random")
         elif entropy > 2.5:
-            lines.append(f"  Assessment: Moderate entropy - some digit preferences")
+            lines.append("  Assessment: Moderate entropy - some digit preferences")
         else:
-            lines.append(f"  Assessment: Low entropy - strong digit patterns present")
+            lines.append("  Assessment: Low entropy - strong digit patterns present")
         
         # Most and least common digits (among digits that actually appear)
         appearing_digits = [(k, v) for k, v in digit_counts.items() if v > 0]
@@ -751,12 +756,14 @@ def plot_mnemonic_visualization(number: Union[int, SymergeticsNumber],
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_mnemonic_matplotlib(number, **kwargs)
     elif backend == "ascii":
         return _plot_mnemonic_ascii(number, **kwargs)
+    elif backend == "plotly":
+        return _plot_mnemonic_plotly(number, **kwargs)
     else:
         raise ValueError(f"Unsupported backend: {backend}")
 
@@ -773,7 +780,7 @@ def _plot_mnemonic_matplotlib(number: Union[int, SymergeticsNumber],
     aids = create_memory_aid(number)
 
     # Create visualization of different mnemonic strategies
-    fig, axes = plt.subplots(2, 2, figsize=(_config["figure_size"][0] * 1.5, _config["figure_size"][1] * 1.5))
+    fig, axes = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Flatten axes for easier indexing
     axes = axes.flatten()
@@ -789,7 +796,7 @@ def _plot_mnemonic_matplotlib(number: Union[int, SymergeticsNumber],
 
         # Word cloud-like visualization (simplified)
         ax.text(0.5, 0.5, mnemonic, ha='center', va='center',
-               fontsize=12, wrap=True, bbox=dict(boxstyle="round,pad=0.3", facecolor=_config["colors"]["background"]))
+               fontsize=12, wrap=True, bbox=dict(boxstyle="round,pad=0.3", facecolor=get_config()["colors"]["background"]))
 
         ax.set_title(title)
         ax.set_xlim(0, 1)
@@ -819,11 +826,11 @@ def _plot_mnemonic_matplotlib(number: Union[int, SymergeticsNumber],
     filename = f"mnemonic_visualization_{num_str}.png"
     filepath = get_organized_output_path('numbers', 'mnemonics', filename)
     fig.savefig(filepath, 
-                dpi=_config["dpi"], 
-                facecolor=_config["png_options"]["facecolor"],
-                bbox_inches=_config["png_options"]["bbox_inches"],
-                pad_inches=_config["png_options"]["pad_inches"],
-                transparent=_config["png_options"]["transparent"])
+                dpi=get_config()["dpi"], 
+                facecolor=get_config()["png_options"]["facecolor"],
+                bbox_inches=get_config()["png_options"]["bbox_inches"],
+                pad_inches=get_config()["png_options"]["pad_inches"],
+                transparent=get_config()["png_options"]["transparent"])
     plt.close(fig)
 
     return {
@@ -856,12 +863,14 @@ def plot_palindromic_heatmap(sequence_start: int, sequence_end: int,
         >>> plot_palindromic_heatmap(100, 200)
         {'files': ['output/numbers/palindromes/palindromic_heatmap_100_200.png'], 'metadata': {...}}
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_palindromic_heatmap_matplotlib(sequence_start, sequence_end, **kwargs)
+    elif backend == "plotly":
+        return _plot_palindromic_heatmap_plotly(sequence_start, sequence_end, **kwargs)
     else:
-        raise ValueError(f"Heatmap visualization requires matplotlib backend, got: {backend}")
+        raise ValueError(f"Heatmap visualization requires matplotlib or plotly backend, got: {backend}")
 
 
 def _plot_palindromic_heatmap_matplotlib(sequence_start: int, sequence_end: int,
@@ -925,7 +934,7 @@ def _plot_palindromic_heatmap_matplotlib(sequence_start: int, sequence_end: int,
     # Save heatmap
     filename = f"palindromic_heatmap_{sequence_start}_{sequence_end}.png"
     filepath = get_organized_output_path('numbers', 'palindromes', filename)
-    fig.savefig(filepath, dpi=_config["dpi"], bbox_inches='tight')
+    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
     plt.close(fig)
 
     return {
@@ -959,12 +968,14 @@ def plot_scheherazade_network(power: int,
         >>> plot_scheherazade_network(6)
         {'files': ['output/numbers/scheherazade/scheherazade_network_6.png'], 'metadata': {...}}
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_scheherazade_network_matplotlib(power, **kwargs)
+    elif backend == "plotly":
+        return _plot_scheherazade_network_plotly(power, **kwargs)
     else:
-        raise ValueError(f"Network visualization requires matplotlib backend, got: {backend}")
+        raise ValueError(f"Network visualization requires matplotlib or plotly backend, got: {backend}")
 
 
 def _plot_scheherazade_network_matplotlib(power: int, **kwargs) -> Dict[str, Any]:
@@ -997,8 +1008,8 @@ def _plot_scheherazade_network_matplotlib(power: int, **kwargs) -> Dict[str, Any
         digit_nodes[digit] = (x, y)
 
         # Draw node
-        circle = Circle((x, y), 1.5, facecolor=_config["colors"]["primary"],
-                       edgecolor=_config["colors"]["secondary"], alpha=0.7)
+        circle = Circle((x, y), 1.5, facecolor=get_config()["colors"]["primary"],
+                       edgecolor=get_config()["colors"]["secondary"], alpha=0.7)
         ax.add_patch(circle)
 
         # Add digit label
@@ -1013,7 +1024,7 @@ def _plot_scheherazade_network_matplotlib(power: int, **kwargs) -> Dict[str, Any
                 # Create connection lines (simplified)
                 ax.plot([x1, x1 + np.random.uniform(-2, 2)],
                        [y1, y1 + np.random.uniform(-2, 2)],
-                       color=_config["colors"]["accent"], alpha=0.3, linewidth=1)
+                       color=get_config()["colors"]["accent"], alpha=0.3, linewidth=1)
 
     # Add pattern information
     info_text = f"Scheherazade Number: 1001^{power}\n"
@@ -1037,7 +1048,7 @@ def _plot_scheherazade_network_matplotlib(power: int, **kwargs) -> Dict[str, Any
     # Save network visualization
     filename = f"scheherazade_network_{power}.png"
     filepath = get_organized_output_path('numbers', 'scheherazade', filename)
-    fig.savefig(filepath, dpi=_config["dpi"], bbox_inches='tight', facecolor='white')
+    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight', facecolor='white')
     plt.close(fig)
 
     return {
@@ -1071,12 +1082,14 @@ def plot_primorial_spectrum(max_n: int = 15,
         >>> plot_primorial_spectrum(20)
         {'files': ['output/numbers/primorials/primorial_spectrum_20.png'], 'metadata': {...}}
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _plot_primorial_spectrum_matplotlib(max_n, **kwargs)
+    elif backend == "plotly":
+        return _plot_primorial_spectrum_plotly(max_n, **kwargs)
     else:
-        raise ValueError(f"Spectrum visualization requires matplotlib backend, got: {backend}")
+        raise ValueError(f"Spectrum visualization requires matplotlib or plotly backend, got: {backend}")
 
 
 def _plot_primorial_spectrum_matplotlib(max_n: int = 15, **kwargs) -> Dict[str, Any]:
@@ -1153,7 +1166,7 @@ def _plot_primorial_spectrum_matplotlib(max_n: int = 15, **kwargs) -> Dict[str, 
     # Save spectrum visualization
     filename = f"primorial_spectrum_{max_n}.png"
     filepath = get_organized_output_path('numbers', 'primorials', filename)
-    fig.savefig(filepath, dpi=_config["dpi"], bbox_inches='tight')
+    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
     plt.close(fig)
 
     return {
@@ -1220,5 +1233,425 @@ def _plot_mnemonic_ascii(number: Union[int, SymergeticsNumber],
             'number': str(number),
             'strategies': len(aids),
             'backend': 'ascii'
+        }
+    }
+
+
+# ---------------------------------------------------------------------------
+# Plotly backends
+# ---------------------------------------------------------------------------
+
+def _save_plotly_figure(fig, category: str, subcategory: str, filename: str) -> str:
+    """Write a plotly figure into the organized output structure and return the path."""
+    filepath = get_organized_output_path(category, subcategory, filename)
+    fig.write_html(str(filepath), include_plotlyjs='cdn')
+    return str(filepath)
+
+
+def _plotly_grid(width_scale: float = 1.0, height_scale: float = 1.0):
+    """Return (plotly modules, width, height) for the configured figure size."""
+    try:
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+    except ImportError:
+        raise ImportError("plotly is required for plotly backend")
+    size = get_config()["figure_size"]
+    return go, make_subplots, int(size[0] * 100 * width_scale), int(size[1] * 100 * height_scale)
+
+
+def _plot_palindrome_plotly(number: Union[int, SymergeticsNumber], **kwargs) -> Dict[str, Any]:
+    """Plot palindromic patterns using plotly."""
+    go, make_subplots, width, height = _plotly_grid(1.0, 1.5)
+    colors_cfg = get_config()["colors"]
+
+    if isinstance(number, SymergeticsNumber):
+        if number.value.denominator != 1:
+            num_str = str(number.value)
+        else:
+            num_str = str(number.value.numerator)
+    else:
+        try:
+            num_str = str(abs(int(number)))
+        except (ValueError, TypeError):
+            return {
+                'files': [],
+                'metadata': {
+                    'error': f'Invalid input: {number}',
+                    'backend': 'plotly',
+                    'function': 'plot_palindromic_pattern'
+                }
+            }
+
+    digits = [int(d) for d in num_str]
+    positions = list(range(len(digits)))
+
+    highlight = []
+    for i in range(len(digits)):
+        is_palindrome_digit = False
+        for radius in range(1, min(i, len(digits) - 1 - i) + 1):
+            if digits[i - radius] == digits[i + radius]:
+                is_palindrome_digit = True
+                break
+        highlight.append(is_palindrome_digit)
+
+    bar_colors = [colors_cfg["accent"] if h else colors_cfg["primary"] for h in highlight]
+
+    symmetry_matrix = [[0] * len(digits) for _ in digits]
+    for i in range(len(digits)):
+        for j in range(len(digits)):
+            if i != j and digits[i] == digits[j]:
+                symmetry_matrix[i][j] = 1
+
+    fig = make_subplots(rows=2, cols=1, subplot_titles=(
+        f'Palindromic Pattern Analysis: {num_str}', 'Digit Symmetry Heatmap'))
+    fig.add_trace(go.Bar(x=positions, y=digits, marker_color=bar_colors,
+                         text=[str(d) for d in digits], textposition='outside',
+                         name='Digits'), row=1, col=1)
+    fig.add_trace(go.Heatmap(z=symmetry_matrix, colorscale='Blues',
+                             colorbar=dict(title='Symmetry')), row=2, col=1)
+    fig.update_layout(title='Palindromic Pattern Analysis', width=width, height=height,
+                      showlegend=False)
+
+    filepath = _save_plotly_figure(fig, 'numbers', 'palindromes',
+                                   f"palindrome_pattern_{num_str[:20]}.html")
+
+    return {
+        'files': [filepath],
+        'metadata': {
+            'type': 'palindrome_pattern',
+            'number': num_str,
+            'is_palindromic': is_palindromic(number),
+            'pattern_count': len(extract_palindromic_patterns(number)),
+            'palindromic_density': calculate_palindromic_density(number),
+            'symmetry_patterns': len(find_symmetric_patterns(number)),
+            'backend': 'plotly'
+        }
+    }
+
+
+def _plot_scheherazade_plotly(power: int, **kwargs) -> Dict[str, Any]:
+    """Plot Scheherazade number patterns using plotly."""
+    go, make_subplots, width, height = _plotly_grid(1.5, 1.5)
+    colors_cfg = get_config()["colors"]
+
+    analysis = analyze_scheherazade_ssrcd(power)
+    num_str = analysis['number_string']
+    digits = [int(d) for d in num_str]
+
+    digit_counts = [digits.count(d) for d in range(10)]
+    running_sum = []
+    total = 0
+    for d in digits:
+        total += d
+        running_sum.append(total)
+
+    window_size = min(20, len(digits) // 10)
+    pattern_density = []
+    if window_size > 0:
+        for i in range(0, len(digits) - window_size + 1, window_size):
+            window = digits[i:i + window_size]
+            pattern_density.append(len(set(window)) / window_size)
+
+    fig = make_subplots(rows=2, cols=2, subplot_titles=(
+        'Digit Distribution', 'Digit Sequence', 'Cumulative Digit Sum',
+        f'Pattern Diversity (Window Size {window_size})'))
+    fig.add_trace(go.Bar(x=list(range(10)), y=digit_counts, name='Digit Counts'),
+                  row=1, col=1)
+    fig.add_trace(go.Scatter(x=list(range(len(digits))), y=digits, mode='lines+markers',
+                             line=dict(color=colors_cfg["primary"]), name='Digits'),
+                  row=1, col=2)
+    fig.add_trace(go.Scatter(x=list(range(len(digits))), y=running_sum,
+                             mode='lines', line=dict(color=colors_cfg["accent"]),
+                             name='Cumulative Sum'), row=2, col=1)
+    if pattern_density:
+        fig.add_trace(go.Scatter(x=list(range(len(pattern_density))), y=pattern_density,
+                                 mode='lines+markers',
+                                 line=dict(color=colors_cfg["secondary"]),
+                                 name='Diversity'), row=2, col=2)
+    fig.update_layout(title=f'Scheherazade Number 1001^{power}',
+                      width=width, height=height, showlegend=False)
+
+    filepath = _save_plotly_figure(fig, 'numbers', 'scheherazade',
+                                   f"scheherazade_pattern_{power}.html")
+
+    return {
+        'files': [filepath],
+        'metadata': {
+            'type': 'scheherazade_pattern',
+            'power': power,
+            'number': num_str,
+            'digit_count': len(digits),
+            'is_palindromic': is_palindromic(scheherazade_num_from_analysis(analysis)),
+            'backend': 'plotly'
+        }
+    }
+
+
+def scheherazade_num_from_analysis(analysis: Dict[str, Any]) -> SymergeticsNumber:
+    """Rebuild the SymergeticsNumber for a 1001^n analysis dict."""
+    return SymergeticsNumber(analysis['number_string'])
+
+
+def _plot_primorials_plotly(max_n: int = 20, **kwargs) -> Dict[str, Any]:
+    """Plot primorial distribution using plotly."""
+    go, make_subplots, width, height = _plotly_grid(1.5, 1.5)
+    colors_cfg = get_config()["colors"]
+
+    n_values = []
+    primorial_values = []
+    log_values = []
+    for n in range(2, max_n + 1):
+        p = primorial(n)
+        value = float(p.value)
+        n_values.append(n)
+        primorial_values.append(value)
+        log_values.append(math.log(value))
+
+    growth_rates = [log_values[i] - log_values[i - 1] for i in range(1, len(log_values))]
+
+    factorial_ratios = []
+    factorial_n = []
+    for n in n_values:
+        if n <= 20:
+            factorial_ratios.append(primorial_values[n_values.index(n)] / math.factorial(n))
+            factorial_n.append(n)
+
+    fig = make_subplots(rows=2, cols=2, subplot_titles=(
+        'Primorial Values', 'Primorial Values (Log Scale)',
+        'Growth Rate (log difference)', 'Primorial / Factorial Ratio'))
+    fig.add_trace(go.Scatter(x=n_values, y=primorial_values, mode='lines+markers',
+                             line=dict(color=colors_cfg["primary"]), name='n#'),
+                  row=1, col=1)
+    fig.add_trace(go.Scatter(x=n_values, y=log_values, mode='lines+markers',
+                             line=dict(color=colors_cfg["secondary"]), name='log(n#)'),
+                  row=1, col=2)
+    fig.add_trace(go.Scatter(x=n_values[1:], y=growth_rates, mode='lines+markers',
+                             line=dict(color=colors_cfg["accent"]), name='Δlog'),
+                  row=2, col=1)
+    if factorial_ratios:
+        fig.add_trace(go.Scatter(x=factorial_n, y=factorial_ratios, mode='lines+markers',
+                                 line=dict(color=colors_cfg["primary"]),
+                                 name='n#/n!'), row=2, col=2)
+    fig.update_layout(title=f'Primorial Distribution (n ≤ {max_n})',
+                      width=width, height=height, showlegend=False)
+
+    filepath = _save_plotly_figure(fig, 'numbers', 'primorials',
+                                   f"primorial_distribution_max_n_{max_n}.html")
+
+    return {
+        'files': [filepath],
+        'metadata': {
+            'type': 'primorial_distribution',
+            'max_n': max_n,
+            'primorials_calculated': len(n_values),
+            'largest_primorial': str(primorial_values[-1]) if primorial_values else 'N/A',
+            'backend': 'plotly'
+        }
+    }
+
+
+def _plot_mnemonic_plotly(number: Union[int, SymergeticsNumber], **kwargs) -> Dict[str, Any]:
+    """Plot mnemonic strategies using plotly (annotation panels)."""
+    go, _, width, height = _plotly_grid(1.5, 1.5)
+    colors_cfg = get_config()["colors"]
+
+    aids = create_memory_aid(number)
+
+    strategies = ['grouped', 'scientific', 'words', 'patterns']
+    titles = ['Grouped Digits', 'Scientific Notation', 'Word Representation',
+              'Pattern Analysis']
+
+    fig = go.Figure()
+    for i, (strategy, title) in enumerate(zip(strategies, titles)):
+        col = i % 2
+        row = 1 - i // 2
+        fig.add_annotation(
+            x=0.25 + col * 0.5, y=0.75 - row * 0.5,
+            text=f"<b>{title}</b><br>{aids.get(strategy, 'N/A')}",
+            showarrow=False, align='center', font=dict(size=13),
+            bgcolor=colors_cfg["background"], bordercolor=colors_cfg["secondary"],
+            borderwidth=1, borderpad=8)
+    fig.update_layout(title=f'Mnemonic Encoding Strategies: {number}',
+                      width=width, height=height, xaxis=dict(visible=False),
+                      yaxis=dict(visible=False))
+
+    if isinstance(number, SymergeticsNumber):
+        num_str = str(number.value.numerator)[:20]
+    else:
+        try:
+            num_str = str(abs(int(number)))[:20]
+        except (ValueError, TypeError):
+            return {
+                'files': [],
+                'metadata': {
+                    'error': f'Invalid input: {number}',
+                    'backend': 'plotly',
+                    'function': 'plot_mnemonic_visualization'
+                }
+            }
+
+    filepath = _save_plotly_figure(fig, 'numbers', 'mnemonics',
+                                   f"mnemonic_visualization_{num_str}.html")
+
+    return {
+        'files': [filepath],
+        'metadata': {
+            'type': 'mnemonic_visualization',
+            'number': str(number),
+            'strategies': len(aids),
+            'backend': 'plotly'
+        }
+    }
+
+
+def _plot_palindromic_heatmap_plotly(sequence_start: int, sequence_end: int,
+                                     **kwargs) -> Dict[str, Any]:
+    """Create palindromic heatmap using plotly (no seaborn dependency)."""
+    go, _, width, height = _plotly_grid(1.2, 0.9)
+
+    numbers = list(range(sequence_start, sequence_end + 1))
+    palindromic_data = []
+    digit_density = []
+    pattern_complexity = []
+
+    for num in numbers:
+        palindromic_data.append(1 if is_palindromic(num) else 0)
+        num_str = str(abs(num))
+        digit_density.append(len(num_str) / 10)
+        pattern_complexity.append(len(extract_palindromic_patterns(num, min_length=2)))
+
+    data_matrix = [palindromic_data, digit_density, pattern_complexity]
+
+    fig = go.Figure(data=go.Heatmap(
+        z=data_matrix,
+        y=['Palindromic', 'Digit Density', 'Pattern Complexity'],
+        colorscale='Viridis',
+        colorbar=dict(title='Value')))
+    fig.update_layout(
+        title=f'Palindromic Pattern Analysis<br>Numbers {sequence_start} to {sequence_end}',
+        xaxis_title='Number Index', yaxis_title='Property Type',
+        width=width, height=height)
+
+    filepath = _save_plotly_figure(fig, 'numbers', 'palindromes',
+                                   f"palindromic_heatmap_{sequence_start}_{sequence_end}.html")
+
+    return {
+        'files': [filepath],
+        'metadata': {
+            'type': 'palindromic_heatmap',
+            'sequence_start': sequence_start,
+            'sequence_end': sequence_end,
+            'total_numbers': len(numbers),
+            'palindromic_count': sum(palindromic_data),
+            'backend': 'plotly'
+        }
+    }
+
+
+def _plot_scheherazade_network_plotly(power: int, **kwargs) -> Dict[str, Any]:
+    """Create a digit-adjacency network for a Scheherazade number using plotly."""
+    go, _, width, height = _plotly_grid(1.4, 1.0)
+    colors_cfg = get_config()["colors"]
+
+    scheherazade_num = scheherazade_power(power)
+    num_str = str(scheherazade_num.value.numerator)
+
+    # Deterministic node layout: 10 digit nodes on a 3x4 grid
+    node_pos = {}
+    for i, digit in enumerate('0123456789'):
+        node_pos[digit] = ((i % 3) * 4.0, (i // 3) * 4.0)
+
+    # Meaningful edges: adjacency of digit pairs inside the number, weighted by count
+    from collections import Counter
+    adjacency = Counter(
+        tuple(sorted((num_str[i], num_str[i + 1])))
+        for i in range(len(num_str) - 1)
+    )
+
+    edge_x, edge_y = [], []
+    for (a, b), _count in adjacency.items():
+        x1, y1 = node_pos[a]
+        x2, y2 = node_pos[b]
+        edge_x += [x1, x2, None]
+        edge_y += [y1, y2, None]
+
+    node_x = [node_pos[d][0] for d in '0123456789']
+    node_y = [node_pos[d][1] for d in '0123456789']
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=edge_x, y=edge_y, mode='lines',
+                             line=dict(color=colors_cfg["accent"], width=2),
+                             opacity=0.4, hoverinfo='none', showlegend=False))
+    fig.add_trace(go.Scatter(x=node_x, y=node_y, mode='markers+text',
+                             marker=dict(size=42, color=colors_cfg["primary"],
+                                         line=dict(color=colors_cfg["secondary"], width=2)),
+                             text=list('0123456789'), textposition='middle center',
+                             textfont=dict(color='white', size=14),
+                             name='Digits'))
+    info_text = (f"1001^{power}: {len(num_str)} digits, "
+                 f"{len(set(num_str))} unique, palindromic: {is_palindromic(scheherazade_num)}")
+    fig.add_annotation(x=0.02, y=0.98, xref='paper', yref='paper',
+                       text=info_text, showarrow=False, align='left',
+                       bgcolor='lightblue', borderpad=6)
+    fig.update_layout(title=f'Scheherazade Number Network: 1001^{power}',
+                      width=width, height=height, xaxis=dict(visible=False),
+                      yaxis=dict(visible=False, scaleanchor='x'))
+
+    filepath = _save_plotly_figure(fig, 'numbers', 'scheherazade',
+                                   f"scheherazade_network_{power}.html")
+
+    return {
+        'files': [filepath],
+        'metadata': {
+            'type': 'scheherazade_network',
+            'power': power,
+            'total_digits': len(num_str),
+            'unique_digits': len(set(num_str)),
+            'is_palindromic': is_palindromic(scheherazade_num),
+            'backend': 'plotly'
+        }
+    }
+
+
+def _plot_primorial_spectrum_plotly(max_n: int = 15, **kwargs) -> Dict[str, Any]:
+    """Create primorial spectrum visualization using plotly."""
+    go, make_subplots, width, height = _plotly_grid(1.2, 1.5)
+    if max_n < 1:
+        raise ValueError(f"max_n must be >= 1, got {max_n}")
+
+    primorials = [float(primorial(n).value) for n in range(1, max_n + 1)]
+    x_vals = list(range(1, max_n + 1))
+    growth_rates = [primorials[i] / primorials[i - 1]
+                    for i in range(1, len(primorials)) if primorials[i - 1] > 0]
+    digit_lengths = [len(str(int(p))) for p in primorials]
+
+    fig = make_subplots(rows=3, cols=1, subplot_titles=(
+        'Primorial Spectrum - Raw Values', 'Primorial Growth Rates',
+        'Primorial Digit Length Spectrum'))
+    fig.add_trace(go.Bar(x=x_vals, y=primorials,
+                         marker=dict(color=primorials, colorscale='Viridis',
+                                     colorbar=dict(title='Primorial')),
+                         name='Primorial'), row=1, col=1)
+    fig.update_yaxes(type='log', row=1, col=1)
+    fig.add_trace(go.Scatter(x=list(range(2, max_n + 1)), y=growth_rates,
+                             mode='lines+markers', marker=dict(color='red'),
+                             name='Growth Rate'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=x_vals, y=digit_lengths, mode='lines+markers',
+                             line=dict(color='green'), fill='tozeroy', name='Digits'),
+                  row=3, col=1)
+    fig.update_layout(title='Primorial Spectrum', width=width, height=height,
+                      showlegend=False)
+
+    filepath = _save_plotly_figure(fig, 'numbers', 'primorials',
+                                   f"primorial_spectrum_{max_n}.html")
+
+    return {
+        'files': [filepath],
+        'metadata': {
+            'type': 'primorial_spectrum',
+            'max_n': max_n,
+            'total_primorials': len(primorials),
+            'largest_digits': max(digit_lengths),
+            'backend': 'plotly'
         }
     }

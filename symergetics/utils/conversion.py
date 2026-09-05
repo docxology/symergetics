@@ -13,12 +13,14 @@ Key Features:
 Author: Symergetics Team
 """
 
-from typing import Union, Tuple, Optional, List, Dict
-from fractions import Fraction
 import math
-from ..core.numbers import SymergeticsNumber
-from ..core.coordinates import QuadrayCoordinate, urner_embedding
+from fractions import Fraction
+from typing import Dict, List, Optional, Tuple, Union
+
 import numpy as np
+
+from ..core.coordinates import QuadrayCoordinate
+from ..core.numbers import SymergeticsNumber
 
 
 def rational_to_float(rational: Union[SymergeticsNumber, Fraction],
@@ -68,8 +70,8 @@ def float_to_exact_rational(value: float,
     Examples:
         >>> float_to_exact_rational(0.75)  # Exactly 3/4
         SymergeticsNumber(3/4)
-        >>> float_to_exact_rational(math.pi, max_denominator=100)  # π ≈ 22/7
-        SymergeticsNumber(22/7)
+        >>> float_to_exact_rational(math.pi, max_denominator=100)
+        SymergeticsNumber(311/99)  # closest rational with denominator <= 100
     """
     frac = Fraction(value).limit_denominator(max_denominator)
     return SymergeticsNumber(frac)
@@ -101,40 +103,23 @@ def xyz_to_quadray(x: Union[float, SymergeticsNumber],
     """
     Convert Cartesian XYZ coordinates to Quadray coordinates.
 
-    Uses the inverse of the Urner embedding matrix.
+    Uses the Moore-Penrose pseudoinverse of the Urner embedding matrix to
+    find the nearest IVM lattice point (same algorithm as
+    QuadrayCoordinate.from_xyz).
 
     Args:
         x, y, z: Cartesian coordinates
         embedding: Optional 3x4 embedding matrix
 
     Returns:
-        QuadrayCoordinate: Equivalent Quadray coordinates
+        QuadrayCoordinate: Nearest Quadray lattice coordinates
 
     Examples:
-        >>> coord = xyz_to_quadray(1.0, 0.0, 0.0)
-        >>> coord.to_xyz()  # Should approximately return (1.0, 0.0, 0.0)
-        (1.0, 0.0, 0.0)
+        >>> coord = xyz_to_quadray(2.0, 0.0, 0.0)
+        >>> coord.to_xyz()  # Round-trips an IVM lattice point
+        (2.0, 0.0, 0.0)
     """
-    if embedding is None:
-        embedding = urner_embedding()
-
-    # Convert inputs to float
-    x_val = float(x) if hasattr(x, '__float__') else float(x.value) if hasattr(x, 'value') else float(x)
-    y_val = float(y) if hasattr(y, '__float__') else float(y.value) if hasattr(y, 'value') else float(y)
-    z_val = float(z) if hasattr(z, '__float__') else float(z.value) if hasattr(z, 'value') else float(z)
-
-    # Use the inverse transformation
-    # a = (x + y + z) / 2
-    # b = (-x + y - z) / 2
-    # c = (-x - y + z) / 2
-    # d = (x - y - z) / 2
-
-    a = (x_val + y_val + z_val) / 2
-    b = (-x_val + y_val - z_val) / 2
-    c = (-x_val - y_val + z_val) / 2
-    d = (x_val - y_val - z_val) / 2
-
-    return QuadrayCoordinate(a, b, c, d)
+    return QuadrayCoordinate.from_xyz(float(x), float(y), float(z), embedding)
 
 
 def quadray_to_xyz(coord: QuadrayCoordinate,
@@ -172,10 +157,15 @@ def continued_fraction_approximation(value: float, max_terms: int = 10) -> List[
         [1, 1, 1, 1, 1, ...]
     """
     terms = []
-    current = value
+    try:
+        current = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"continued_fraction_approximation requires a real number, got {value!r}"
+        )
 
     for _ in range(max_terms):
-        integer_part = int(current)
+        integer_part = math.floor(current)
         terms.append(integer_part)
 
         fractional_part = current - integer_part
@@ -284,23 +274,19 @@ def format_as_mixed_number(rational: Union[SymergeticsNumber, Fraction]) -> str:
     if frac.denominator == 1:
         return str(frac.numerator)
 
-    # For mixed numbers, we want the remainder to have the same sign as the original
-    if frac.numerator >= 0:
-        whole_part = frac.numerator // frac.denominator
-    else:
-        # For negative numbers, ceiling division to get the correct mixed number
-        whole_part = -((-frac.numerator) // frac.denominator)
-
+    # Floor division gives the standard mixed-number form for both signs:
+    # the whole part is floored and the fractional part stays non-negative
+    # (e.g. -7/3 -> -3 2/3, which reads as -3 + 2/3 = -7/3).
+    whole_part = frac.numerator // frac.denominator
     fractional_part = frac - Fraction(whole_part)
 
     if whole_part == 0:
         return f"{frac.numerator}/{frac.denominator}"
 
-    # Handle the fractional part sign properly
     if fractional_part.numerator == 0:
         return str(whole_part)
     else:
-        return f"{whole_part} {abs(fractional_part.numerator)}/{fractional_part.denominator}"
+        return f"{whole_part} {fractional_part.numerator}/{fractional_part.denominator}"
 
 
 def scientific_notation_to_rational(scientific_str: str) -> SymergeticsNumber:
@@ -340,7 +326,7 @@ def coordinate_system_info(coord_system: str) -> Dict[str, Union[str, int, List[
         'quadray': {
             'description': 'Four-coordinate tetrahedral system (a,b,c,d)',
             'dimensions': 4,
-            'constraint': 'a + b + c + d = 0 (after normalization)',
+            'constraint': 'non-negative integers with min(a, b, c, d) = 0',
             'basis': ['A', 'B', 'C', 'D'],
             'use_case': 'Synergetic geometry and IVM lattice'
         },
@@ -381,36 +367,54 @@ def convert_between_bases(number: int, from_base: int, to_base: int) -> str:
 
     Examples:
         >>> convert_between_bases(1001, 10, 7)  # 1001 in base 7
-        '2626'
+        '2630'
     """
-    if from_base == 10:
-        # Convert from decimal to target base
-        if number == 0:
-            return '0'
+    if not (2 <= from_base <= 36) or not (2 <= to_base <= 36):
+        raise ValueError("Bases must be between 2 and 36")
 
+    def to_digits(n: int, base: int) -> str:
+        """Render a non-negative integer in the given base."""
+        if n == 0:
+            return '0'
         digits = []
-        while number > 0:
-            remainder = number % to_base
+        while n > 0:
+            remainder = n % base
             if remainder < 10:
                 digits.append(str(remainder))
             else:
                 digits.append(chr(ord('A') + remainder - 10))
-            number //= to_base
-
+            n //= base
         return ''.join(reversed(digits))
 
-    elif to_base == 10:
-        # Convert from source base to decimal
-        decimal = 0
-        for i, digit in enumerate(reversed(str(number))):
-            if digit.isdigit():
-                digit_value = int(digit)
-            else:
-                digit_value = 10 + ord(digit.upper()) - ord('A')
-            decimal += digit_value * (from_base ** i)
-        return str(decimal)
+    if from_base == 10:
+        if not isinstance(number, int):
+            raise ValueError("number must be an int when from_base is 10")
+        sign = '-' if number < 0 else ''
+        return sign + to_digits(abs(number), to_base)
 
-    else:
-        # Two-step conversion through decimal
-        decimal = convert_between_bases(number, from_base, 10)
-        return convert_between_bases(int(decimal), 10, to_base)
+    # Parse the source representation (string form; may carry a leading '-')
+    text = str(number).strip()
+    sign = ''
+    if text.startswith('-'):
+        sign = '-'
+        text = text[1:]
+    elif text.startswith('+'):
+        text = text[1:]
+    if not text:
+        raise ValueError(f"Invalid number for base {from_base}: {number}")
+
+    decimal = 0
+    for digit in text:
+        if digit.isdigit():
+            digit_value = int(digit)
+        elif 'A' <= digit.upper() <= 'Z':
+            digit_value = 10 + ord(digit.upper()) - ord('A')
+        else:
+            raise ValueError(f"Invalid digit '{digit}' for base {from_base}")
+        if digit_value >= from_base:
+            raise ValueError(f"Digit '{digit}' is out of range for base {from_base}")
+        decimal = decimal * from_base + digit_value
+
+    if to_base == 10:
+        return sign + str(decimal)
+    return ('-' if sign and decimal else '') + to_digits(decimal, to_base)

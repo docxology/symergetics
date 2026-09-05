@@ -6,16 +6,17 @@ This module provides advanced visualization capabilities for comparative analysi
 statistical analysis, and complex mathematical pattern visualization.
 """
 
-import math
 import statistics
-from typing import Dict, List, Any, Optional, Tuple, Union
 from collections import defaultdict
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
-from ..visualization import _config, set_config, get_config, get_organized_output_path
-from ..core.numbers import SymergeticsNumber
-from ..computation.analysis import analyze_mathematical_patterns, compare_mathematical_domains
 from ..computation.geometric_mnemonics import analyze_geometric_mnemonics
+from ..core.numbers import SymergeticsNumber
+from ..visualization import (
+    get_config,
+    get_organized_output_path,  # noqa: F401  (patch target in tests)
+)
 
 # Global variables for matplotlib and numpy (initialized when needed)
 _plt = None
@@ -58,7 +59,7 @@ def create_comparative_analysis_visualization(
     Returns:
         Dict containing visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _create_comparative_matplotlib(domain1_data, domain2_data,
@@ -122,11 +123,10 @@ def _create_comparative_matplotlib(
     plt.tight_layout()
 
     # Save the visualization
-    from ..visualization import get_organized_output_path
     output_path = get_organized_output_path('mathematical', 'comparative_analysis',
                                           f'comparative_analysis_{domain1_name.lower()}_vs_{domain2_name.lower()}.png')
 
-    plt.savefig(output_path, dpi=_config["dpi"], bbox_inches='tight')
+    plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
     plt.close()
 
     return {
@@ -302,7 +302,7 @@ def _plot_correlation_heatmap(ax, domain1_data, domain2_data, name1, name2):
             try:
                 corr = statistics.correlation(values1, values2)
                 correlations[metric] = corr
-            except:
+            except (statistics.StatisticsError, ValueError):
                 correlations[metric] = 0
         else:
             correlations[metric] = 0
@@ -346,7 +346,7 @@ def create_pattern_discovery_visualization(
     Returns:
         Dict containing visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _create_pattern_discovery_matplotlib(analysis_results, title, **kwargs)
@@ -406,12 +406,11 @@ def _create_pattern_discovery_matplotlib(
     _plt.tight_layout()
 
     # Save visualization
-    from ..visualization import get_organized_output_path
     safe_title = title.lower().replace(' ', '_').replace('-', '_')
     output_path = get_organized_output_path('mathematical', 'pattern_discovery',
                                           f'pattern_discovery_{safe_title}.png')
 
-    _plt.savefig(output_path, dpi=_config["dpi"], bbox_inches='tight')
+    _plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
     _plt.close()
 
     return {
@@ -470,9 +469,9 @@ def _plot_complexity_symmetry_scatter(ax, analysis_results):
                 slope, intercept = _np.polyfit(complexities, symmetries, 1)
                 x_trend = _np.linspace(min(complexities), max(complexities), 100)
                 y_trend = slope * x_trend + intercept
-                ax.plot(x_trend, y_trend, 'r--', alpha=0.8, label='.2f')
+                ax.plot(x_trend, y_trend, 'r--', alpha=0.8, label=f'slope={slope:.2f}')
                 ax.legend()
-            except:
+            except (_np.linalg.LinAlgError, ValueError):
                 pass
 
         ax.set_xlabel('Complexity Score')
@@ -574,7 +573,7 @@ def create_statistical_analysis_dashboard(
     Returns:
         Dict containing visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _create_statistical_dashboard_matplotlib(analysis_results, title, **kwargs)
@@ -645,12 +644,11 @@ def _create_statistical_dashboard_matplotlib(
     _plt.tight_layout()
 
     # Save dashboard
-    from ..visualization import get_organized_output_path
     safe_title = title.lower().replace(' ', '_').replace('-', '_')
     output_path = get_organized_output_path('mathematical', 'statistical_dashboard',
                                           f'statistical_dashboard_{safe_title}.png')
 
-    _plt.savefig(output_path, dpi=_config["dpi"], bbox_inches='tight')
+    _plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
     _plt.close()
 
     return {
@@ -845,7 +843,7 @@ def create_geometric_mnemonics_visualization(
     Returns:
         Dict containing visualization metadata and file paths
     """
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend == "matplotlib":
         return _create_geometric_mnemonics_matplotlib(numbers, title, **kwargs)
@@ -899,12 +897,11 @@ def _create_geometric_mnemonics_matplotlib(
     plt.tight_layout()
 
     # Save visualization
-    from ..visualization import get_organized_output_path
     safe_title = title.lower().replace(' ', '_').replace('-', '_')
     output_path = get_organized_output_path('mathematical', 'geometric_mnemonics',
                                           f'geometric_mnemonics_{safe_title}.png')
 
-    plt.savefig(output_path, dpi=_config["dpi"], bbox_inches='tight')
+    plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
     plt.close()
 
     return {
@@ -1162,7 +1159,7 @@ def create_mega_graphical_abstract(
     """
     # Ensure matplotlib and numpy are available
     plt, np = _ensure_matplotlib_numpy()
-    backend = backend or _config["backend"]
+    backend = backend or get_config()["backend"]
 
     if backend != "matplotlib":
         raise ValueError("Mega graphical abstract requires matplotlib backend")
@@ -1176,12 +1173,12 @@ def create_mega_graphical_abstract(
 
     # Import required modules
     try:
-        from ..core.numbers import SymergeticsNumber, rational_pi, rational_sqrt
-        from ..core.constants import SymergeticsConstants
-        from ..core.coordinates import QuadrayCoordinate
-        from ..geometry.polyhedra import Tetrahedron
         from ..computation.palindromes import is_palindromic
         from ..computation.primorials import primorial
+        from ..core.constants import SymergeticsConstants
+        from ..core.coordinates import QuadrayCoordinate
+        from ..core.numbers import SymergeticsNumber, rational_pi, rational_sqrt
+        from ..geometry.polyhedra import Tetrahedron
         from ..utils.conversion import continued_fraction_approximation
     except ImportError as e:
         raise ImportError(f"Required modules not available: {e}")
@@ -1292,8 +1289,9 @@ def _create_symbolic_operations_panel(ax):
     ax_small = ax.inset_axes([0.1, 0.2, 0.8, 0.5])
 
     try:
-        from ..core.constants import PI, PHI, SQRT2
         import numpy as np
+
+        from ..core.constants import PHI, PI, SQRT2
 
         # Plot actual rational approximations vs true values
         approximations = [PI, PHI, SQRT2]
@@ -1340,10 +1338,9 @@ def _create_geometric_ratios_panel(ax):
             fontsize=13, color='#d62728')
 
     try:
-        from ..core.constants import PHI
         import numpy as np
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.patches as patches
+
+        from ..core.constants import PHI
 
         # Create 3D visualization of Platonic solids
         ax_3d = ax.inset_axes([0.05, 0.25, 0.6, 0.5], projection='3d')
@@ -1397,7 +1394,7 @@ def _create_geometric_ratios_panel(ax):
 
             # Add volume ratio label
             center = vertices_offset.mean(axis=0)
-            volume_ratios = ['V=1', 'V=√3', 'V=√2']
+            volume_ratios = ['V=1', 'V=3', 'V=4']
             ax_3d.text(center[0], center[1], center[2] + 0.5, volume_ratios[i],
                       ha='center', va='center', fontsize=8, fontweight='bold')
 
@@ -1413,11 +1410,11 @@ def _create_geometric_ratios_panel(ax):
 
         # Volume relationships
         relationships = [
-            r'$\frac{V_{tetra}}{V_{octa}} = \frac{\sqrt{2}}{4}$',
-            r'$\frac{V_{cube}}{V_{octa}} = \frac{\sqrt{3}}{2\sqrt{2}}$',
+            r'$\frac{V_{tetra}}{V_{octa}} = \frac{1}{4}$',
+            r'$\frac{V_{cube}}{V_{octa}} = \frac{3}{4}$',
             r'$\phi = \frac{1+\sqrt{5}}{2} \approx$' + f'{phi_val:.6f}',
-            r'$\text{Surface Areas:}$',
-            r'$\text{Tetra: } 4\sqrt{3}r^2$',
+            r'$\text{Surface Areas (edge } r\text{):}$',
+            r'$\text{Tetra: } \sqrt{3}r^2$',
             r'$\text{Cube: } 6r^2$',
             r'$\text{Octa: } 2\sqrt{3}r^2$'
         ]
@@ -1470,7 +1467,6 @@ def _create_sphere_packing_panel(ax):
 
     try:
         import numpy as np
-        from mpl_toolkits.mplot3d import Axes3D
 
         # Create 3D visualization of sphere packing
         ax_3d = ax.inset_axes([0.05, 0.3, 0.6, 0.5], projection='3d')
@@ -1549,6 +1545,7 @@ def _create_sphere_packing_panel(ax):
         ax_vol.set_title('Packing Relations', fontsize=8)
 
     except Exception as e:
+        import matplotlib.pyplot as plt
         # Fallback 2D visualization
         ax_sphere = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
 
@@ -1652,6 +1649,7 @@ def _create_decimal_to_symbolic_panel(ax):
 
     try:
         import numpy as np
+
         from ..utils.conversion import best_rational_approximation
 
         # Create visualization showing decimal to rational conversion
@@ -1667,7 +1665,7 @@ def _create_decimal_to_symbolic_panel(ax):
             try:
                 rational = best_rational_approximation(val, max_denominator=1000)
                 approximations.append(rational)
-            except:
+            except (ValueError, TypeError, ZeroDivisionError):
                 approximations.append((round(val*10), 10))  # Fallback
 
         # Plot original vs approximated values
@@ -1739,7 +1737,6 @@ def _create_vector_equilibrium_panel(ax):
 
     try:
         import numpy as np
-        from mpl_toolkits.mplot3d import Axes3D
 
         # Create 3D visualization of Vector Equilibrium (Cuboctahedron)
         ax_3d = ax.inset_axes([0.05, 0.3, 0.6, 0.5], projection='3d')
@@ -1840,7 +1837,9 @@ def _create_decimal_to_sphere_packing_panel(ax):
             fontsize=14, color='#ff7f0e')
 
     try:
+        import matplotlib.pyplot as plt
         import numpy as np
+
         from ..utils.conversion import best_rational_approximation
 
         # Create visualization showing the complete pipeline
@@ -1965,7 +1964,6 @@ def _create_synergetics_sphere_frequency_panel(ax):
             fontsize=14, color='#e377c2')
 
     try:
-        import numpy as np
 
         # Create frequency hierarchy visualization
         ax_freq = ax.inset_axes([0.05, 0.4, 0.9, 0.4])
@@ -2086,7 +2084,6 @@ def _create_quadray_coordinate_panel(ax):
 
     try:
         import numpy as np
-        from mpl_toolkits.mplot3d import Axes3D
 
         # Create 3D visualization showing Quadray coordinate relationships
         ax_3d = ax.inset_axes([0.1, 0.3, 0.6, 0.5], projection='3d')
@@ -2165,20 +2162,19 @@ def _create_polyhedral_relationships_panel(ax):
 
     # Try to get real polyhedral volume data
     try:
-        from ..geometry.polyhedra import Tetrahedron, Octahedron, Cube
-        from ..core.constants import SymergeticsConstants
+        from ..geometry.polyhedra import Cube, Octahedron, Tetrahedron
 
         tetra_vol = Tetrahedron().volume()
         octa_vol = Octahedron().volume()
         cube_vol = Cube().volume()
 
         ratios = [
-            f'Tetrahedron: {float(tetra_vol.value):.1f}',
-            f'Octahedron: {float(octa_vol.value):.1f}',
-            f'Cube: {float(cube_vol.value):.1f}',
+            f'Tetrahedron: {float(tetra_vol):.1f}',
+            f'Octahedron: {float(octa_vol):.1f}',
+            f'Cube: {float(cube_vol):.1f}',
             'Integer volume relationships'
         ]
-    except:
+    except Exception:
         # Fallback to static examples
         ratios = [
             'Tetrahedron: 1.0',
@@ -2204,8 +2200,9 @@ def _create_continued_fractions_panel(ax):
             fontsize=10, color='#ff7f0e')
 
     try:
-        import numpy as np
         import math
+
+        import numpy as np
 
         # Create visualization showing continued fraction convergents
         ax_cf = ax.inset_axes([0.05, 0.3, 0.9, 0.4])
@@ -2252,6 +2249,7 @@ def _create_continued_fractions_panel(ax):
         for i, expr in enumerate(expressions):
             ax.text(0.5, 0.15 - i*0.05, expr, ha='center', va='center',
                    fontsize=6, style='italic')
+        import matplotlib.pyplot as plt
 
     except Exception as e:
         # Fallback visualization
@@ -2282,6 +2280,7 @@ def _create_palindrome_analysis_panel(ax):
             fontsize=13, color='#d62728')
 
     try:
+        import matplotlib.pyplot as plt
         import numpy as np
 
         # Create visualization showing palindrome symmetry
@@ -2322,6 +2321,7 @@ def _create_palindrome_analysis_panel(ax):
                    fontsize=6, style='italic')
 
     except Exception as e:
+        import matplotlib.pyplot as plt
         # Fallback visualization
         ax_pal = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
 
@@ -2347,7 +2347,6 @@ def _create_primorial_distribution_panel(ax):
 
     try:
         import numpy as np
-        import math
 
         # Create visualization showing primorial growth
         ax_prime = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
@@ -2464,7 +2463,7 @@ def _create_pattern_discovery_summary_panel(ax):
             '• Tetrahedral coordinate relationships',
             '• All-integer accounting precision'
         ]
-    except:
+    except Exception:
         # Fallback to static examples
         discoveries = [
             '• Palindromic sequences in powers',

@@ -2,12 +2,12 @@
 
 ## Overview
 
-This document provides a comprehensive index of all test files in the Symergetics test suite, organized by module and functionality. The test suite contains **977 test functions** across **41 test modules**, all using **real Symergetics methods** for mathematical validation.
+This document provides a comprehensive index of all test files in the Symergetics test suite, organized by module and functionality. As of 2026-09-05 the suite contains **1017 test functions** across **39 test modules**, all using **real Symergetics methods** for mathematical validation. Verified by `uv run pytest tests/ --collect-only -q | tail -1` (1017 tests collected).
 
 ## Test Statistics
 
-- **Total Test Functions**: 977
-- **Total Test Modules**: 41
+- **Total Test Functions**: 1017 (as of 2026-09-05, verified by `uv run pytest tests/ --collect-only -q | tail -1`)
+- **Total Test Modules**: 39, all top-level (the `tests/core/` twins were merged into their root counterparts on 2026-09-05)
 - **Test Categories**: 8 main categories
 - **Coverage Target**: 90%+ code coverage
 - **Real Method Usage**: 100% (no mocks of Symergetics functionality)
@@ -19,7 +19,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_core_numbers.py`
 - **Purpose**: Test SymergeticsNumber class functionality
 - **Test Classes**: 2
-- **Test Functions**: 23
+- **Test Functions**: 48
 - **Key Features**:
   - Arithmetic operations with exact rational arithmetic
   - Comparison operations and unary operations
@@ -31,7 +31,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_core_constants.py`
 - **Purpose**: Test SymergeticsConstants class and mathematical constants
 - **Test Classes**: 2
-- **Test Functions**: 20
+- **Test Functions**: 24
 - **Key Features**:
   - Volume ratios for Platonic solids
   - Scheherazade powers and primorials
@@ -43,7 +43,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_core_coordinates.py`
 - **Purpose**: Test QuadrayCoordinate class and coordinate systems
 - **Test Classes**: 3
-- **Test Functions**: 15
+- **Test Functions**: 16
 - **Key Features**:
   - Quadray coordinate initialization and normalization
   - Arithmetic operations and conversions
@@ -67,7 +67,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_core_extended.py`
 - **Purpose**: Extended core functionality testing
 - **Test Classes**: 4
-- **Test Functions**: 20
+- **Test Functions**: 24
 - **Key Features**:
   - Large number operations
   - Fractional operations and power operations
@@ -81,7 +81,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_computation_analysis.py`
 - **Purpose**: Test mathematical pattern analysis functions
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 24
 - **Key Features**:
   - Mathematical pattern analysis
   - Domain comparison functionality
@@ -92,7 +92,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_computation_analysis_comprehensive.py`
 - **Purpose**: Comprehensive analysis testing
 - **Test Classes**: 6
-- **Test Functions**: 50
+- **Test Functions**: 38
 - **Key Features**:
   - Comprehensive mathematical pattern analysis
   - Domain comparison comprehensive testing
@@ -103,7 +103,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_computation_palindromes.py`
 - **Purpose**: Test palindromic pattern analysis
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 21
 - **Key Features**:
   - Palindrome detection for integers, strings, and SymergeticsNumbers
   - Palindromic pattern extraction
@@ -114,7 +114,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_computation_primorials.py`
 - **Purpose**: Test primorial and Scheherazade number calculations
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 21
 - **Key Features**:
   - Primorial calculations
   - Scheherazade power calculations
@@ -126,7 +126,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_computation_primorials_coverage.py`
 - **Purpose**: Primorial coverage improvements
 - **Test Classes**: 6
-- **Test Functions**: 25
+- **Test Functions**: 31
 - **Key Features**:
   - Error cases for primorial functions
   - Scheherazade power error cases
@@ -138,7 +138,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_computation_geometric_mnemonics.py`
 - **Purpose**: Test geometric mnemonic analysis
 - **Test Classes**: 6
-- **Test Functions**: 25
+- **Test Functions**: 30
 - **Key Features**:
   - Platonic volume relationship analysis
   - Edge and face relationship analysis
@@ -152,7 +152,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_geometry_polyhedra.py`
 - **Purpose**: Test polyhedra volume calculations and classes
 - **Test Classes**: 6
-- **Test Functions**: 15
+- **Test Functions**: 18
 - **Key Features**:
   - Volume calculations for different polyhedra
   - SymergeticsPolyhedron base class
@@ -163,7 +163,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_geometry_transformations.py`
 - **Purpose**: Test coordinate transformations
 - **Test Classes**: 6
-- **Test Functions**: 15
+- **Test Functions**: 16
 - **Key Features**:
   - Translation operations
   - Scaling operations
@@ -175,7 +175,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_geometry_transformations_coverage.py`
 - **Purpose**: Transformation coverage improvements
 - **Test Classes**: 8
-- **Test Functions**: 25
+- **Test Functions**: 31
 - **Key Features**:
   - Translate polyhedron coverage
   - Scale polyhedron coverage
@@ -189,7 +189,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization.py`
 - **Purpose**: Core visualization functionality
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 25
 - **Key Features**:
   - Visualization configuration
   - Geometric visualizations
@@ -201,7 +201,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_comprehensive.py`
 - **Purpose**: Comprehensive visualization testing
 - **Test Classes**: 6
-- **Test Functions**: 25
+- **Test Functions**: 16
 - **Key Features**:
   - Mathematical visualization comprehensive testing
   - Geometry visualization comprehensive testing
@@ -213,7 +213,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_advanced.py`
 - **Purpose**: Advanced visualization features
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 18
 - **Key Features**:
   - Comparative analysis visualization
   - Pattern discovery visualization
@@ -225,7 +225,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_geometry_comprehensive.py`
 - **Purpose**: Geometric visualizations comprehensive testing
 - **Test Classes**: 6
-- **Test Functions**: 30
+- **Test Functions**: 33
 - **Key Features**:
   - 3D polyhedron plotting
   - Graphical abstract plotting
@@ -237,7 +237,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_geometry_coverage.py`
 - **Purpose**: Geometry visualization coverage
 - **Test Classes**: 5
-- **Test Functions**: 15
+- **Test Functions**: 17
 - **Key Features**:
   - Plot polyhedron 3D coverage
   - Graphical abstract coverage
@@ -248,7 +248,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_mathematical_comprehensive.py`
 - **Purpose**: Mathematical visualizations comprehensive testing
 - **Test Classes**: 6
-- **Test Functions**: 30
+- **Test Functions**: 31
 - **Key Features**:
   - Continued fraction convergence plotting
   - Base conversion matrix plotting
@@ -260,7 +260,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_mathematical_coverage.py`
 - **Purpose**: Math visualization coverage
 - **Test Classes**: 4
-- **Test Functions**: 15
+- **Test Functions**: 19
 - **Key Features**:
   - Continued fraction convergence coverage
   - Base conversion matrix coverage
@@ -270,7 +270,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_numbers_comprehensive.py`
 - **Purpose**: Number pattern visualizations comprehensive testing
 - **Test Classes**: 6
-- **Test Functions**: 30
+- **Test Functions**: 29
 - **Key Features**:
   - Palindromic heatmap plotting
   - Scheherazade network plotting
@@ -282,7 +282,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_numbers_coverage.py`
 - **Purpose**: Number visualization coverage
 - **Test Classes**: 4
-- **Test Functions**: 15
+- **Test Functions**: 16
 - **Key Features**:
   - Palindromic heatmap coverage
   - Scheherazade network coverage
@@ -292,7 +292,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_init_comprehensive.py`
 - **Purpose**: Visualization initialization comprehensive testing
 - **Test Classes**: 1
-- **Test Functions**: 20
+- **Test Functions**: 18
 - **Key Features**:
   - Module imports and attributes
   - Docstrings and version testing
@@ -304,7 +304,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_init_coverage.py`
 - **Purpose**: Init coverage improvements
 - **Test Classes**: 4
-- **Test Functions**: 15
+- **Test Functions**: 11
 - **Key Features**:
   - Function mapping and batch processing
   - Utility functions testing
@@ -314,7 +314,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_visualization_methods.py`
 - **Purpose**: Visualization method testing
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 44
 - **Key Features**:
   - Enhanced geometry visualizations
   - Enhanced number visualizations
@@ -326,7 +326,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_png_visualizations.py`
 - **Purpose**: PNG-specific visualization testing
 - **Test Classes**: 6
-- **Test Functions**: 25
+- **Test Functions**: 19
 - **Key Features**:
   - PNG configuration testing
   - Geometric PNG visualizations
@@ -340,7 +340,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_utils_conversion.py`
 - **Purpose**: Number and coordinate conversion utilities
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 28
 - **Key Features**:
   - Rational to float conversion
   - Coordinate conversions
@@ -352,7 +352,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_utils_extended.py`
 - **Purpose**: Extended utility functionality
 - **Test Classes**: 4
-- **Test Functions**: 20
+- **Test Functions**: 27
 - **Key Features**:
   - Conversion extended testing
   - Mnemonics extended testing
@@ -363,7 +363,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_utils_mnemonics.py`
 - **Purpose**: Mnemonic encoding and memory aids
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 31
 - **Key Features**:
   - Mnemonic encoding functions
   - Number formatting functions
@@ -375,7 +375,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_utils_reporting.py`
 - **Purpose**: Statistical reporting and analysis
 - **Test Classes**: 6
-- **Test Functions**: 25
+- **Test Functions**: 28
 - **Key Features**:
   - Statistical summary generation
   - Comparative reporting
@@ -389,7 +389,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_integration_comprehensive.py`
 - **Purpose**: Cross-module integration testing
 - **Test Classes**: 6
-- **Test Functions**: 25
+- **Test Functions**: 20
 - **Key Features**:
   - Core integration testing
   - Computation integration testing
@@ -403,7 +403,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_edge_cases_comprehensive.py`
 - **Purpose**: Edge case and error handling
 - **Test Classes**: 8
-- **Test Functions**: 30
+- **Test Functions**: 36
 - **Key Features**:
   - Edge case numbers
   - Edge case coordinates
@@ -415,7 +415,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_coverage_improvement.py`
 - **Purpose**: Coverage improvement tests
 - **Test Classes**: 6
-- **Test Functions**: 20
+- **Test Functions**: 23
 - **Key Features**:
   - Constants coverage
   - Numbers coverage
@@ -429,7 +429,7 @@ This document provides a comprehensive index of all test files in the Symergetic
 #### `test_mega_graphical_abstract.py`
 - **Purpose**: Mega graphical abstract functionality
 - **Test Classes**: 1
-- **Test Functions**: 5
+- **Test Functions**: 10
 - **Key Features**:
   - Mega graphical abstract creation
   - Default path testing
@@ -506,5 +506,40 @@ python -m pytest tests/test_integration*.py
 - Integration tests document cross-module workflows
 
 ---
+
+
+#### `test_geometry_real.py`
+- **Purpose**: Real-data tests for geometry modules (no mocks)
+- **Test Functions**: 23
+- **Key Features**:
+  - Polyhedra creation and exact volume functions
+  - Transformation round trips
+  - Geometry edge cases
+
+#### `test_utils_real.py`
+- **Purpose**: Real-data tests for utils modules (no mocks)
+- **Test Functions**: 31
+- **Key Features**:
+  - Conversion utilities on real values
+  - Mnemonic and reporting round trips
+
+#### `test_visualization_real.py`
+- **Purpose**: Real-data tests for visualization modules (no mocks)
+- **Test Functions**: 21
+- **Key Features**:
+  - Real figure generation into `output/`
+  - File and metadata assertions
+
+
+- **Purpose**: Regression tests added by the 2026-09-05 review pass
+- **Test Functions**: 45
+- **Key Features**:
+  - Scheherazade power table vs 1001**n
+  - Real plotly backend renders for numbers/mathematical/geometry
+  - Real rotating-polyhedron GIF animation
+  - Cube/octahedron vertex regularity and exact IVM volumes
+  - Exact rational tetra volumes (corner tet = 1/4)
+  - Exact pi, base conversion edges, quadray round trips
+  - Visualization `__all__` completeness, matplotlib-free import, live config reads
 
 *This test index provides a comprehensive overview of the Symergetics test suite, ensuring complete coverage and validation of all package functionality through real method testing and mathematical validation.*

@@ -5,29 +5,31 @@ Tests actual geometry functions with real Symergetics methods.
 All tests use real functions and avoid mocks.
 """
 
-import pytest
 import math
-from symergetics.core.numbers import SymergeticsNumber
+
+import pytest
+
 from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.core.numbers import SymergeticsNumber
 from symergetics.geometry.polyhedra import (
-    integer_tetra_volume,
     ace_tetra_volume_5x5,
-    create_unit_tetrahedron,
-    create_octahedron,
     create_cube,
-    create_cuboctahedron
+    create_cuboctahedron,
+    create_octahedron,
+    create_unit_tetrahedron,
+    integer_tetra_volume,
 )
 from symergetics.geometry.transformations import (
-    translate,
-    translate_polyhedron,
-    scale,
-    scale_polyhedron,
+    apply_transform_function,
+    coordinate_transform,
+    project_to_plane,
     reflect,
     reflect_polyhedron,
-    coordinate_transform,
     rotate_around_axis,
-    project_to_plane,
-    apply_transform_function
+    scale,
+    scale_polyhedron,
+    translate,
+    translate_polyhedron,
 )
 
 
@@ -68,27 +70,42 @@ class TestPolyhedraFunctions:
     
     def test_integer_tetra_volume(self):
         """Test integer tetrahedron volume calculation."""
-        # Create four points forming a tetrahedron
+        from fractions import Fraction
+
+        # Corner tetrahedron spanned by the origin and three basis directions:
+        # exactly one quarter of the unit IVM tetrahedron.
         p0 = QuadrayCoordinate(0, 0, 0, 0)
         p1 = QuadrayCoordinate(1, 0, 0, 0)
         p2 = QuadrayCoordinate(0, 1, 0, 0)
         p3 = QuadrayCoordinate(0, 0, 1, 0)
-        
+
         volume = integer_tetra_volume(p0, p1, p2, p3)
-        assert isinstance(volume, int)
-        assert volume > 0
+        assert volume == Fraction(1, 4)
+
+        # Unit IVM tetrahedron has volume exactly 1
+        unit = integer_tetra_volume(
+            QuadrayCoordinate(0, 0, 0, 0),
+            QuadrayCoordinate(2, 1, 0, 1),
+            QuadrayCoordinate(2, 1, 1, 0),
+            QuadrayCoordinate(2, 0, 1, 1),
+        )
+        assert unit == 1
     
     def test_ace_tetra_volume_5x5(self):
         """Test ACE tetrahedron volume calculation."""
+        from fractions import Fraction
+
         # Create four points for 5x5 matrix calculation
         p0 = QuadrayCoordinate(0, 0, 0, 0)
         p1 = QuadrayCoordinate(1, 0, 0, 0)
         p2 = QuadrayCoordinate(0, 1, 0, 0)
         p3 = QuadrayCoordinate(0, 0, 1, 0)
-        
+
         volume = ace_tetra_volume_5x5(p0, p1, p2, p3)
-        assert isinstance(volume, int)
-        assert volume >= 0
+        assert volume == Fraction(1, 4)
+
+        # ACE method agrees with the projection determinant method
+        assert volume == integer_tetra_volume(p0, p1, p2, p3)
 
 
 class TestTransformations:

@@ -14,8 +14,9 @@ Key Features:
 Author: Symergetics Team
 """
 
-from typing import List, Dict, Tuple, Union, Optional, Set
-import re
+import math
+from typing import Dict, List, Union
+
 from ..core.numbers import SymergeticsNumber
 
 
@@ -75,7 +76,7 @@ def extract_palindromic_patterns(number: Union[int, SymergeticsNumber],
             if is_palindromic(substring):
                 patterns.add(substring)
 
-    return sorted(list(patterns), key=len, reverse=True)
+    return sorted(patterns, key=len, reverse=True)
 
 
 def find_palindromic_sequence(scheherazade_power: int) -> Dict[str, Union[str, List[int]]]:
@@ -107,11 +108,17 @@ def find_palindromic_sequence(scheherazade_power: int) -> Dict[str, Union[str, L
         'ssrcd_patterns': []
     }
 
-    # Special analysis for known SSRCD patterns
-    if scheherazade_power == 6:
-        # 1001^6 contains the sequence 1,6,15,20,15,6,1
-        analysis['pascal_coefficients'] = [1, 6, 15, 20, 15, 6, 1]
-        analysis['ssrcd_patterns'] = ['1006015', '020015', '006001']
+    # Pascal's triangle row for (1 + 10^3)^n: the decimal expansion of 1001^n
+    # is the 3-digit zero-padded concatenation of C(n, k) as long as every
+    # coefficient fits in three digits (verified against the actual digits).
+    coeffs = [math.comb(scheherazade_power, k) for k in range(scheherazade_power + 1)]
+    analysis['pascal_coefficients'] = coeffs
+    if all(c < 1000 for c in coeffs):
+        blocks = [f"{c:03d}" for c in coeffs]
+        if int(''.join(blocks)) == number.value.numerator:
+            analysis['ssrcd_patterns'] = blocks
+        else:
+            analysis['ssrcd_patterns'] = ['coefficient blocks disrupted by carries']
 
     return analysis
 
@@ -136,28 +143,24 @@ def analyze_binomial_patterns(number_str: str) -> List[Dict[str, Union[int, str]
     ]
 
     for coeffs, description in binomial_sequences:
-        # Convert coefficients to string patterns
-        coeff_strs = [str(c) for c in coeffs]
-
-        # Look for the sequence in the number string
-        for i in range(len(number_str) - len(coeff_strs) + 1):
-            match = True
-            for j, coeff_str in enumerate(coeff_strs):
-                if number_str[i + j] != coeff_str[0]:
-                    match = False
+        # The decimal expansion of (10^3 + 1)^n is the zero-padded
+        # concatenation of 3-digit coefficient blocks; search for that
+        # concatenated form (with and without leading zero padding).
+        padded = ''.join(f"{c:03d}" for c in coeffs)
+        probes = {padded, padded.lstrip('0') or '0'}
+        for probe in probes:
+            start = 0
+            while True:
+                idx = number_str.find(probe, start)
+                if idx == -1:
                     break
-
-            if match:
-                # Found a potential match - check the full sequence
-                substring = number_str[i:i + sum(len(c) for c in coeff_strs)]
-                # This is a simplified check - full implementation would
-                # handle multi-digit coefficients properly
                 patterns.append({
-                    'position': i,
+                    'position': idx,
                     'coefficients': coeffs,
                     'description': description,
-                    'substring': substring
+                    'substring': probe
                 })
+                start = idx + 1
 
     return patterns
 
@@ -201,7 +204,8 @@ def calculate_palindromic_density(number: Union[int, SymergeticsNumber]) -> floa
         number: Number to analyze
 
     Returns:
-        float: Ratio of palindromic digits to total digits
+        float: Ratio of center-symmetric digit-pair matches (odd-length
+        palindromic centers) to total digits
     """
     if isinstance(number, SymergeticsNumber):
         num_str = str(abs(number.value.numerator))
@@ -229,6 +233,11 @@ def find_symmetric_patterns(number: Union[int, SymergeticsNumber]) -> List[Dict[
     """
     Find symmetric patterns around the center of a number.
 
+    Handles both centerings: odd-length palindromes (mirror through a center
+    digit) and even-length palindromes (mirror between the two middle digits).
+    The reported score is the fraction of the maximum possible symmetric pairs
+    for the best centering (1.0 for a perfect palindrome).
+
     Args:
         number: Number to analyze
 
@@ -240,32 +249,53 @@ def find_symmetric_patterns(number: Union[int, SymergeticsNumber]) -> List[Dict[
     else:
         num_str = str(abs(int(number)))
 
-    patterns = []
     n = len(num_str)
-
     if n < 3:
-        return patterns
+        return []
 
-    center = n // 2
+    def center_pairs(center: int, even_axis: bool):
+        """Contiguous symmetric pairs from the given centering."""
+        pairs = []
+        if even_axis:
+            radius = 0
+            while center - radius >= 0 and center + 1 + radius < n:
+                if num_str[center - radius] == num_str[center + 1 + radius]:
+                    pairs.append((center - radius, center + 1 + radius,
+                                  num_str[center - radius]))
+                    radius += 1
+                else:
+                    break
+            max_pairs = min(center + 1, n - center - 1)
+        else:
+            radius = 1
+            while center - radius >= 0 and center + radius < n:
+                if num_str[center - radius] == num_str[center + radius]:
+                    pairs.append((center - radius, center + radius,
+                                  num_str[center - radius]))
+                    radius += 1
+                else:
+                    break
+            max_pairs = min(center, n - 1 - center)
+        return pairs, max_pairs
 
-    # Check for symmetry around center
-    symmetric_pairs = []
-    for i in range(center):
-        left_pos = center - 1 - i
-        right_pos = center + 1 + i
+    best = None
+    candidate_centers = {(n - 1) // 2, n // 2}
+    for center in candidate_centers:
+        for even_axis in (False, True):
+            pairs, max_pairs = center_pairs(center, even_axis)
+            if pairs:
+                score = len(pairs) / max_pairs if max_pairs else 0.0
+                candidate = {
+                    'type': 'central_symmetry',
+                    'center': center,
+                    'even_axis': even_axis,
+                    'pairs': pairs,
+                    'symmetry_score': score,
+                }
+                if best is None or score > best['symmetry_score']:
+                    best = candidate
 
-        if left_pos >= 0 and right_pos < n:
-            if num_str[left_pos] == num_str[right_pos]:
-                symmetric_pairs.append((left_pos, right_pos, num_str[left_pos]))
-
-    if symmetric_pairs:
-        patterns.append({
-            'type': 'central_symmetry',
-            'pairs': symmetric_pairs,
-            'symmetry_score': len(symmetric_pairs) / center
-        })
-
-    return patterns
+    return [best] if best else []
 
 
 def analyze_scheherazade_ssrcd(power: int) -> Dict[str, Union[int, str, List, Dict]]:
@@ -298,12 +328,13 @@ def analyze_scheherazade_ssrcd(power: int) -> Dict[str, Union[int, str, List, Di
         'binomial_patterns': analyze_binomial_patterns(num_str),
     }
 
-    # Add special insights for known powers
-    if power == 6:
+    # Pascal's row insight: valid while every coefficient fits a 3-digit block
+    coeffs = [math.comb(power, k) for k in range(power + 1)]
+    if all(c < 1000 for c in coeffs) and int(''.join(f"{c:03d}" for c in coeffs)) == number.value.numerator:
         analysis['special_insight'] = {
-            'description': "Contains complete Pascal's triangle row 6",
-            'coefficients': [1, 6, 15, 20, 15, 6, 1],
-            'mathematical_significance': "Binomial coefficients C(6,k) for k=0 to 6",
+            'description': f"Contains complete Pascal's triangle row {power}",
+            'coefficients': coeffs,
+            'mathematical_significance': f"Binomial coefficients C({power},k) for k=0 to {power}",
             'fuller_interpretation': "Sublimely rememberable comprehensive dividend"
         }
 
@@ -342,28 +373,16 @@ def find_palindromic_primes(limit: int) -> List[int]:
     Returns:
         List[int]: List of palindromic prime numbers
     """
+    from .primorials import is_prime
+
     palindromic_primes = []
 
     for num in range(2, limit + 1):
-        if is_palindromic(num):
-            # Check if prime (simplified primality test)
-            is_prime = True
-            if num < 2:
-                is_prime = False
-            elif num == 2:
-                is_prime = True
-            elif num % 2 == 0:
-                is_prime = False
-            else:
-                for i in range(3, int(num**0.5) + 1, 2):
-                    if num % i == 0:
-                        is_prime = False
-                        break
-
-            if is_prime:
-                palindromic_primes.append(num)
+        if is_palindromic(num) and is_prime(num):
+            palindromic_primes.append(num)
 
     return palindromic_primes
+
 
 
 def analyze_number_for_synergetics(number: Union[int, SymergeticsNumber]) -> Dict[str, Union[bool, float, List, Dict]]:

@@ -7,13 +7,14 @@ to achieve 90%+ test coverage, focusing on edge cases, error handling, and
 comprehensive functionality testing.
 """
 
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
 import json
-from typing import List, Dict, Any
+import os
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Test data and fixtures
 TEST_DATA_DIR = Path(__file__).parent / "test_data"
@@ -24,12 +25,7 @@ class TestVisualizationInitComprehensive:
 
     def test_visualization_module_imports(self):
         """Test that all visualization modules can be imported."""
-        from symergetics.visualization import (
-            advanced,
-            geometry,
-            mathematical,
-            numbers
-        )
+        from symergetics.visualization import advanced, geometry, mathematical, numbers
         
         # Check that modules are importable
         assert advanced is not None
@@ -39,12 +35,7 @@ class TestVisualizationInitComprehensive:
 
     def test_visualization_module_attributes(self):
         """Test that visualization modules have expected attributes."""
-        from symergetics.visualization import (
-            advanced,
-            geometry,
-            mathematical,
-            numbers
-        )
+        from symergetics.visualization import advanced, geometry, mathematical, numbers
         
         # Check that modules have expected functions/classes
         # Check that modules have expected functions/classes
@@ -56,12 +47,7 @@ class TestVisualizationInitComprehensive:
 
     def test_visualization_module_docstrings(self):
         """Test that visualization modules have proper docstrings."""
-        from symergetics.visualization import (
-            advanced,
-            geometry,
-            mathematical,
-            numbers
-        )
+        from symergetics.visualization import advanced, geometry, mathematical, numbers
         
         # Check that modules have docstrings
         assert advanced.__doc__ is not None
@@ -71,12 +57,7 @@ class TestVisualizationInitComprehensive:
 
     def test_visualization_module_version(self):
         """Test that visualization modules have version information."""
-        from symergetics.visualization import (
-            advanced,
-            geometry,
-            mathematical,
-            numbers
-        )
+        from symergetics.visualization import advanced, geometry, mathematical, numbers
         
         # Check that modules are importable (version info may not be available)
         for module in [advanced, geometry, mathematical, numbers]:
@@ -295,7 +276,7 @@ class TestVisualizationInitComprehensive:
                     advanced,
                     geometry,
                     mathematical,
-                    numbers
+                    numbers,
                 )
                 results.append(True)
             except Exception as e:

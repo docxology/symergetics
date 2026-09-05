@@ -6,21 +6,25 @@ palindromic sequences, and other computational mathematics from
 Fuller's Synergetics system.
 """
 
-from .primorials import primorial, scheherazade_power, factorial_decline
-from .palindromes import is_palindromic, extract_palindromic_patterns, find_palindromic_sequence
 from .analysis import (
+    ComparativeAnalysis,
+    PatternMetrics,
     analyze_mathematical_patterns,
     compare_mathematical_domains,
     generate_comprehensive_report,
-    PatternMetrics,
-    ComparativeAnalysis
 )
 from .geometric_mnemonics import (
+    GeometricMnemonic,
     analyze_geometric_mnemonics,
     create_integer_ratio_visualization,
     generate_geometric_mnemonic_report,
-    GeometricMnemonic
 )
+from .palindromes import (
+    extract_palindromic_patterns,
+    find_palindromic_sequence,
+    is_palindromic,
+)
+from .primorials import factorial_decline, primorial, scheherazade_power
 
 __all__ = [
     # Primorials

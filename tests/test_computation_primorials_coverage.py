@@ -6,14 +6,22 @@ This module contains tests to improve code coverage for computation.primorials m
 focusing on the missing lines identified in the coverage report.
 """
 
-import pytest
 import math
-from symergetics.core.numbers import SymergeticsNumber
+
+import pytest
+
 from symergetics.computation.primorials import (
-    primorial, scheherazade_power, factorial_decline,
-    primorial_sequence, _get_primes_up_to, is_prime, next_prime,
-    prime_count_up_to, prime_factors
+    _get_primes_up_to,
+    factorial_decline,
+    is_prime,
+    next_prime,
+    prime_count_up_to,
+    prime_factors,
+    primorial,
+    primorial_sequence,
+    scheherazade_power,
 )
+from symergetics.core.numbers import SymergeticsNumber
 
 
 class TestPrimorialErrorCases:

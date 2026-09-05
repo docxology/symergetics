@@ -6,13 +6,18 @@ This module contains tests to improve code coverage for visualization.numbers mo
 focusing on the missing lines identified in the coverage report.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 # Import visualization modules
 from symergetics.visualization.numbers import (
-    plot_palindromic_pattern, plot_scheherazade_pattern, plot_primorial_distribution,
-    plot_palindromic_heatmap, plot_scheherazade_network, plot_primorial_spectrum
+    plot_palindromic_heatmap,
+    plot_palindromic_pattern,
+    plot_primorial_distribution,
+    plot_primorial_spectrum,
+    plot_scheherazade_network,
+    plot_scheherazade_pattern,
 )
 
 
@@ -35,9 +40,24 @@ class TestPlotPalindromicHeatmapCoverage:
         assert 'metadata' in result
 
     def test_plot_palindromic_heatmap_plotly(self):
-        """Test plot_palindromic_heatmap with plotly (should fail)."""
-        with pytest.raises(ValueError, match="Heatmap visualization requires matplotlib backend"):
-            plot_palindromic_heatmap(sequence_start=100, sequence_end=120, backend='plotly')
+        """Test plot_palindromic_heatmap with a real plotly render."""
+        import os
+        import tempfile
+
+        from symergetics.visualization import reset_config, set_config
+
+        with tempfile.TemporaryDirectory() as tmp:
+            set_config({'output_dir': tmp})
+            try:
+                result = plot_palindromic_heatmap(sequence_start=100, sequence_end=120,
+                                                  backend='plotly')
+            finally:
+                reset_config()
+
+            assert result['metadata']['backend'] == 'plotly'
+            for file_path in result['files']:
+                assert os.path.exists(file_path)
+                assert os.path.getsize(file_path) > 0
 
     def test_plot_palindromic_heatmap_small_range(self):
         """Test plot_palindromic_heatmap with small number range."""
@@ -72,13 +92,27 @@ class TestPlotScheherazadeNetworkCoverage:
         assert 'files' in result
 
     def test_plot_scheherazade_network_plotly(self):
-        """Test plot_scheherazade_network with plotly (should fail)."""
-        with pytest.raises(ValueError, match="Network visualization requires matplotlib backend"):
-            plot_scheherazade_network(power=6, backend='plotly')
+        """Test plot_scheherazade_network with a real plotly render."""
+        import os
+        import tempfile
+
+        from symergetics.visualization import reset_config, set_config
+
+        with tempfile.TemporaryDirectory() as tmp:
+            set_config({'output_dir': tmp})
+            try:
+                result = plot_scheherazade_network(power=6, backend='plotly')
+            finally:
+                reset_config()
+
+            assert result['metadata']['backend'] == 'plotly'
+            for file_path in result['files']:
+                assert os.path.exists(file_path)
+                assert os.path.getsize(file_path) > 0
 
     def test_plot_scheherazade_network_ascii(self):
         """Test plot_scheherazade_network with ascii (should fail)."""
-        with pytest.raises(ValueError, match="Network visualization requires matplotlib backend"):
+        with pytest.raises(ValueError, match="Network visualization requires matplotlib or plotly backend"):
             plot_scheherazade_network(power=4, backend='ascii')
 
     def test_plot_scheherazade_network_power_zero(self):
@@ -110,13 +144,27 @@ class TestPlotPrimorialSpectrumCoverage:
         assert 'metadata' in result
 
     def test_plot_primorial_spectrum_plotly(self):
-        """Test plot_primorial_spectrum with plotly (should fail)."""
-        with pytest.raises(ValueError, match="Spectrum visualization requires matplotlib backend"):
-            plot_primorial_spectrum(max_n=8, backend='plotly')
+        """Test plot_primorial_spectrum with a real plotly render."""
+        import os
+        import tempfile
+
+        from symergetics.visualization import reset_config, set_config
+
+        with tempfile.TemporaryDirectory() as tmp:
+            set_config({'output_dir': tmp})
+            try:
+                result = plot_primorial_spectrum(max_n=8, backend='plotly')
+            finally:
+                reset_config()
+
+            assert result['metadata']['backend'] == 'plotly'
+            for file_path in result['files']:
+                assert os.path.exists(file_path)
+                assert os.path.getsize(file_path) > 0
 
     def test_plot_primorial_spectrum_ascii(self):
         """Test plot_primorial_spectrum with ascii (should fail)."""
-        with pytest.raises(ValueError, match="Spectrum visualization requires matplotlib backend"):
+        with pytest.raises(ValueError, match="Spectrum visualization requires matplotlib or plotly backend"):
             plot_primorial_spectrum(max_n=5, backend='ascii')
 
     def test_plot_primorial_spectrum_large_max_n(self):

@@ -5,11 +5,15 @@ One line per entry + file path(s). Mark done items `x`.
 
 ## Minor
 
-- [ ] tests/TEST_INDEX.md claims "977 test functions across 41 test modules" with no
-  verification command — add "as of <date>, verified by `uv run pytest tests/
-  --collect-only -q | tail -1`" or link to a generator. (tests/TEST_INDEX.md)
-- [ ] `output/test_custom_dir/` is disposable test residue documented as such in
-  AGENTS.md; consider deleting it locally so the tree reads clean. (output/test_custom_dir/)
+- [x] tests/TEST_INDEX.md claimed "977 test functions across 41 test modules" with no
+  verification command — updated 2026-09-05 to 1013 functions / 42 modules, verified by
+  `uv run pytest tests/ --collect-only -q` (1013 collected); per-file counts regenerated;
+  added missing entries for `*_real.py`, `tests/core/` twins, and
+  `test_review_regressions.py`. (tests/TEST_INDEX.md, tests/README.md)
+- [x] `output/test_custom_dir/` residue: the generating test
+  (`tests/test_visualization_methods.py::test_output_directory_configuration`)
+  now renders into `tmp_path` and resets config, so it never creates the
+  directory; existing residue deleted 2026-09-05. (tests/test_visualization_methods.py)
 
 ## Medium
 
@@ -22,10 +26,7 @@ One line per entry + file path(s). Mark done items `x`.
 - [x] No backlog file existed; TODO.md created 2026-08-31. (TODO.md)
 - [x] No status surface existed; STATUS.md created with verification commands. (STATUS.md)
 
-## Major
-
-- [ ] Full test suite has no recorded pass/fail receipt from this pass — only
-  tests/core/test_coordinates.py (25 passed) was run 2026-08-31; full collection
-  exceeded the 300 s agent timeout on external-drive cold I/O. Run
-  `uv run pytest tests/ -q` in the background with a generous timeout and record
-  the result in STATUS.md. (STATUS.md)
+- [x] Full test suite had no recorded pass/fail receipt — recorded 2026-09-05:
+  `uv run pytest tests/ -q` → 993 passed, 20 skipped, coverage 86.13%
+  (85% floor reached), 536 s. Pre-fix baseline: 954 passed, 20 skipped
+  (`--no-cov`, 279 s). See STATUS.md. (STATUS.md)

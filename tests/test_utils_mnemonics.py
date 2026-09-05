@@ -5,16 +5,17 @@ Tests memory aids, pattern recognition, and number formatting.
 """
 
 import pytest
-from symergetics.utils.mnemonics import (
-    mnemonic_encode,
-    mnemonic_decode,
-    format_large_number,
-    create_memory_aid,
-    visualize_number_pattern,
-    compare_number_patterns,
-    generate_synergetics_mnemonics
-)
+
 from symergetics.core.numbers import SymergeticsNumber
+from symergetics.utils.mnemonics import (
+    compare_number_patterns,
+    create_memory_aid,
+    format_large_number,
+    generate_synergetics_mnemonics,
+    mnemonic_decode,
+    mnemonic_encode,
+    visualize_number_pattern,
+)
 
 
 class TestMnemonicEncoding:

@@ -3,21 +3,22 @@ Comprehensive edge case and error handling tests.
 Tests real functionality with edge cases and error conditions.
 """
 
-import pytest
-import numpy as np
-from fractions import Fraction
 import math
 import sys
+from fractions import Fraction
 
-from symergetics.core.numbers import SymergeticsNumber
-from symergetics.core.constants import SymergeticsConstants
-from symergetics.core.coordinates import QuadrayCoordinate
+import numpy as np
+import pytest
+
 from symergetics.computation.analysis import analyze_mathematical_patterns
 from symergetics.computation.palindromes import analyze_number_for_synergetics
 from symergetics.computation.primorials import primorial, scheherazade_power
-from symergetics.geometry.polyhedra import Tetrahedron, Octahedron, Cube
-from symergetics.utils.conversion import rational_to_float, float_to_exact_rational
-from symergetics.utils.mnemonics import mnemonic_encode, create_memory_aid
+from symergetics.core.constants import SymergeticsConstants
+from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.core.numbers import SymergeticsNumber
+from symergetics.geometry.polyhedra import Cube, Octahedron, Tetrahedron
+from symergetics.utils.conversion import float_to_exact_rational, rational_to_float
+from symergetics.utils.mnemonics import create_memory_aid, mnemonic_encode
 
 
 class TestEdgeCaseNumbers:

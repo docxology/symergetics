@@ -6,9 +6,11 @@ This test file focuses on real functionality testing without mocks,
 ensuring the mega graphical abstract creates actual files and works correctly.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
+
 from symergetics.visualization import create_mega_graphical_abstract
 
 

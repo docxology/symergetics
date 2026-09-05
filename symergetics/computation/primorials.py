@@ -13,8 +13,9 @@ Key Features:
 Author: Symergetics Team
 """
 
-from typing import List, Dict, Union, Optional
 import math
+from typing import Dict, List, Union
+
 from ..core.numbers import SymergeticsNumber
 
 
@@ -159,21 +160,14 @@ def scheherazade_pascal_coefficients(power: int) -> List[int]:
     """
     scheherazade_num = scheherazade_power(power)
 
-    # Convert to string to analyze digits
-    num_str = str(scheherazade_num.value.numerator)
-
-    # Look for patterns that resemble Pascal's triangle
-    # This is a simplified implementation - full pattern recognition
-    # would require more sophisticated analysis
-
-    coefficients = []
-
-    # For power=6, we expect to find [1, 6, 15, 20, 15, 6, 1]
-    if power == 6:
-        # Extract the middle digits that form the pattern
-        # 1006015 020015 006001
-        # The pattern appears in groups of digits
-        coefficients = [1, 6, 15, 20, 15, 6, 1]
+    # The decimal expansion of (10^3 + 1)^n is the 3-digit zero-padded
+    # concatenation of the binomial coefficients C(n, k), valid while every
+    # coefficient fits in three digits; verify against the actual digits.
+    coefficients = [math.comb(power, k) for k in range(power + 1)]
+    if any(c >= 1000 for c in coefficients):
+        return []
+    if int(''.join(f"{c:03d}" for c in coefficients)) != scheherazade_num.value.numerator:
+        return []
 
     return coefficients
 
@@ -301,6 +295,8 @@ def next_prime(n: int) -> int:
     Returns:
         int: Next prime number > n
     """
+    if n < 2:
+        return 2
     candidate = n + 1 if n % 2 == 0 else n + 2
 
     while True:

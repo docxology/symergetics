@@ -15,16 +15,16 @@ Key Features:
 Author: Symergetics Team
 """
 
-from fractions import Fraction
-from typing import Union, Tuple, List, Optional
 import math
-import re
+from fractions import Fraction
+from typing import List, Optional, Tuple, Union
 
-# Handle gcd import for different Python versions
+# Handle gcd import for different Python versions; re-exported for
+# backwards compatibility (see tests/test_core_comprehensive.py).
 try:
-    from math import gcd
-except ImportError:
-    from fractions import gcd
+    from math import gcd  # noqa: F401
+except ImportError:  # pragma: no cover
+    from fractions import gcd  # noqa: F401
 
 
 class SymergeticsNumber:
@@ -53,11 +53,9 @@ class SymergeticsNumber:
             >>> n3 = SymergeticsNumber(Fraction(5, 7))
         """
         if isinstance(numerator, str):
-            # Handle string representations like "3/4" or "1.5"
-            if '/' in numerator:
-                self.value = Fraction(numerator)
-            else:
-                self.value = Fraction(float(numerator))
+            # Handle string representations like "3/4", "42", or "1.5" exactly
+            # (Fraction parses decimal strings without float round-trip loss)
+            self.value = Fraction(numerator)
         elif isinstance(numerator, Fraction):
             self.value = numerator
         elif denominator is not None:
@@ -350,19 +348,42 @@ class SymergeticsNumber:
     @classmethod
     def pi(cls, digits: int = 100) -> 'SymergeticsNumber':
         """
-        Generate π with specified precision using rational approximation.
+        Generate a rational approximation of pi with the requested precision.
+
+        Uses Machin's formula
+            pi = 16*arctan(1/5) - 4*arctan(1/239)
+        evaluated with exact integer arithmetic, so the result is accurate
+        to at least `digits` decimal places (unlike a float-derived value,
+        which is limited to ~15-16 significant digits).
 
         Args:
             digits: Number of decimal digits for approximation
 
         Returns:
-            SymergeticsNumber: Rational approximation of π
+            SymergeticsNumber: Rational approximation of pi
         """
-        # Use continued fraction approximation of π
-        # π ≈ 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
-        # This is a simplified approximation
-        pi_approx = math.pi
-        return cls.from_float(pi_approx, 10**digits)
+        if digits < 1:
+            raise ValueError("digits must be a positive integer")
+        guard = digits + 10  # guard digits absorb per-term rounding error
+        scale = 10 ** guard
+
+        def arctan_inv(x: int) -> int:
+            """Return arctan(1/x) * scale as an integer, via the Taylor series."""
+            total = 0
+            k = 0
+            power = x  # x^(2k+1)
+            while True:
+                term = scale // (power * (2 * k + 1))
+                if term == 0:
+                    break
+                total += term if k % 2 == 0 else -term
+                power *= x * x
+                k += 1
+            return total
+
+        # pi = 4 * (4*arctan(1/5) - arctan(1/239)), computed exactly
+        pi_scaled = 4 * (4 * arctan_inv(5) - arctan_inv(239))
+        return cls(Fraction(pi_scaled, scale))
 
 
 # Convenience functions for common operations

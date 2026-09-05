@@ -13,9 +13,10 @@ Key Features:
 Author: Symergetics Team
 """
 
-from fractions import Fraction
-from typing import Dict, List, Any, Union
 import math
+from fractions import Fraction
+from typing import Any, Dict, List, Union
+
 from .numbers import SymergeticsNumber
 
 
@@ -37,8 +38,11 @@ class SymergeticsConstants:
         'rhombic_triacontahedron': SymergeticsNumber(120),  # 120 tetrahedra
     }
 
-    # Edge length ratios for unit volume normalization
-    EDGE_LENGTH_RATIOS = {
+    # Maximum vertex-to-vertex distance ("diameter") in units of the edge
+    # length, for the frequency-1 IVM solids. Verified against the vertex
+    # constants in core.coordinates: tetrahedron has no long diagonal (1),
+    # octahedron sqrt(2), cube sqrt(3), cuboctahedron 2 (circumradius = edge).
+    DIAMETER_TO_EDGE_RATIOS = {
         'tetrahedron': SymergeticsNumber(1),
         'octahedron': SymergeticsNumber.sqrt(SymergeticsNumber(2)),  # √2
         'cube': SymergeticsNumber.sqrt(SymergeticsNumber(3)),        # √3
@@ -52,8 +56,8 @@ class SymergeticsConstants:
         2: SymergeticsNumber(1002001),        # 1001²
         3: SymergeticsNumber(1003003001),     # 1001³
         4: SymergeticsNumber(1004006004001),  # 1001⁴
-        5: SymergeticsNumber(10050010005001), # 1001⁵
-        6: SymergeticsNumber(10060015006001), # 1001⁶ = 1,006,015,020,015,006,001
+        5: SymergeticsNumber(1005010010005001), # 1001⁵ = 1,005,010,010,005,001
+        6: SymergeticsNumber(1006015020015006001), # 1001⁶ = 1,006,015,020,015,006,001
     }
 
     # Primorials (product of primes ≤ n)
@@ -298,7 +302,6 @@ class SymergeticsConstants:
 
 
 # Convenience constants for direct access
-import math
 
 # Common constants
 PHI = SymergeticsConstants.IRRATIONAL_APPROXIMATIONS['phi']  # Golden ratio

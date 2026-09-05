@@ -5,17 +5,18 @@ Tests palindrome detection, SSRCD analysis, and pattern recognition.
 """
 
 import pytest
+
 from symergetics.computation.palindromes import (
-    is_palindromic,
-    extract_palindromic_patterns,
-    find_palindromic_sequence,
+    analyze_number_for_synergetics,
     analyze_scheherazade_ssrcd,
-    find_repeated_patterns,
     calculate_palindromic_density,
+    extract_palindromic_patterns,
+    find_palindromic_primes,
+    find_palindromic_sequence,
+    find_repeated_patterns,
     find_symmetric_patterns,
     generate_palindromic_sequence,
-    find_palindromic_primes,
-    analyze_number_for_synergetics
+    is_palindromic,
 )
 from symergetics.core.numbers import SymergeticsNumber
 

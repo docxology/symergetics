@@ -6,34 +6,34 @@ including 3D visualizations, heatmaps, networks, spectra, convergence plots,
 matrices, and radar charts.
 """
 
-import pytest
-import numpy as np
 import os
 from pathlib import Path
 
+import numpy as np
+import pytest
+
+from symergetics.computation.primorials import primorial
 from symergetics.core.coordinates import QuadrayCoordinate
 from symergetics.core.numbers import SymergeticsNumber
 from symergetics.geometry.polyhedra import Tetrahedron
-from symergetics.computation.primorials import primorial
+from symergetics.visualization import ensure_output_dir
 
 # Import visualization functions
 from symergetics.visualization.geometry import (
     plot_polyhedron_3d,
     plot_polyhedron_graphical_abstract,
-    plot_polyhedron_wireframe
+    plot_polyhedron_wireframe,
+)
+from symergetics.visualization.mathematical import (
+    plot_base_conversion_matrix,
+    plot_continued_fraction_convergence,
+    plot_pattern_analysis_radar,
 )
 from symergetics.visualization.numbers import (
     plot_palindromic_heatmap,
+    plot_primorial_spectrum,
     plot_scheherazade_network,
-    plot_primorial_spectrum
 )
-from symergetics.visualization.mathematical import (
-    plot_continued_fraction_convergence,
-    plot_base_conversion_matrix,
-    plot_pattern_analysis_radar
-)
-
-from symergetics.visualization import ensure_output_dir
 
 
 class TestEnhancedGeometryVisualizations:
@@ -147,7 +147,7 @@ class TestEnhancedNumberVisualizations:
 
     def test_invalid_backend_heatmap(self):
         """Test that invalid backend raises error for heatmap."""
-        with pytest.raises(ValueError, match="Heatmap visualization requires matplotlib backend"):
+        with pytest.raises(ValueError, match="Heatmap visualization requires matplotlib or plotly backend"):
             plot_palindromic_heatmap(100, 150, backend='invalid')
 
 
@@ -204,7 +204,7 @@ class TestEnhancedMathematicalVisualizations:
 
     def test_invalid_backend_convergence(self):
         """Test that invalid backend raises error for convergence plot."""
-        with pytest.raises(ValueError, match="Convergence visualization requires matplotlib backend"):
+        with pytest.raises(ValueError, match="Convergence visualization requires matplotlib or plotly backend"):
             plot_continued_fraction_convergence(np.e, backend='invalid')
 
 
@@ -327,8 +327,9 @@ class TestVisualizationPerformance:
     def test_memory_usage_during_visualization(self):
         """Test memory usage during visualization creation."""
         try:
-            import psutil
             import os
+
+            import psutil
             process = psutil.Process(os.getpid())
             initial_memory = process.memory_info().rss / 1024 / 1024  # MB
         except ImportError:
@@ -379,24 +380,22 @@ class TestVisualizationConfiguration:
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-    def test_output_directory_configuration(self):
-        """Test custom output directory configuration."""
-        from symergetics.visualization import set_config
+    def test_output_directory_configuration(self, tmp_path):
+        """Test custom output directory configuration (self-cleaning via tmp_path)."""
+        from symergetics.visualization import reset_config, set_config
 
-        custom_output_dir = "output/test_custom_dir"
+        custom_output_dir = str(tmp_path / "test_custom_dir")
         set_config({'output_dir': custom_output_dir})
+        try:
+            tetra = Tetrahedron()
+            result = plot_polyhedron_3d(tetra)
 
-        tetra = Tetrahedron()
-        result = plot_polyhedron_3d(tetra)
-
-        # Check that files are in custom directory
-        for file_path in result['files']:
-            assert custom_output_dir in file_path
-
-        # Clean up
-        for file_path in result['files']:
-            if os.path.exists(file_path):
-                os.remove(file_path)
+            # Check that files are in custom directory
+            for file_path in result['files']:
+                assert custom_output_dir in file_path
+                assert os.path.exists(file_path)
+        finally:
+            reset_config()
 
 
 # Cleanup fixture for all tests

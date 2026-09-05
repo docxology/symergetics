@@ -6,19 +6,19 @@ in the synergetic coordinate system.
 """
 
 from .polyhedra import (
+    Cube,
+    Cuboctahedron,
+    Octahedron,
     SymergeticsPolyhedron,
     Tetrahedron,
-    Octahedron,
-    Cube,
-    Cuboctahedron
 )
 from .transformations import (
-    translate,
-    scale,
-    reflect,
+    apply_transform_function,
     coordinate_transform,
+    reflect,
     rotate_around_axis,
-    apply_transform_function
+    scale,
+    translate,
 )
 
 __all__ = [

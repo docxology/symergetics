@@ -4,16 +4,18 @@ Tests for geometry.polyhedra module - Polyhedral geometry classes.
 Tests volume calculations, vertex operations, and geometric properties.
 """
 
-import pytest
 import math
+
+import pytest
+
 from symergetics.geometry.polyhedra import (
-    SymergeticsPolyhedron,
-    Tetrahedron,
-    Octahedron,
     Cube,
     Cuboctahedron,
+    Octahedron,
+    SymergeticsPolyhedron,
+    Tetrahedron,
+    ace_tetra_volume_5x5,
     integer_tetra_volume,
-    ace_tetra_volume_5x5
 )
 
 

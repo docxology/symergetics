@@ -6,16 +6,32 @@ This module contains tests to improve code coverage for visualization.geometry m
 focusing on the missing lines identified in the coverage report.
 """
 
+import os
+
 import pytest
-import numpy as np
-from unittest.mock import patch, MagicMock
+
+
+def assert_files_real(result):
+    """Assert the plot produced real, non-empty files."""
+    assert result.get('files'), 'expected rendered files'
+    for file_path in result['files']:
+        assert os.path.exists(file_path)
+        assert os.path.getsize(file_path) > 0
+
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import numpy as np
 
 # Import visualization modules
 from symergetics.geometry.polyhedra import Tetrahedron
 from symergetics.visualization.geometry import (
-    plot_polyhedron, plot_quadray_coordinate, plot_ivm_lattice,
-    plot_polyhedron_3d, plot_polyhedron_graphical_abstract, plot_polyhedron_wireframe
+    plot_ivm_lattice,
+    plot_polyhedron,
+    plot_polyhedron_3d,
+    plot_polyhedron_graphical_abstract,
+    plot_polyhedron_wireframe,
+    plot_quadray_coordinate,
 )
 
 
@@ -30,22 +46,22 @@ class TestPlotPolyhedron3DCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
         assert 'metadata' in result
 
     def test_plot_polyhedron_3d_plotly_backend(self):
         """Test plot_polyhedron_3d with plotly backend."""
         tetra = Tetrahedron()
 
-        # Skip plotly test if not implemented
-        try:
-            result = plot_polyhedron_3d(tetra, backend='plotly')
-            # Should return a dict with file information
-            assert isinstance(result, dict)
-            assert 'files' in result
-        except NameError:
-            # Function not implemented yet
-            pytest.skip("Plotly backend not implemented for plot_polyhedron_3d")
+        result = plot_polyhedron_3d(tetra, backend='plotly')
+
+        # Should return a dict with file information pointing at a real file
+        assert isinstance(result, dict)
+        assert result.get('files')
+        assert result['metadata']['backend'] == 'plotly'
+        for file_path in result['files']:
+            assert os.path.exists(file_path)
+            assert os.path.getsize(file_path) > 0
 
     def test_plot_polyhedron_3d_invalid_backend(self):
         """Test plot_polyhedron_3d with invalid backend."""
@@ -66,7 +82,7 @@ class TestPlotPolyhedronGraphicalAbstractCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
         assert 'metadata' in result
 
     def test_plot_polyhedron_graphical_abstract_plotly(self):
@@ -106,7 +122,7 @@ class TestPlotPolyhedronWireframeCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
 
     def test_plot_polyhedron_wireframe_plotly(self):
         """Test plot_polyhedron_wireframe with plotly (should fail)."""
@@ -134,7 +150,7 @@ class TestOriginalPlotPolyhedronCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
 
     def test_plot_polyhedron_matplotlib_wireframe(self):
         """Test plot_polyhedron with wireframe option."""
@@ -144,7 +160,7 @@ class TestOriginalPlotPolyhedronCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
 
 
 class TestPlotQuadrayCoordinateCoverage:
@@ -160,7 +176,7 @@ class TestPlotQuadrayCoordinateCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
 
     def test_plot_quadray_coordinate_2d_projections(self):
         """Test plot_quadray_coordinate with 2D projections."""
@@ -172,7 +188,7 @@ class TestPlotQuadrayCoordinateCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
 
 
 class TestPlotIVMLatticeCoverage:
@@ -184,7 +200,7 @@ class TestPlotIVMLatticeCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
 
     def test_plot_ivm_lattice_highlight_center(self):
         """Test plot_ivm_lattice with center highlighting."""
@@ -192,7 +208,7 @@ class TestPlotIVMLatticeCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)
 
     def test_plot_ivm_lattice_custom_colors(self):
         """Test plot_ivm_lattice with custom colors."""
@@ -200,4 +216,4 @@ class TestPlotIVMLatticeCoverage:
 
         # Should return a dict with file information
         assert isinstance(result, dict)
-        assert 'files' in result
+        assert_files_real(result)

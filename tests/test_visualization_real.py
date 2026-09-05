@@ -5,35 +5,35 @@ Tests actual visualization functions using ASCII backend to avoid GUI dependenci
 All tests use real Symergetics methods and functions.
 """
 
-import pytest
-import tempfile
 import os
-from symergetics.core.numbers import SymergeticsNumber
-from symergetics.core.constants import SymergeticsConstants
+import tempfile
+
+import pytest
+
 from symergetics.computation.palindromes import is_palindromic
 from symergetics.computation.primorials import primorial, scheherazade_power
+from symergetics.core.constants import SymergeticsConstants
+from symergetics.core.numbers import SymergeticsNumber
 from symergetics.utils.mnemonics import mnemonic_encode
+from symergetics.visualization.advanced import create_comparative_analysis_visualization
+from symergetics.visualization.geometry import (
+    plot_ivm_lattice,
+    plot_polyhedron,
+    plot_quadray_coordinate,
+)
+from symergetics.visualization.mathematical import (
+    plot_base_conversion,
+    plot_continued_fraction,
+    plot_pattern_analysis,
+    plot_ssrcd_analysis,
+)
 
 # Import visualization functions
 from symergetics.visualization.numbers import (
+    plot_mnemonic_visualization,
     plot_palindromic_pattern,
-    plot_scheherazade_pattern,
     plot_primorial_distribution,
-    plot_mnemonic_visualization
-)
-from symergetics.visualization.geometry import (
-    plot_polyhedron,
-    plot_quadray_coordinate,
-    plot_ivm_lattice
-)
-from symergetics.visualization.mathematical import (
-    plot_continued_fraction,
-    plot_base_conversion,
-    plot_pattern_analysis,
-    plot_ssrcd_analysis
-)
-from symergetics.visualization.advanced import (
-    create_comparative_analysis_visualization
+    plot_scheherazade_pattern,
 )
 
 

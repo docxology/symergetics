@@ -6,20 +6,32 @@ This module contains tests to improve code coverage for geometry transformations
 focusing on the missing lines identified in the coverage report.
 """
 
-import pytest
+from typing import Callable, List
+from unittest.mock import MagicMock, patch
+
 import numpy as np
-from typing import List, Callable
-from unittest.mock import patch, MagicMock
+import pytest
 
 # Import the modules to test
 from symergetics.core.coordinates import QuadrayCoordinate
 from symergetics.geometry.polyhedra import Tetrahedron
 from symergetics.geometry.transformations import (
-    translate, scale, reflect, rotate_around_axis,
-    translate_polyhedron, scale_polyhedron, reflect_polyhedron,
-    coordinate_transform, project_to_plane, apply_transform_function,
-    create_rotation_matrix, xyz_to_quadray_matrix, compose_transforms,
-    translate_by_vector, scale_by_factor, rotate_around_xyz_axis
+    apply_transform_function,
+    compose_transforms,
+    coordinate_transform,
+    create_rotation_matrix,
+    project_to_plane,
+    reflect,
+    reflect_polyhedron,
+    rotate_around_axis,
+    rotate_around_xyz_axis,
+    scale,
+    scale_by_factor,
+    scale_polyhedron,
+    translate,
+    translate_by_vector,
+    translate_polyhedron,
+    xyz_to_quadray_matrix,
 )
 
 

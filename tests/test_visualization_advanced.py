@@ -3,15 +3,17 @@
 Tests for advanced visualization methods in symergetics.visualization.advanced
 """
 
-import pytest
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from symergetics.visualization.advanced import (
     create_comparative_analysis_visualization,
     create_pattern_discovery_visualization,
-    create_statistical_analysis_dashboard
+    create_statistical_analysis_dashboard,
 )
 
 

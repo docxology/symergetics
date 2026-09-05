@@ -7,13 +7,14 @@ to achieve 90%+ test coverage, focusing on edge cases, error handling, and
 comprehensive functionality testing.
 """
 
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
 import json
-from typing import List, Dict, Any
+import os
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Test data and fixtures
 TEST_DATA_DIR = Path(__file__).parent / "test_data"
@@ -24,8 +25,8 @@ class TestPlotPolyhedron3DComprehensive:
 
     def test_plot_polyhedron_3d_matplotlib_backend(self):
         """Test 3D polyhedron plotting with matplotlib backend."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -44,8 +45,8 @@ class TestPlotPolyhedron3DComprehensive:
     @pytest.mark.skip(reason="Plotly backend not implemented")
     def test_plot_polyhedron_3d_plotly_backend(self):
         """Test 3D polyhedron plotting with plotly backend."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -64,8 +65,8 @@ class TestPlotPolyhedron3DComprehensive:
     @pytest.mark.skip(reason="ASCII backend not implemented")
     def test_plot_polyhedron_3d_ascii_backend(self):
         """Test 3D polyhedron plotting with ASCII backend."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -77,8 +78,8 @@ class TestPlotPolyhedron3DComprehensive:
 
     def test_plot_polyhedron_3d_invalid_backend(self):
         """Test 3D polyhedron plotting with invalid backend."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -87,8 +88,8 @@ class TestPlotPolyhedron3DComprehensive:
 
     def test_plot_polyhedron_3d_custom_parameters(self):
         """Test 3D polyhedron plotting with custom parameters."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -117,8 +118,8 @@ class TestPlotPolyhedron3DComprehensive:
 
     def test_plot_polyhedron_3d_error_handling(self):
         """Test 3D polyhedron plotting error handling."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -141,8 +142,10 @@ class TestPlotPolyhedronGraphicalAbstractComprehensive:
     @pytest.mark.skip(reason="Complex matplotlib mocking required")
     def test_plot_polyhedron_graphical_abstract_matplotlib(self):
         """Test graphical abstract polyhedron plotting with matplotlib."""
-        from symergetics.visualization.geometry import plot_polyhedron_graphical_abstract
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import (
+            plot_polyhedron_graphical_abstract,
+        )
         
         tetra = Tetrahedron()
         
@@ -161,8 +164,10 @@ class TestPlotPolyhedronGraphicalAbstractComprehensive:
     @pytest.mark.skip(reason="Graphical abstract only supports matplotlib backend")
     def test_plot_polyhedron_graphical_abstract_plotly(self):
         """Test graphical abstract polyhedron plotting with plotly."""
-        from symergetics.visualization.geometry import plot_polyhedron_graphical_abstract
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import (
+            plot_polyhedron_graphical_abstract,
+        )
         
         tetra = Tetrahedron()
         
@@ -181,8 +186,10 @@ class TestPlotPolyhedronGraphicalAbstractComprehensive:
     @pytest.mark.skip(reason="Complex matplotlib mocking required")
     def test_plot_polyhedron_graphical_abstract_without_volume_ratios(self):
         """Test graphical abstract without volume ratios."""
-        from symergetics.visualization.geometry import plot_polyhedron_graphical_abstract
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import (
+            plot_polyhedron_graphical_abstract,
+        )
         
         tetra = Tetrahedron()
         
@@ -204,8 +211,10 @@ class TestPlotPolyhedronGraphicalAbstractComprehensive:
     @pytest.mark.skip(reason="Complex matplotlib mocking required")
     def test_plot_polyhedron_graphical_abstract_without_coordinates(self):
         """Test graphical abstract without coordinate display."""
-        from symergetics.visualization.geometry import plot_polyhedron_graphical_abstract
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import (
+            plot_polyhedron_graphical_abstract,
+        )
         
         tetra = Tetrahedron()
         
@@ -230,8 +239,8 @@ class TestPlotPolyhedronWireframeComprehensive:
 
     def test_plot_polyhedron_wireframe_matplotlib(self):
         """Test wireframe polyhedron plotting with matplotlib."""
-        from symergetics.visualization.geometry import plot_polyhedron_wireframe
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_wireframe
         
         tetra = Tetrahedron()
         
@@ -250,8 +259,8 @@ class TestPlotPolyhedronWireframeComprehensive:
     @pytest.mark.skip(reason="Wireframe visualization only supports matplotlib backend")
     def test_plot_polyhedron_wireframe_plotly(self):
         """Test wireframe polyhedron plotting with plotly."""
-        from symergetics.visualization.geometry import plot_polyhedron_wireframe
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_wireframe
         
         tetra = Tetrahedron()
         
@@ -269,8 +278,8 @@ class TestPlotPolyhedronWireframeComprehensive:
     @pytest.mark.skip(reason="ASCII backend not supported for wireframe visualization")
     def test_plot_polyhedron_wireframe_ascii(self):
         """Test wireframe polyhedron plotting with ASCII backend."""
-        from symergetics.visualization.geometry import plot_polyhedron_wireframe
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_wireframe
         
         tetra = Tetrahedron()
         
@@ -286,8 +295,8 @@ class TestOriginalPlotPolyhedronComprehensive:
 
     def test_plot_polyhedron_matplotlib_custom_view(self):
         """Test original polyhedron plotting with custom view."""
-        from symergetics.visualization.geometry import plot_polyhedron
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron
         
         tetra = Tetrahedron()
         
@@ -309,8 +318,8 @@ class TestOriginalPlotPolyhedronComprehensive:
 
     def test_plot_polyhedron_matplotlib_wireframe(self):
         """Test original polyhedron plotting with wireframe mode."""
-        from symergetics.visualization.geometry import plot_polyhedron
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron
         
         tetra = Tetrahedron()
         
@@ -336,8 +345,8 @@ class TestPlotQuadrayCoordinateComprehensive:
 
     def test_plot_quadray_coordinate_3d_view(self):
         """Test Quadray coordinate plotting with 3D view."""
-        from symergetics.visualization.geometry import plot_quadray_coordinate
         from symergetics.core.coordinates import QuadrayCoordinate
+        from symergetics.visualization.geometry import plot_quadray_coordinate
         
         coord = QuadrayCoordinate(2, 1, 1, 0)
         
@@ -361,8 +370,8 @@ class TestPlotQuadrayCoordinateComprehensive:
 
     def test_plot_quadray_coordinate_2d_projections(self):
         """Test Quadray coordinate plotting with 2D projections."""
-        from symergetics.visualization.geometry import plot_quadray_coordinate
         from symergetics.core.coordinates import QuadrayCoordinate
+        from symergetics.visualization.geometry import plot_quadray_coordinate
         
         coord = QuadrayCoordinate(2, 1, 1, 0)
         
@@ -384,8 +393,8 @@ class TestPlotQuadrayCoordinateComprehensive:
     @pytest.mark.skip(reason="Plotly backend not supported for Quadray visualization")
     def test_plot_quadray_coordinate_plotly_backend(self):
         """Test Quadray coordinate plotting with plotly backend."""
-        from symergetics.visualization.geometry import plot_quadray_coordinate
         from symergetics.core.coordinates import QuadrayCoordinate
+        from symergetics.visualization.geometry import plot_quadray_coordinate
         
         coord = QuadrayCoordinate(2, 1, 1, 0)
         
@@ -402,8 +411,8 @@ class TestPlotQuadrayCoordinateComprehensive:
 
     def test_plot_quadray_coordinate_ascii_backend(self):
         """Test Quadray coordinate plotting with ASCII backend."""
-        from symergetics.visualization.geometry import plot_quadray_coordinate
         from symergetics.core.coordinates import QuadrayCoordinate
+        from symergetics.visualization.geometry import plot_quadray_coordinate
         
         coord = QuadrayCoordinate(2, 1, 1, 0)
         
@@ -531,8 +540,8 @@ class TestGeometryVisualizationErrorHandling:
     @pytest.mark.skip(reason="Function _ensure_matplotlib_numpy does not exist")
     def test_missing_matplotlib_graceful_failure(self):
         """Test graceful failure when matplotlib is missing."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -545,8 +554,8 @@ class TestGeometryVisualizationErrorHandling:
     @pytest.mark.skip(reason="Function _ensure_matplotlib_numpy does not exist")
     def test_missing_plotly_graceful_failure(self):
         """Test graceful failure when plotly is missing."""
-        from symergetics.visualization.geometry import plot_polyhedron_3d
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -577,8 +586,13 @@ class TestGeometryVisualizationIntegration:
 
     def test_multiple_polyhedron_types(self):
         """Test plotting multiple polyhedron types."""
+        from symergetics.geometry.polyhedra import (
+            Cube,
+            Cuboctahedron,
+            Octahedron,
+            Tetrahedron,
+        )
         from symergetics.visualization.geometry import plot_polyhedron_3d
-        from symergetics.geometry.polyhedra import Tetrahedron, Octahedron, Cube, Cuboctahedron
         
         polyhedra = [Tetrahedron(), Octahedron(), Cube(), Cuboctahedron()]
         
@@ -595,8 +609,11 @@ class TestGeometryVisualizationIntegration:
 
     def test_coordinate_system_integration(self):
         """Test integration between coordinate system and polyhedron plotting."""
-        from symergetics.visualization.geometry import plot_quadray_coordinate, plot_ivm_lattice
         from symergetics.core.coordinates import QuadrayCoordinate
+        from symergetics.visualization.geometry import (
+            plot_ivm_lattice,
+            plot_quadray_coordinate,
+        )
         
         # Test coordinate plotting
         coord = QuadrayCoordinate(2, 1, 1, 0)
@@ -617,11 +634,13 @@ class TestGeometryVisualizationIntegration:
 
     def test_visualization_metadata_consistency(self):
         """Test that visualization metadata is consistent across functions."""
-        from symergetics.visualization.geometry import (
-            plot_polyhedron_3d, plot_quadray_coordinate, plot_ivm_lattice
-        )
-        from symergetics.geometry.polyhedra import Tetrahedron
         from symergetics.core.coordinates import QuadrayCoordinate
+        from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import (
+            plot_ivm_lattice,
+            plot_polyhedron_3d,
+            plot_quadray_coordinate,
+        )
         
         tetra = Tetrahedron()
         coord = QuadrayCoordinate(2, 1, 1, 0)
@@ -651,8 +670,9 @@ class TestGeometryVisualizationPerformance:
     def test_visualization_execution_time(self):
         """Test that visualizations execute within reasonable time."""
         import time
-        from symergetics.visualization.geometry import plot_polyhedron_3d
+
         from symergetics.geometry.polyhedra import Tetrahedron
+        from symergetics.visualization.geometry import plot_polyhedron_3d
         
         tetra = Tetrahedron()
         
@@ -673,6 +693,7 @@ class TestGeometryVisualizationPerformance:
     def test_large_lattice_performance(self):
         """Test performance with larger lattice sizes."""
         import time
+
         from symergetics.visualization.geometry import plot_ivm_lattice
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \

@@ -335,7 +335,7 @@ def demonstrate_base_conversions():
         65537,   # Fermat prime
     ]
     
-    bases = [2, 8, 16, 60]  # Binary, Octal, Hex, Babylonian
+    bases = [2, 8, 16, 36]  # Binary, Octal, Hex, Max-symbolic (valid bases: 2-36)
     
     for num in test_numbers:
         print(f"\nNumber: {num}")

@@ -3,13 +3,15 @@
 Tests for geometric mnemonics methods in symergetics.computation.geometric_mnemonics
 """
 
-import pytest
 import math
+
+import pytest
+
 from symergetics.computation.geometric_mnemonics import (
+    GeometricMnemonic,
     analyze_geometric_mnemonics,
     create_integer_ratio_visualization,
     generate_geometric_mnemonic_report,
-    GeometricMnemonic
 )
 from symergetics.core.numbers import SymergeticsNumber
 
@@ -105,7 +107,7 @@ class TestGeometricMnemonicVisualization:
 
     def test_create_visualization_empty_numbers(self):
         """Test visualization with empty number list."""
-        with pytest.raises(Exception):  # Should handle empty list gracefully
+        with pytest.raises(ValueError):  # Should handle empty list gracefully
             create_integer_ratio_visualization([])
 
     def test_create_visualization_single_number(self):

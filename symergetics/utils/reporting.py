@@ -7,13 +7,13 @@ analysis results, including statistical summaries, comparative analysis,
 and export functionality in multiple formats.
 """
 
-import json
 import csv
+import json
 import statistics
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
+from dataclasses import dataclass
 from datetime import datetime
-from dataclasses import dataclass, asdict
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 
 @dataclass
@@ -285,7 +285,7 @@ def _generate_comparative_insights(
             lower = domain1_name if diff > 0 else domain2_name
             insights.append(f"{higher} shows significantly higher palindromic patterns than {lower}")
         else:
-            insights.append(f"Similar palindromic pattern distribution between domains")
+            insights.append("Similar palindromic pattern distribution between domains")
 
     # Complexity comparison
     if 'complexity' in comparisons:
@@ -532,7 +532,8 @@ def generate_performance_report(
                     report['efficiency_analysis']['insight'] = "Low correlation between complexity and execution time"
                 else:
                     report['efficiency_analysis']['insight'] = "Moderate correlation between complexity and execution time"
-            except:
+            except (statistics.StatisticsError, ValueError):
+                # Correlation is undefined for constant inputs; skip the metric
                 pass
 
     # Memory efficiency analysis (estimated)

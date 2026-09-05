@@ -10,13 +10,14 @@ framework and provide deeper insights into mathematical structures.
 
 import math
 import statistics
-from typing import Dict, List, Any, Tuple, Optional, Union
-from collections import defaultdict, Counter
+from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Union
 
+from ..computation.palindromes import calculate_palindromic_density, is_palindromic
+from ..computation.primorials import is_prime, primorial
 from ..core.numbers import SymergeticsNumber
-from ..computation.primorials import primorial, scheherazade_power, is_prime
-from ..computation.palindromes import is_palindromic, calculate_palindromic_density
 
 
 @dataclass
@@ -367,7 +368,7 @@ def _analyze_prime_relationships(number: int) -> Dict[str, Any]:
             p = primorial(n)
             if number % int(p.value) == 0:
                 primorial_relationships.append(f"divisible by {n}#")
-        except:
+        except (ValueError, TypeError):
             break
     prime_relationships['primorial_relationships'] = primorial_relationships
 
@@ -690,7 +691,7 @@ def generate_comprehensive_report(
     
     report = {
         'title': title,
-        'timestamp': '2024-01-01T00:00:00Z',  # Would use datetime in real implementation
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'summary': {},
         'detailed_analysis': {},
         'insights': [],

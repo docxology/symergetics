@@ -14,26 +14,33 @@ Author: Symergetics Team
 Based on QuadMath implementation by docxology
 """
 
-from typing import List, Tuple, Optional, Dict, Any
-import math
-import itertools
-from ..core.coordinates import QuadrayCoordinate, urner_embedding
-from ..core.numbers import SymergeticsNumber
+from fractions import Fraction
+from typing import List, Optional, Tuple
+
+from ..core.coordinates import (
+    CUBE_VERTICES,
+    IVM_NEIGHBORS,
+    OCTAHEDRON_VERTICES,
+    QuadrayCoordinate,
+    urner_embedding,
+)
 
 
 def integer_tetra_volume(p0: QuadrayCoordinate, p1: QuadrayCoordinate,
-                        p2: QuadrayCoordinate, p3: QuadrayCoordinate) -> int:
+                        p2: QuadrayCoordinate, p3: QuadrayCoordinate) -> Fraction:
     """
-    Compute integer tetra-volume using determinant in IVM units (Fuller.4D).
+    Compute tetra-volume using determinant in IVM units (Fuller.4D).
 
     Calculates the volume of a tetrahedron defined by four Quadray coordinates
-    using exact integer arithmetic. This follows the QuadMath approach.
+    using exact rational arithmetic. This follows the QuadMath approach.
 
     Args:
         p0, p1, p2, p3: The four vertices of the tetrahedron
 
     Returns:
-        int: The volume in IVM units (regular tetrahedron = 1)
+        Fraction: The volume in IVM units (regular tetrahedron = 1). Lattice
+        tetrahedra can have fractional volumes (e.g. the corner tetrahedron
+        spanned by the origin and three basis directions has volume 1/4).
     """
     # Calculate vectors from p0 to the other points
     v1 = p1.sub(p0)
@@ -56,13 +63,14 @@ def integer_tetra_volume(p0: QuadrayCoordinate, p1: QuadrayCoordinate,
            M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) +
            M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]))
 
-    abs_det = abs(det)
-    # Return volume normalized to IVM units
-    return abs_det // 4 if abs_det % 4 == 0 else abs_det
+    # Volume in IVM units: the unit tetrahedron has |det| = 4, so divide by 4
+    # exactly. (The previous conditional normalization returned the raw
+    # determinant for non-multiples of 4, mixing scales.)
+    return Fraction(abs(det), 4)
 
 
 def ace_tetra_volume_5x5(p0: QuadrayCoordinate, p1: QuadrayCoordinate,
-                        p2: QuadrayCoordinate, p3: QuadrayCoordinate) -> int:
+                        p2: QuadrayCoordinate, p3: QuadrayCoordinate) -> Fraction:
     """
     Tom Ace 5x5 determinant method for tetra-volume in IVM units.
 
@@ -73,7 +81,8 @@ def ace_tetra_volume_5x5(p0: QuadrayCoordinate, p1: QuadrayCoordinate,
         p0, p1, p2, p3: The four vertices of the tetrahedron
 
     Returns:
-        int: The volume in IVM units
+        Fraction: The volume in IVM units (regular tetrahedron = 1); exact
+        rational, matching integer_tetra_volume for every lattice input.
     """
     # Create 5x5 matrix for determinant calculation
     A = [
@@ -86,7 +95,7 @@ def ace_tetra_volume_5x5(p0: QuadrayCoordinate, p1: QuadrayCoordinate,
 
     # Calculate 5x5 determinant using Bareiss algorithm
     det = _bareiss_determinant_5x5(A)
-    volume = abs(det) // 4
+    volume = Fraction(abs(det), 4)
     return volume
 
 
@@ -143,41 +152,84 @@ class SymergeticsPolyhedron:
             vertices: List of Quadray coordinates defining the polyhedron vertices
         """
         self.vertices = vertices
-        self._volume_cache: Optional[int] = None
+        self._volume_cache: Optional[Fraction] = None
 
-    def volume(self) -> int:
+    def volume(self) -> Fraction:
         """
         Calculate the volume of the polyhedron in IVM units.
 
-        This method should be overridden by subclasses for specific
-        volume calculation methods.
+        Cached; delegates the actual computation to _calculate_volume.
 
         Returns:
-            int: Volume in tetrahedral units
+            Fraction: Volume in tetrahedral (IVM) units
         """
         if self._volume_cache is None:
             self._volume_cache = self._calculate_volume()
         return self._volume_cache
 
-    def _calculate_volume(self) -> int:
+    def faces(self) -> List[List[QuadrayCoordinate]]:
         """
-        Calculate volume using tetrahedrization.
+        Get the faces of the polyhedron as vertex lists.
 
-        This is a fallback method that decomposes the polyhedron
-        into tetrahedra and sums their volumes.
+        Must be provided by subclasses; used by the default volume method.
+        """
+        raise NotImplementedError
+
+    def edges(self) -> List[Tuple[QuadrayCoordinate, QuadrayCoordinate]]:
+        """
+        Get the edges of the polyhedron, derived from its faces.
+
+        Each pair of vertices consecutive on a face forms an edge; pairs are
+        deduplicated. Subclasses may override with explicit edge lists.
 
         Returns:
-            int: Total volume in IVM units
+            List[Tuple]: Unique vertex pairs connected by edges
         """
-        # Default implementation - should be overridden
-        raise NotImplementedError("Volume calculation must be implemented by subclass")
+        seen = set()
+        edges = []
+        for face in self.faces():
+            n = len(face)
+            for i in range(n):
+                a, b = face[i], face[(i + 1) % n]
+                key = tuple(sorted((a.as_tuple(), b.as_tuple())))
+                if key not in seen:
+                    seen.add(key)
+                    edges.append((a, b))
+        return edges
+
+    def _calculate_volume(self) -> Fraction:
+        """
+        Calculate volume by fan decomposition from vertices[0].
+
+        For a convex polyhedron, the cones from any vertex over the faces
+        that do not contain that vertex tile the polyhedron exactly, so the
+        exact rational volume is the sum of their tetra volumes.
+
+        Returns:
+            Fraction: Total volume in IVM units
+        """
+        faces = self.faces()  # subclasses must provide the face list
+        apex = self.vertices[0]
+        total = Fraction(0)
+        for face in faces:
+            if apex in face:
+                continue
+            for i in range(1, len(face) - 1):
+                total += integer_tetra_volume(apex, face[0], face[i], face[i + 1])
+        return total
 
     def centroid(self) -> QuadrayCoordinate:
         """
         Calculate the centroid (average) of all vertices.
 
+        Note:
+            The centroid is snapped to the integer Quadray lattice with floor
+            division. For solids whose true centroid falls between lattice
+            points (e.g. a tetrahedron) the result is the floor of the exact
+            rational centroid, not the centroid itself.
+
         Returns:
-            QuadrayCoordinate: The centroid coordinate
+            QuadrayCoordinate: Floor-snapped centroid lattice point
         """
         if not self.vertices:
             return QuadrayCoordinate(0, 0, 0, 0)
@@ -250,8 +302,8 @@ class Tetrahedron(SymergeticsPolyhedron):
 
         super().__init__(vertices)
 
-    def _calculate_volume(self) -> int:
-        """Calculate volume of tetrahedron."""
+    def _calculate_volume(self) -> Fraction:
+        """Calculate volume of tetrahedron (exact rational IVM units)."""
         return integer_tetra_volume(*self.vertices)
 
     @property
@@ -263,16 +315,6 @@ class Tetrahedron(SymergeticsPolyhedron):
     def num_faces(self) -> int:
         """Number of faces in a tetrahedron."""
         return 4
-
-    def edges(self) -> List[Tuple[QuadrayCoordinate, QuadrayCoordinate]]:
-        """
-        Get all edges of the tetrahedron.
-
-        Returns:
-            List[Tuple]: Pairs of vertices connected by edges
-        """
-        indices = [(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)]
-        return [(self.vertices[i], self.vertices[j]) for i, j in indices]
 
     def faces(self) -> List[List[QuadrayCoordinate]]:
         """
@@ -304,26 +346,13 @@ class Octahedron(SymergeticsPolyhedron):
             vertices: Optional list of 6 vertices (uses standard IVM octahedron if None)
         """
         if vertices is None:
-            # Standard IVM octahedron vertices (axes ±2 with normalization)
-            vertices = [
-                QuadrayCoordinate(2, 0, 0, -2),   # +X
-                QuadrayCoordinate(-2, 0, 0, 2),   # -X
-                QuadrayCoordinate(0, 2, 0, -2),   # +Y
-                QuadrayCoordinate(0, -2, 0, 2),   # -Y
-                QuadrayCoordinate(0, 0, 2, -2),   # +Z
-                QuadrayCoordinate(0, 0, -2, 2),   # -Z
-            ]
+            # Standard IVM octahedron vertices, ordered [+X, -X, +Y, -Y, +Z, -Z]
+            vertices = [v.copy() for v in OCTAHEDRON_VERTICES]
         elif len(vertices) != 6:
             raise ValueError("Octahedron must have exactly 6 vertices")
 
         super().__init__(vertices)
 
-    def _calculate_volume(self) -> int:
-        """Calculate volume by decomposing into 4 tetrahedra."""
-        # For a regular octahedron, the volume is 4 times the volume of a regular tetrahedron
-        # with the same edge length. Since our coordinate system is scaled, we use the
-        # standard IVM relationship.
-        return 4  # Standard IVM volume for octahedron
 
     @property
     def num_edges(self) -> int:
@@ -371,28 +400,30 @@ class Cube(SymergeticsPolyhedron):
             vertices: Optional list of 8 vertices (uses standard IVM cube if None)
         """
         if vertices is None:
-            # Standard IVM cube vertices
-            vertices = [
-                QuadrayCoordinate(1, 1, 1, -3),   # Vertex 1
-                QuadrayCoordinate(1, 1, -1, 1),   # Vertex 2
-                QuadrayCoordinate(1, -1, 1, 1),   # Vertex 3
-                QuadrayCoordinate(1, -1, -1, -1), # Vertex 4
-                QuadrayCoordinate(-1, 1, 1, 1),   # Vertex 5
-                QuadrayCoordinate(-1, 1, -1, -1), # Vertex 6
-                QuadrayCoordinate(-1, -1, 1, -1), # Vertex 7
-                QuadrayCoordinate(-1, -1, -1, 3), # Vertex 8
-            ]
+            # Standard IVM cube vertices: face diagonal equals the tetra edge
+            vertices = [v.copy() for v in CUBE_VERTICES]
         elif len(vertices) != 8:
             raise ValueError("Cube must have exactly 8 vertices")
 
         super().__init__(vertices)
 
-    def _calculate_volume(self) -> int:
-        """Calculate volume by decomposing into tetrahedra."""
-        # Cube can be decomposed into 6 tetrahedra
-        # This is a simplified calculation - actual implementation
-        # would sum the volumes of all tetrahedral decompositions
-        return 3  # Standard IVM volume for cube
+    def faces(self) -> List[List[QuadrayCoordinate]]:
+        """
+        Get the 6 square faces of the cube (vertex order from CUBE_VERTICES).
+
+        Returns:
+            List[List]: Square faces defined by 4-vertex cycles
+        """
+        v = self.vertices
+        return [
+            [v[0], v[5], v[3], v[6]],  # +col1 plane
+            [v[4], v[1], v[7], v[2]],  # -col1 plane
+            [v[0], v[6], v[1], v[7]],  # +col2 plane
+            [v[5], v[3], v[4], v[2]],  # -col2 plane
+            [v[0], v[7], v[2], v[5]],  # +col3 plane
+            [v[6], v[3], v[4], v[1]],  # -col3 plane
+        ]
+
 
     @property
     def num_edges(self) -> int:
@@ -420,17 +451,30 @@ class Cuboctahedron(SymergeticsPolyhedron):
             vertices: Optional list of 12 vertices (uses IVM neighbors if None)
         """
         if vertices is None:
-            # 12 IVM neighbors (all permutations of {2,1,1,0})
-            base = [2, 1, 1, 0]
-            vertices = [QuadrayCoordinate(*perm) for perm in set(itertools.permutations(base))]
+            # The 12 IVM neighbors (all permutations of {2,1,1,0}), in the
+            # deterministic order defined by IVM_NEIGHBORS.
+            vertices = [n.copy() for n in IVM_NEIGHBORS]
         elif len(vertices) != 12:
             raise ValueError("Cuboctahedron must have exactly 12 vertices")
 
         super().__init__(vertices)
 
-    def _calculate_volume(self) -> int:
-        """Calculate volume of cuboctahedron."""
-        return 20  # Standard IVM volume for cuboctahedron
+    def faces(self) -> List[List[QuadrayCoordinate]]:
+        """
+        Get the 14 faces: 8 triangles + 6 squares.
+
+        Indices refer to the IVM_NEIGHBORS order of the default vertices.
+        """
+        v = self.vertices
+        triangles = [
+            (1, 2, 0), (1, 6, 4), (8, 2, 7), (8, 6, 11),
+            (3, 5, 0), (3, 9, 4), (10, 5, 7), (10, 9, 11),
+        ]
+        squares = [
+            (1, 2, 8, 6), (3, 5, 10, 9), (0, 1, 4, 3),
+            (7, 8, 11, 10), (0, 2, 7, 5), (4, 6, 11, 9),
+        ]
+        return [[v[i] for i in face] for face in triangles + squares]
 
     @property
     def num_edges(self) -> int:

@@ -7,13 +7,14 @@ to achieve 90%+ test coverage, focusing on edge cases, error handling, and
 comprehensive functionality testing.
 """
 
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
 import json
-from typing import List, Dict, Any
+import os
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Test data and fixtures
 TEST_DATA_DIR = Path(__file__).parent / "test_data"
@@ -463,7 +464,7 @@ class TestNumberVisualizationErrorHandling:
         """Test graceful failure when invalid backend is provided."""
         from symergetics.visualization.numbers import plot_palindromic_heatmap
         
-        with pytest.raises(ValueError, match="Heatmap visualization requires matplotlib backend"):
+        with pytest.raises(ValueError, match="Heatmap visualization requires matplotlib or plotly backend"):
             plot_palindromic_heatmap(
                 sequence_start=1,
                 sequence_end=100,
@@ -508,8 +509,8 @@ class TestNumberVisualizationIntegration:
         """Test multiple number visualization types."""
         from symergetics.visualization.numbers import (
             plot_palindromic_heatmap,
+            plot_primorial_spectrum,
             plot_scheherazade_network,
-            plot_primorial_spectrum
         )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
@@ -560,8 +561,8 @@ class TestNumberVisualizationIntegration:
         """Test that visualization metadata is consistent across functions."""
         from symergetics.visualization.numbers import (
             plot_palindromic_heatmap,
+            plot_primorial_spectrum,
             plot_scheherazade_network,
-            plot_primorial_spectrum
         )
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
@@ -615,6 +616,7 @@ class TestNumberVisualizationPerformance:
     def test_visualization_execution_time(self):
         """Test that visualizations execute within reasonable time."""
         import time
+
         from symergetics.visualization.numbers import plot_palindromic_heatmap
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
@@ -636,6 +638,7 @@ class TestNumberVisualizationPerformance:
     def test_large_range_performance(self):
         """Test performance with large ranges."""
         import time
+
         from symergetics.visualization.numbers import plot_palindromic_heatmap
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \
@@ -657,6 +660,7 @@ class TestNumberVisualizationPerformance:
     def test_network_performance(self):
         """Test performance with large networks."""
         import time
+
         from symergetics.visualization.numbers import plot_scheherazade_network
         
         with patch('matplotlib.pyplot.figure') as mock_figure, \

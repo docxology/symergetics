@@ -79,7 +79,7 @@ The Symergetics test suite represents a comprehensive validation framework with 
 
 ### Mock Usage Analysis
 - **Symergetics Methods**: 0% mocking (100% real methods)
-- **Visualization Libraries**: Appropriate mocking of matplotlib, plotly, seaborn
+- **Visualization Libraries**: matplotlib/plotly/seaborn may be patched for rendering isolation; Symergetics functionality itself is never mocked
 - **External Dependencies**: Minimal mocking of external libraries only
 
 ### Test Patterns Validation

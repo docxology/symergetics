@@ -5,22 +5,31 @@ Tests cover geometric, mathematical, and number visualizations
 in the Synergetics framework.
 """
 
-import pytest
-import numpy as np
-from pathlib import Path
-import tempfile
 import shutil
+import tempfile
+from pathlib import Path
 
-from symergetics.visualization import (
-    set_config, get_config, reset_config,
-    plot_polyhedron, plot_quadray_coordinate, plot_ivm_lattice,
-    plot_palindromic_pattern, plot_scheherazade_pattern,
-    plot_continued_fraction, plot_base_conversion,
-    plot_pattern_analysis,
-    batch_visualize, export_visualization, create_visualization_report
-)
+import numpy as np
+import pytest
+
 from symergetics.core.coordinates import QuadrayCoordinate
 from symergetics.core.numbers import SymergeticsNumber
+from symergetics.visualization import (
+    batch_visualize,
+    create_visualization_report,
+    export_visualization,
+    get_config,
+    plot_base_conversion,
+    plot_continued_fraction,
+    plot_ivm_lattice,
+    plot_palindromic_pattern,
+    plot_pattern_analysis,
+    plot_polyhedron,
+    plot_quadray_coordinate,
+    plot_scheherazade_pattern,
+    reset_config,
+    set_config,
+)
 
 
 class TestVisualizationConfig:
@@ -248,8 +257,10 @@ class TestUtilityFunctions:
     def test_organized_output_structure(self):
         """Test the organized output structure functionality."""
         from symergetics.visualization import (
-            get_organized_output_path, create_output_structure_readme,
-            list_output_structure, set_config
+            create_output_structure_readme,
+            get_organized_output_path,
+            list_output_structure,
+            set_config,
         )
         
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -349,7 +360,7 @@ class TestUtilityFunctions:
             assert report_path.endswith('.txt')
 
             # Check report content
-            with open(report_path, 'r') as f:
+            with open(report_path) as f:
                 content = f.read()
                 assert "Test Report" in content
                 assert "Total visualizations: 3" in content

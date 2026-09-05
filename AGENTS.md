@@ -10,7 +10,8 @@ arithmetic, quadray/IVM coordinates, polyhedra, number-pattern experiments
 2. **Current state?** `STATUS.md` — every claim names the command that
    verifies it. Do not trust prose status; re-run.
 3. **What next?** `TODO.md` — the single backlog file (Minor/Medium/Major).
-4. **History of doc passes?** `REVIEW_LOG_2026-08-31.md` (append, never rewrite).
+4. **History of doc passes?** Point-in-time review logs were removed from the
+   tree (commit 2c7edcf); receipts live in `STATUS.md` and git history.
 
 ## Layout
 
@@ -23,14 +24,14 @@ arithmetic, quadray/IVM coordinates, polyhedra, number-pattern experiments
 
 ## Verification (read the gotchas before running)
 
-- Quick check, one module: `uv run pytest tests/core/test_coordinates.py -q --no-cov`
-  (measured 2026-08-31: 25 passed in 371 s on external-drive I/O).
+- Quick check, one module: `uv run pytest tests/test_core_coordinates.py -q --no-cov`
+  (the `tests/core/` twins were merged into the `tests/` root on 2026-09-05;
+  measured 2026-09-05 after merge: 41 passed).
 - **Gotcha 1:** a single-file run WITHOUT `--no-cov` fails pyproject's 85%
-  package-wide coverage floor (measured: 25/25 passed, "Total coverage: 8.19%",
-  exit nonzero). Failing exit ≠ failing tests.
-- **Gotcha 2:** the full suite is slow here — full collection exceeded 300 s on
-  external-drive cold I/O. Run in background with a generous timeout:
-  `uv run pytest tests/ -q`. Full-suite receipt not yet recorded (TODO.md Major).
+  package-wide coverage floor (failing exit ≠ failing tests).
+- **Gotcha 2:** the full suite is slow here on cold external-drive I/O. Run in
+  background with a generous timeout: `uv run pytest tests/ -q`. Receipt:
+  2026-09-05 → 993 passed, 20 skipped, coverage 86.14% (STATUS.md).
 - Demos: `python run.py --examples-only` regenerates `output/`.
 
 ## Decision points

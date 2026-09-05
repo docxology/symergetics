@@ -9,21 +9,29 @@ This module tests all PNG generation functionality, including:
 - Transparency and color options
 """
 
-import pytest
-import tempfile
-import numpy as np
-from pathlib import Path
-from PIL import Image
 import os
+import tempfile
+from pathlib import Path
 
-from symergetics.visualization import (
-    set_config, get_config, reset_config,
-    plot_polyhedron, plot_quadray_coordinate, plot_ivm_lattice,
-    plot_palindromic_pattern, plot_scheherazade_pattern,
-    plot_continued_fraction, plot_base_conversion, plot_pattern_analysis
-)
-from symergetics.core.numbers import SymergeticsNumber
+import numpy as np
+import pytest
+from PIL import Image
+
 from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.core.numbers import SymergeticsNumber
+from symergetics.visualization import (
+    get_config,
+    plot_base_conversion,
+    plot_continued_fraction,
+    plot_ivm_lattice,
+    plot_palindromic_pattern,
+    plot_pattern_analysis,
+    plot_polyhedron,
+    plot_quadray_coordinate,
+    plot_scheherazade_pattern,
+    reset_config,
+    set_config,
+)
 
 
 class TestPNGConfiguration:

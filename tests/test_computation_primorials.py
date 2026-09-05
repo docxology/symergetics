@@ -5,16 +5,17 @@ Tests primorial calculations, Scheherazade numbers, and related mathematical fun
 """
 
 import pytest
+
 from symergetics.computation.primorials import (
-    primorial,
-    scheherazade_power,
-    factorial_decline,
     cosmic_abundance_factors,
-    scheherazade_pascal_coefficients,
-    prime_factors,
+    factorial_decline,
     is_prime,
     next_prime,
-    prime_count_up_to
+    prime_count_up_to,
+    prime_factors,
+    primorial,
+    scheherazade_pascal_coefficients,
+    scheherazade_power,
 )
 from symergetics.core.numbers import SymergeticsNumber
 

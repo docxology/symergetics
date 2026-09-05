@@ -4,16 +4,22 @@ Extended tests for core modules - Additional coverage for edge cases and complex
 Tests advanced functionality, edge cases, and integration scenarios.
 """
 
-import pytest
 import math
 from fractions import Fraction
-from symergetics.core.numbers import SymergeticsNumber
+
+import pytest
+
 from symergetics.core.constants import (
-    SymergeticsConstants,
-    PHI, PI, E, SQRT2, SQRT3,
+    COSMIC_ABUNDANCE,
+    PHI,
+    PI,
     SCHEHERAZADE_BASE,
-    COSMIC_ABUNDANCE
+    SQRT2,
+    SQRT3,
+    E,
+    SymergeticsConstants,
 )
+from symergetics.core.numbers import SymergeticsNumber
 
 
 class TestSymergeticsNumberExtended:
