@@ -64,7 +64,7 @@ The paper automatically incorporates visualizations from the main `output/` dire
 
 ### Technical Excellence
 - **Modular Architecture**: Clean, maintainable, and extensible code
-- **Comprehensive Testing**: 100% test coverage with rigorous validation
+- **Testing evidence**: revision-bound inventory and dated receipts in [TEST_EVIDENCE.md](TEST_EVIDENCE.md)
 - **Documentation**: Detailed guides and research documentation
 - **Performance**: Efficient algorithms for large-scale mathematical analysis
 
