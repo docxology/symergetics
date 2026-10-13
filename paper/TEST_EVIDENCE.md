@@ -36,6 +36,12 @@ result and not evidence that all mathematical operations preserve precision.
 
 The manuscript's older 757/953 claims lack revision-bound source inventories
 and used "functions" and "cases" interchangeably. They are superseded in the
-editable sections by these explicit semantics. No fresh full-suite pass or
-coverage result is asserted by this correction. Historical rendered PDFs and
+editable sections by these explicit semantics. The unrestricted full run was interrupted in the pre-existing
+`test_invalid_dpi_handling` after 549 passes: its 10,000-DPI image request spent
+minutes encoding an extremely large image. A bounded run on 2026-10-13 with
+Python 3.12 used the command above plus
+`-k 'not test_invalid_dpi_handling'`: **996 passed, 20 skipped, 1 deselected**,
+coverage **85.91%** (85% floor reached), 130.13 seconds. This is a qualified
+execution receipt; the extreme-DPI case remains unverified. Test-generated
+artifacts were restored to their pre-run versions. Historical rendered PDFs and
 Zenodo deposits are preserved; they do not contain this source correction.
