@@ -31,7 +31,7 @@ from ..utils.conversion import (
     convergents_from_continued_fraction,
     convert_between_bases,
 )
-from . import get_config, get_organized_output_path
+from . import _validate_canvas, get_config, get_organized_output_path
 
 
 def plot_continued_fraction(value: float,
@@ -75,6 +75,7 @@ def _plot_continued_fraction_matplotlib(value: float,
     terms = continued_fraction_approximation(value, max_terms)
     convergents = convergents_from_continued_fraction(terms)
 
+    _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Plot 1: Continued fraction terms
@@ -253,6 +254,7 @@ def _plot_base_conversion_matplotlib(number: int,
     # Perform conversion and collect steps
     result = convert_between_bases(number, from_base, to_base)
 
+    _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Plot 1: Number digit distribution
@@ -448,6 +450,7 @@ def _plot_pattern_analysis_matplotlib(number: Union[int, str],
 
     digits = [int(d) for d in num_str]
 
+    _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
     ax1, ax2 = axes[0]
     ax3, ax4 = axes[1]
@@ -657,6 +660,7 @@ def _plot_ssrcd_matplotlib(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
+    _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     num_str = analysis['number_string']
@@ -851,6 +855,7 @@ def _plot_continued_fraction_convergence_matplotlib(value: float,
     convergents = convergents_from_continued_fraction(terms)
 
     # Create figure with subplots
+    _validate_canvas((16, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=(16, 12))
     gs = GridSpec(3, 2, figure=fig, hspace=0.3, wspace=0.3)
 
@@ -1019,6 +1024,7 @@ def _plot_base_conversion_matrix_matplotlib(start_base: int, end_base: int, numb
             conversions[base] = "ERROR"
 
     # Create visualization
+    _validate_canvas((14, 10), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ax = plt.subplots(figsize=(14, 10))
 
     # Create a grid layout
@@ -1161,6 +1167,7 @@ def _plot_pattern_analysis_radar_matplotlib(sequence: str, **kwargs) -> Dict[str
     ]
 
     # Create radar chart
+    _validate_canvas((10, 10), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'))
 
     # Number of variables

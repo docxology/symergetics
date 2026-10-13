@@ -26,7 +26,7 @@ from ..geometry.polyhedra import (
     SymergeticsPolyhedron,
     Tetrahedron,
 )
-from . import ensure_output_dir, get_config, get_organized_output_path
+from . import _validate_canvas, ensure_output_dir, get_config, get_organized_output_path
 
 
 def plot_polyhedron(polyhedron: Union[str, SymergeticsPolyhedron],
@@ -93,6 +93,7 @@ def _plot_polyhedron_matplotlib(polyhedron: SymergeticsPolyhedron,
         raise ImportError("matplotlib is required for matplotlib backend")
 
     # Create figure
+    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
@@ -493,6 +494,7 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
+    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
@@ -690,6 +692,7 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
+    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
@@ -913,6 +916,7 @@ def _plot_polyhedron_3d_matplotlib(polyhedron: SymergeticsPolyhedron,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
+    _validate_canvas((get_config()["figure_size"][0] * 1.2, get_config()["figure_size"][1] * 1.2), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=(get_config()["figure_size"][0] * 1.2, get_config()["figure_size"][1] * 1.2))
     ax = fig.add_subplot(111, projection='3d')
 
@@ -1080,6 +1084,7 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
         raise ImportError("matplotlib is required for matplotlib backend")
 
     # Create a 2x2 subplot layout
+    _validate_canvas((16, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
 
     vertices_xyz = polyhedron.to_xyz_vertices()
@@ -1237,6 +1242,7 @@ def _plot_polyhedron_wireframe_matplotlib(polyhedron: SymergeticsPolyhedron,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
+    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 
@@ -1333,6 +1339,7 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
     except ImportError:
         raise ImportError("matplotlib is required for transformation animation")
 
+    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
 

@@ -1,9 +1,9 @@
 {
   "scope": "tests/**/test_*.py; all test-prefixed AST function definitions",
   "semantics": "definitions, including nested functions; not pytest collection or execution",
-  "source_sha256": "54da74ac354e2c205ccf4888ff787b37d3b40c073bfcfcab5b4d018118450e34",
+  "source_sha256": "84ccefc608ec85b1d3ab5273440e3b25970d34523b4be9800d2fee73e97fba7d",
   "test_files": 39,
-  "test_function_definitions": 1013,
+  "test_function_definitions": 1017,
   "files": [
     {
       "path": "tests/test_computation_analysis.py",
@@ -102,8 +102,8 @@
     },
     {
       "path": "tests/test_png_visualizations.py",
-      "sha256": "270c92356e45e76231fcc50b66fdda98f367d8bf1d721a0d9997fae6a6783b2a",
-      "functions": 19
+      "sha256": "6635693a48b25b0d3f056f27760b7c5d1395a5d327477f3ff83107e1a79d63fb",
+      "functions": 23
     },
     {
       "path": "tests/test_review_regressions.py",

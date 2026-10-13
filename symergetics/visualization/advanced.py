@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Union
 from ..computation.geometric_mnemonics import analyze_geometric_mnemonics
 from ..core.numbers import SymergeticsNumber
 from ..visualization import (
+    _validate_canvas,
     get_config,
     get_organized_output_path,  # noqa: F401  (patch target in tests)
 )
@@ -92,6 +93,7 @@ def _create_comparative_matplotlib(
     domain2_metrics = _extract_domain_metrics(domain2_data)
 
     # Create multi-panel figure
+    _validate_canvas((18, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
     fig.suptitle(f'Comparative Analysis: {domain1_name} vs {domain2_name}',
                 fontsize=16, fontweight='bold')
@@ -388,6 +390,7 @@ def _create_pattern_discovery_matplotlib(
             high_symmetry_numbers.append((i, symmetry))
 
     # Create visualization
+    _validate_canvas((15, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(2, 2, figsize=(15, 12))
     fig.suptitle(title, fontsize=16, fontweight='bold')
 
@@ -604,6 +607,7 @@ def _create_statistical_dashboard_matplotlib(
     palindromic_densities = [r.get('palindromic_density', 0) for r in analysis_results]
 
     # Create dashboard layout
+    _validate_canvas((20, 16), max(get_config()["dpi"], float(_plt.rcParams["figure.dpi"])))
     fig = _plt.figure(figsize=(20, 16))
     fig.suptitle(title, fontsize=20, fontweight='bold')
 
@@ -873,6 +877,7 @@ def _create_geometric_mnemonics_matplotlib(
     relationships = _extract_geometric_relationships(analyses)
 
     # Create comprehensive visualization
+    _validate_canvas((18, 15), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(3, 2, figsize=(18, 15))
     fig.suptitle(title, fontsize=18, fontweight='bold')
 
@@ -1165,6 +1170,7 @@ def create_mega_graphical_abstract(
         raise ValueError("Mega graphical abstract requires matplotlib backend")
 
     # Set up large composite figure (expanded for more panels)
+    _validate_canvas((32, 24), 300)
     fig = plt.figure(figsize=(32, 24), dpi=150)
     fig.suptitle(title, fontsize=32, fontweight='bold', y=0.95)
 

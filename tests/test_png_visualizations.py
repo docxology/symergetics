@@ -398,23 +398,52 @@ class TestPNGErrorHandling:
     def test_invalid_dpi_handling(self):
         """Test handling of invalid DPI values."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Very high DPI might cause issues
-            set_config({
-                'output_dir': temp_dir,
-                'backend': 'matplotlib',
-                'dpi': 10000  # Extremely high DPI
-            })
-            
-            # Should still work or fail gracefully
-            try:
-                result = plot_polyhedron('tetrahedron', backend='matplotlib')
-                if 'files' in result:
-                    png_file = Path(result['files'][0])
-                    assert png_file.exists()
-            except Exception as e:
-                # Should be a reasonable error, not a crash
-                assert isinstance(e, (ValueError, MemoryError, OSError))
-    
+            before = get_config()
+            with pytest.raises(ValueError, match="nominal pixels"):
+                set_config({
+                    'output_dir': temp_dir,
+                    'backend': 'matplotlib',
+                    'dpi': 10000
+                })
+            assert get_config() == before
+            assert not list(Path(temp_dir).iterdir())
+
+    @pytest.mark.parametrize("settings", [
+        {"dpi": 0}, {"dpi": -1}, {"dpi": float("nan")},
+        {"dpi": float("inf")}, {"figure_size": (float("inf"), 8)},
+        {"figure_size": (0, 8)}, {"figure_size": (100000, 100000)},
+        {"figure_size": (10,)}, {"dpi": "300"}, {"figure_size": ("10", 8)},
+    ])
+    def test_invalid_canvas_configuration_is_atomic(self, settings):
+        before = get_config()
+        with pytest.raises(ValueError):
+            set_config({"backend": "ascii", **settings})
+        assert get_config() == before
+
+    def test_scaled_figure_budget_checked_before_output(self):
+        # Base configuration fits; this plot multiplies both dimensions by 1.5.
+        with tempfile.TemporaryDirectory() as directory:
+            set_config({"output_dir": directory, "figure_size": (10, 8), "dpi": 1000})
+            with pytest.raises(ValueError, match="nominal pixels"):
+                plot_scheherazade_pattern(2, backend="matplotlib")
+            assert not list(Path(directory).rglob("*.png"))
+
+    def test_low_export_dpi_cannot_bypass_draw_budget(self):
+        with tempfile.TemporaryDirectory() as directory:
+            # Export would fit, but Matplotlib draws at its default 100 DPI first.
+            set_config({"output_dir": directory, "figure_size": (1000, 1000), "dpi": 1})
+            with pytest.raises(ValueError, match="nominal pixels"):
+                plot_polyhedron("tetrahedron", backend="matplotlib")
+            assert not list(Path(directory).rglob("*.png"))
+
+    def test_canvas_boundary_accepts_existing_publication_sizes(self):
+        from symergetics.visualization import _validate_canvas
+        _validate_canvas((32, 24), 300)
+        _validate_canvas((10, 8), 600)
+        _validate_canvas((10, 10), 1000)
+        with pytest.raises(ValueError, match="nominal pixels"):
+            _validate_canvas((10, 10), 1001)
+
     def test_readonly_output_directory(self):
         """Test handling of read-only output directory."""
         with tempfile.TemporaryDirectory() as temp_dir:

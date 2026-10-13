@@ -31,7 +31,7 @@ from ..computation.palindromes import (
 from ..computation.primorials import primorial, scheherazade_power
 from ..core.numbers import SymergeticsNumber
 from ..utils.mnemonics import create_memory_aid, format_large_number
-from . import get_config, get_organized_output_path
+from . import _validate_canvas, get_config, get_organized_output_path
 
 
 def plot_palindromic_pattern(number: Union[int, SymergeticsNumber],
@@ -89,6 +89,7 @@ def _plot_palindrome_matplotlib(number: Union[int, SymergeticsNumber],
                 }
             }
 
+    _validate_canvas((get_config()["figure_size"][0], get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(get_config()["figure_size"][0], get_config()["figure_size"][1] * 1.5))
 
     # Top plot: Digit pattern
@@ -349,6 +350,7 @@ def _plot_scheherazade_matplotlib(power: int, **kwargs) -> Dict[str, Any]:
     num_str = analysis['number_string']
     digits = [int(d) for d in num_str]
 
+    _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Plot 1: Digit distribution
@@ -563,6 +565,7 @@ def _plot_primorials_matplotlib(max_n: int = 20, **kwargs) -> Dict[str, Any]:
         except (ValueError, OverflowError):
             break  # Stop if primorial becomes too large to render
 
+    _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Plot 1: Linear primorial values
@@ -780,6 +783,7 @@ def _plot_mnemonic_matplotlib(number: Union[int, SymergeticsNumber],
     aids = create_memory_aid(number)
 
     # Create visualization of different mnemonic strategies
+    _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
 
     # Flatten axes for easier indexing
@@ -910,6 +914,7 @@ def _plot_palindromic_heatmap_matplotlib(sequence_start: int, sequence_end: int,
     data_matrix = np.array([palindromic_data, digit_density, pattern_complexity])
 
     # Create heatmap
+    _validate_canvas((12, 8), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ax = plt.subplots(figsize=(12, 8))
 
     # Use seaborn for better heatmap
@@ -998,6 +1003,7 @@ def _plot_scheherazade_network_matplotlib(power: int, **kwargs) -> Dict[str, Any
         digit_positions[digit].append(i)
 
     # Create network visualization
+    _validate_canvas((14, 10), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ax = plt.subplots(figsize=(14, 10))
 
     # Create nodes for each digit
@@ -1110,6 +1116,7 @@ def _plot_primorial_spectrum_matplotlib(max_n: int = 15, **kwargs) -> Dict[str, 
         primorials.append(float(p_n.value))
 
     # Create spectrum visualization
+    _validate_canvas((12, 15), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 15))
 
     # Spectrum 1: Raw primorial values
