@@ -1,0 +1,204 @@
+{
+  "scope": "tests/**/test_*.py; all test-prefixed AST function definitions",
+  "semantics": "definitions, including nested functions; not pytest collection or execution",
+  "source_sha256": "84ccefc608ec85b1d3ab5273440e3b25970d34523b4be9800d2fee73e97fba7d",
+  "test_files": 39,
+  "test_function_definitions": 1017,
+  "files": [
+    {
+      "path": "tests/test_computation_analysis.py",
+      "sha256": "5b74400b8101c8f4d17f7a10864e290b1e639a164d3586f38b46c341a6fea38d",
+      "functions": 24
+    },
+    {
+      "path": "tests/test_computation_analysis_comprehensive.py",
+      "sha256": "8160cf017970359f41afc2c1573895fa6bd00c01895e1b2ade0946d2e9bf322c",
+      "functions": 38
+    },
+    {
+      "path": "tests/test_computation_geometric_mnemonics.py",
+      "sha256": "21cad2a2b8558ba5a9a172d724c3737a4ffc8cc1569f6e1c87f7db08504c0ead",
+      "functions": 30
+    },
+    {
+      "path": "tests/test_computation_palindromes.py",
+      "sha256": "49d9fcf53e269c8ca8c5b07950399df011e8fbddcf1bf603ae55814637b16c47",
+      "functions": 21
+    },
+    {
+      "path": "tests/test_computation_primorials.py",
+      "sha256": "17ed85e95ff5f3583e084d99d5644eb14add40a9317b0739e801d3be7e36a9c3",
+      "functions": 21
+    },
+    {
+      "path": "tests/test_computation_primorials_coverage.py",
+      "sha256": "59b0506c3cdb8a3d409bd35bda5cef84d338956a20a00e1285d8cafc5ce5781b",
+      "functions": 31
+    },
+    {
+      "path": "tests/test_core_comprehensive.py",
+      "sha256": "97981db9d634290a37492eeb66c0b640c41046c1a6e99c06151a34bb6eaa9c42",
+      "functions": 35
+    },
+    {
+      "path": "tests/test_core_constants.py",
+      "sha256": "0d9a8a71b4800b3dd8625759e3e03123a4c0ad8a516f03860cdb42f6873ff722",
+      "functions": 44
+    },
+    {
+      "path": "tests/test_core_coordinates.py",
+      "sha256": "fb9527d27d5efce38fa5f28799569eb7cfc8107ccbb1dad78cbce447d6ec3665",
+      "functions": 41
+    },
+    {
+      "path": "tests/test_core_extended.py",
+      "sha256": "8577fda05a942489533d439f78af6fd52aff6a4c51c81ff66bbe64986f5d8b70",
+      "functions": 24
+    },
+    {
+      "path": "tests/test_core_numbers.py",
+      "sha256": "cf3f40805e5c0189c1eec1ef118d8d340a3023e2ff33a6aa76708f96572f63c0",
+      "functions": 48
+    },
+    {
+      "path": "tests/test_coverage_improvement.py",
+      "sha256": "e99647e9d9b58dad41de138a0f137eb0896f809d731523946453e4c287ade63a",
+      "functions": 23
+    },
+    {
+      "path": "tests/test_edge_cases_comprehensive.py",
+      "sha256": "9ec038d45760380c80fdde00811516f15c314ba2a0191db72d405ce272fb812b",
+      "functions": 36
+    },
+    {
+      "path": "tests/test_geometry_polyhedra.py",
+      "sha256": "8f4b46b2358ed1fffb7eb58db181e533b50fcfb1c549525ef125b6bc4cac858f",
+      "functions": 18
+    },
+    {
+      "path": "tests/test_geometry_real.py",
+      "sha256": "405f8ab16f291ac15985f3e4706407653a42bb8b33841434a60a711b79773d15",
+      "functions": 23
+    },
+    {
+      "path": "tests/test_geometry_transformations.py",
+      "sha256": "c104f0bfc22e98e46a09c02adbca1456836db542d5185558ca6a397817b8277f",
+      "functions": 16
+    },
+    {
+      "path": "tests/test_geometry_transformations_coverage.py",
+      "sha256": "a7668753a03e49bf4e010d7da86566fae6d59ba2d52ef0de00bd4f7ca102893f",
+      "functions": 31
+    },
+    {
+      "path": "tests/test_integration_comprehensive.py",
+      "sha256": "9242efd2eccfb89f6145f04560315d86bfb201b6faf7426a0b7a2f2b36d4f5bf",
+      "functions": 20
+    },
+    {
+      "path": "tests/test_mega_graphical_abstract.py",
+      "sha256": "442114ed4a3df39949de2ce5be162257f00c54dff283b1f780f0f1dd92f92fd9",
+      "functions": 6
+    },
+    {
+      "path": "tests/test_png_visualizations.py",
+      "sha256": "6635693a48b25b0d3f056f27760b7c5d1395a5d327477f3ff83107e1a79d63fb",
+      "functions": 23
+    },
+    {
+      "path": "tests/test_review_regressions.py",
+      "sha256": "045760e7323de47e401c66439b5b7964408fed030b941821152dbb548ffbf7eb",
+      "functions": 45
+    },
+    {
+      "path": "tests/test_utils_conversion.py",
+      "sha256": "5a9fef7317bd5a132e95fccdefdd021eeae4622856ec4ac622fad61d7fbd642c",
+      "functions": 28
+    },
+    {
+      "path": "tests/test_utils_extended.py",
+      "sha256": "e0094029eeeb233935e1bf07e218091b8faaa7a651c74e3679bcecf3cfa0c073",
+      "functions": 27
+    },
+    {
+      "path": "tests/test_utils_mnemonics.py",
+      "sha256": "9c482f5f4c5e26a7434237e80e12126495d02d0bbdaf7241196ceb94b598ebf0",
+      "functions": 31
+    },
+    {
+      "path": "tests/test_utils_real.py",
+      "sha256": "3564409133041ee5cdcea3ddd30ef50239adc07f893098ca5159f3061f133407",
+      "functions": 31
+    },
+    {
+      "path": "tests/test_utils_reporting.py",
+      "sha256": "58653915aec67b55e1cd1dabdbfa778a416667e9b76b73d8a0721ef0ccfc8478",
+      "functions": 28
+    },
+    {
+      "path": "tests/test_visualization.py",
+      "sha256": "c5049ae5e9fa8d92e2f553731f12c5ea13a36bfbc78648b125cb4791eb334609",
+      "functions": 25
+    },
+    {
+      "path": "tests/test_visualization_advanced.py",
+      "sha256": "d5bafe90e37a5944629a1a73b7e1c7ebfcb4d9dad67b83e75caf52b386120fd7",
+      "functions": 18
+    },
+    {
+      "path": "tests/test_visualization_comprehensive.py",
+      "sha256": "202aeeab875713434d5d8e2c5b618d96cbaaa5ff57a65244e97d14787c285d65",
+      "functions": 16
+    },
+    {
+      "path": "tests/test_visualization_geometry_comprehensive.py",
+      "sha256": "c86162efbcffd0ceb015b5d14353d23dc8c4d0de9d1943c8b4e28d4f24b5fdcd",
+      "functions": 33
+    },
+    {
+      "path": "tests/test_visualization_geometry_coverage.py",
+      "sha256": "396c085cec33fdf8261af7e6d7945125da88e429566c6b38ead118e94561418d",
+      "functions": 17
+    },
+    {
+      "path": "tests/test_visualization_init_comprehensive.py",
+      "sha256": "6ff2ab510f74d4b2a17e19b11a6db409417d423e64ed774f8cb9a5729f1168ee",
+      "functions": 18
+    },
+    {
+      "path": "tests/test_visualization_init_coverage.py",
+      "sha256": "94f84aeff81e2d36603b80dde84e207ddd2259b178f51faf8d941cedcce13944",
+      "functions": 11
+    },
+    {
+      "path": "tests/test_visualization_mathematical_comprehensive.py",
+      "sha256": "9472de2314177b8a54e93a86690d519fe699515a8d8199d19cb124e03cd439b1",
+      "functions": 31
+    },
+    {
+      "path": "tests/test_visualization_mathematical_coverage.py",
+      "sha256": "9a22dc6892bddbc6f985d12429fd0261da4676351ea7616795261aca61418a1b",
+      "functions": 19
+    },
+    {
+      "path": "tests/test_visualization_methods.py",
+      "sha256": "31b0e1417b8cd69c7cbf02d6532c0e0a52da471fb354d44937a5ca1bdb315fd4",
+      "functions": 20
+    },
+    {
+      "path": "tests/test_visualization_numbers_comprehensive.py",
+      "sha256": "282b76971e8010e9fa0655d8f39fc3d80b75f23ee04d710a2ba260b6ce6e12ce",
+      "functions": 29
+    },
+    {
+      "path": "tests/test_visualization_numbers_coverage.py",
+      "sha256": "f442c2d1e8dcb710c125a6541499b6cf99cfe38623a7582bbf56ea68db71489c",
+      "functions": 16
+    },
+    {
+      "path": "tests/test_visualization_real.py",
+      "sha256": "23cd1488505c8b151b0477fb96f463f1c04cf7f6d1d0fe58f5c05aef03fe28f7",
+      "functions": 21
+    }
+  ]
+}

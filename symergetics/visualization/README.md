@@ -296,3 +296,21 @@ When adding new visualizations:
 ## License
 
 This visualization module is part of the Synergetics package and follows the same MIT license.
+
+## Render resource boundary
+
+Configuration updates reject non-finite/non-positive figure dimensions or DPI
+and nominal canvases larger than 100,000,000 pixels with `ValueError`, before
+any settings are changed. Matplotlib exporters check their actual requested figure dimensions,
+including scaled and fixed-size plots, before constructing the figure. This
+check uses the higher of export DPI and Matplotlib's configured draw DPI, so
+a low export DPI cannot conceal a huge intermediate draw buffer. Numeric
+strings and booleans are rejected rather than stored as rendering settings. Reduce figure
+size or DPI after a rejection. Existing 32×24-inch publication figures at 300 DPI
+and 10×8-inch figures at 600 DPI fit this limit.
+
+The cap corresponds to 400 MB for a single nominal RGBA buffer. Tight bounding
+boxes, padding and encoder overhead can require additional memory; this is a
+nominal canvas boundary, not a total process-memory guarantee. SVG/PDF exports
+also pass through this check because Matplotlib can rasterize artists during
+vector export. No image is silently downsampled and no limit override is exposed.

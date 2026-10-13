@@ -2,7 +2,7 @@
 
 ### Exact Arithmetic Performance Validation
 
-The Symergetics package demonstrates complete precision preservation across all mathematical operations. Testing with 953 test cases covering arithmetic operations, coordinate transformations, and geometric calculations shows 100% accuracy compared to floating-point approximations.
+Exact rational arithmetic is checked for particular operations and expected values in the test suite. The suite count does not establish complete precision preservation across all operations or 100% accuracy relative to floating-point methods. See [Test evidence and count semantics](../TEST_EVIDENCE.md) for the source-bound inventory and the dated execution receipt.
 
 **Arithmetic Precision Results:**
 - Basic operations (3/4 + 1/6) yield exactly 11/12 instead of 0.9166666666666666
@@ -57,13 +57,11 @@ The exact arithmetic implementation enables discovery of mathematical patterns i
 - Memory-efficient algorithms handle large number sequences
 - Parallel processing support for distributed analysis
 
-**Test Coverage:**
-- 86% overall test coverage across 32 test files
-- 953 individual test functions
-- 430+ core module tests
-- 200+ computation module tests
-- 100+ integration tests
-- 50+ edge case tests
+**Test evidence:** The generated inventory counts source definitions; pytest
+collection counts cases, and a full run measures passes, skips and coverage.
+See [Test evidence and count semantics](../TEST_EVIDENCE.md). Older manuscript
+counts of 757/953 and category subtotals are not reproducible revision-bound
+measurements and should not be interpreted as current suite results.
 
 ### Visualization and Output Quality
 

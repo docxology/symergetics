@@ -123,19 +123,19 @@ The visualization module provides comprehensive support for representing mathema
 ### Testing and Quality Assurance
 
 
-**Comprehensive Test Coverage:** The testing framework ensures that arithmetic operations maintain exact precision, with rigorous validation of all mathematical operations. Tests verify that results like 3/4 + 1/6 equal exactly 11/12 rather than floating-point approximations. The test coverage is measured using pytest-cov and currently includes:
-
-- **Total Test Functions**: 757 individual test functions across 32 test files
-- **Core Module Tests**: 430+ tests covering arithmetic operations, coordinate systems, and geometric calculations
-- **Computation Module Tests**: 200+ tests for pattern analysis, primorials, and palindromes
-- **Integration Tests**: 100+ tests verifying module interactions and data flow
-- **Edge Case Tests**: 50+ tests for boundary conditions and error handling
+**Testing evidence:** Tests include exact rational arithmetic assertions such as
+3/4 + 1/6 = 11/12. Suite size, execution results and coverage are different
+measurements. [Test evidence and count semantics](../TEST_EVIDENCE.md) binds a
+generated source inventory to its file hashes and distinguishes function
+definitions from parametrized pytest cases and execution receipts. Coverage
+must be measured with pytest-cov for the tested revision; no universal numerical
+accuracy follows from a test count.
 
 Complete test implementation is available in the [tests directory](https://github.com/docxology/symergetics/tree/main/tests).
 
 
 **Validation Framework:**
-- All mathematical operations produce correct results
+- Tests check specific mathematical operations and expected results
 - Coordinate transformations maintain geometric accuracy
 - Pattern recognition algorithms function correctly
 - Visualization outputs accurately represent underlying data

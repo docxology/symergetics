@@ -67,9 +67,10 @@ class PaperValidator:
         required_sections = [
             "00_title.md", "01_abstract.md", "02_introduction.md",
             "03_mathematical_foundations.md", "04_system_architecture.md",
-            "05_computational_methods.md", "06_geometric_applications.md",
-            "07_pattern_discovery.md", "08_research_applications.md",
-            "09_conclusion.md"
+            "05_computational_methods.md", "06_results.md",
+            "07_geometric_applications.md", "08_pattern_discovery.md",
+            "09_research_applications.md", "10_ongoing_questions_inquiries.md",
+            "11_conclusion.md"
         ]
         
         for section in required_sections:
@@ -136,9 +137,18 @@ class PaperValidator:
                             i
                         ))
                     
-                    # Check if image file exists
-                    full_path = self.output_dir / img_path
-                    if not full_path.exists():
+                    # Manuscript paths are rooted at the project, including output/.
+                    full_path = (self.paper_dir.parent / img_path).resolve()
+                    try:
+                        full_path.relative_to(self.output_dir.resolve())
+                    except ValueError:
+                        self.results.append(ValidationResult(
+                            "image_path", False,
+                            f"Image path escapes output directory: {img_path}",
+                            "error", str(md_file), i
+                        ))
+                        continue
+                    if not full_path.is_file():
                         self.results.append(ValidationResult(
                             "image_exists",
                             False,
@@ -169,29 +179,26 @@ class PaperValidator:
             
             for i, line in enumerate(lines, 1):
                 if line.startswith('!['):
-                    # Check if next line has detailed caption
-                    if i < len(lines) and lines[i].strip().startswith('**Figure'):
-                        caption_line = lines[i].strip()
-                        # Validate caption format
-                        if not re.match(r'\*\*Figure \d+:\*\* .+', caption_line):
+                    # Markdown allows blank lines before the caption paragraph.
+                    caption_index = i
+                    while caption_index < len(lines) and not lines[caption_index].strip():
+                        caption_index += 1
+                    if caption_index < len(lines) and lines[caption_index].strip().startswith('**Figure'):
+                        caption_line = lines[caption_index].strip()
+                        # Accept the STYLE_GUIDE form **Figure N**: and legacy **Figure N:**.
+                        if not re.match(r'\*\*Figure \d+(?:\*\*:|:\*\*) .+', caption_line):
                             self.results.append(ValidationResult(
-                                "figure_caption",
-                                False,
-                                f"Invalid caption format: {caption_line}",
-                                "error",
-                                str(md_file),
-                                i + 1
+                                "figure_caption", False,
+                                f"Invalid caption format: {caption_line}", "error",
+                                str(md_file), caption_index + 1
                             ))
                     else:
                         self.results.append(ValidationResult(
-                            "figure_caption",
-                            False,
-                            f"Missing detailed caption after image reference",
-                            "error",
-                            str(md_file),
-                            i
+                            "figure_caption", False,
+                            "Missing detailed caption after image reference", "error",
+                            str(md_file), i
                         ))
-    
+
     def _validate_links(self):
         """Validate links and references"""
         print("🔗 Validating links...")

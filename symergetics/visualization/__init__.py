@@ -16,7 +16,9 @@ Author: Symergetics Team
 """
 
 import json
+import math
 import os
+from numbers import Real
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -92,17 +94,52 @@ def set_config(config: Dict[str, Any]) -> None:
 
     Args:
         config: Configuration dictionary to merge with defaults
+
+    Raises:
+        ValueError: Dimensions/DPI are invalid or exceed the nominal pixel budget.
     """
     global _config
+    candidate = _config.copy()
     for key, value in config.items():
-        # One-level deep merge so partial overrides of nested sections
-        # (e.g. a custom 'colors' entry) keep the remaining defaults.
-        if isinstance(value, dict) and isinstance(_config.get(key), dict):
-            merged = dict(_config[key])
+        # Merge into a candidate so invalid rendering settings never partially apply.
+        if isinstance(value, dict) and isinstance(candidate.get(key), dict):
+            merged = dict(candidate[key])
             merged.update(value)
-            _config[key] = merged
+            candidate[key] = merged
         else:
-            _config[key] = value
+            candidate[key] = value
+    _validate_canvas(candidate["figure_size"], candidate["dpi"])
+    _config = candidate
+
+
+# 100M nominal pixels require 400MB for one RGBA buffer before encoder overhead.
+# Existing 32x24-inch manuscript figures at 300 DPI remain within this boundary.
+MAX_CANVAS_PIXELS = 100_000_000
+
+
+def _validate_canvas(figure_size: Any, dpi: Any) -> None:
+    """Reject invalid dimensions and oversized nominal render canvases."""
+    try:
+        width, height = figure_size
+        values = (width, height, dpi)
+        if any(isinstance(value, bool) or not isinstance(value, Real) for value in values):
+            raise ValueError("figure dimensions and DPI must be numeric")
+        dimensions = tuple(float(value) for value in values)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValueError(
+            "figure_size must contain two finite positive dimensions; "
+            "DPI must be finite and positive"
+        ) from error
+    if any(not math.isfinite(value) or value <= 0 for value in dimensions):
+        raise ValueError("figure dimensions and DPI must be finite and positive")
+    pixel_width = dimensions[0] * dimensions[2]
+    pixel_height = dimensions[1] * dimensions[2]
+    pixels = pixel_width * pixel_height
+    if not math.isfinite(pixels) or pixels > MAX_CANVAS_PIXELS:
+        raise ValueError(
+            "render canvas exceeds 100,000,000 nominal pixels; "
+            "reduce figure_size or DPI"
+        )
 
 
 def get_config() -> Dict[str, Any]:
@@ -424,6 +461,8 @@ def create_animation(frames: List[Dict[str, Any]],
         vertices = np.array(polyhedron.to_xyz_vertices())
         vertex_index = {v: i for i, v in enumerate(polyhedron.vertices)}
 
+        _validate_canvas(get_config()["figure_size"],
+                         max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
         figure = plt.figure(figsize=get_config()["figure_size"])
         axis = figure.add_subplot(111, projection='3d')
         face_tris = [
