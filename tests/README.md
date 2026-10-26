@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Symergetics test suite provides comprehensive coverage of all package functionality with **1013 test functions** across **42 test modules** (as of 2026-09-05, verified by `uv run pytest tests/ --collect-only -q | tail -1`). All tests use **real Symergetics methods** and validate mathematical correctness following Test-Driven Development (TDD) principles.
+The Symergetics test suite provides comprehensive coverage of all package functionality with **1017 test functions** across **39 test modules** (as of 2026-09-05, verified by `uv run pytest tests/ --collect-only -q | tail -1`). All tests use **real Symergetics methods** and validate mathematical correctness following Test-Driven Development (TDD) principles.
 
 ## Test Architecture
 
@@ -64,6 +64,8 @@ The Symergetics test suite provides comprehensive coverage of all package functi
 
 #### 8. Specialized Tests
 - **`test_mega_graphical_abstract.py`** - Mega graphical abstract functionality
+- **`test_geometry_real.py`**, **`test_utils_real.py`**, **`test_visualization_real.py`** - Real-data module coverage
+- **`test_review_regressions.py`** - Regressions pinned by the 2026-09-05 review
 
 ## Test Patterns
 
@@ -157,22 +159,16 @@ python -m pytest tests/ --benchmark-only
 python -m pytest tests/ -k "performance" --benchmark-only
 ```
 
-## Test Data and Fixtures
-
-### Test Data Directory
-- **Location**: `tests/test_data/`
-- **Purpose**: Contains test datasets, expected outputs, and reference materials
-- **Usage**: Referenced by `TEST_DATA_DIR` constant in test modules
-
-### Common Fixtures
-- **`temp_output_dir`**: Temporary directory for test outputs
-- **`reset_visualization_config`**: Resets visualization configuration
-- **`cleanup_test_files`**: Cleans up test-generated files
+### Test Data and Fixtures
+Tests are self-contained: there is no shared `tests/test_data/` directory and no
+`conftest.py`. Modules that need scratch space use `tempfile`/`tmp_path`, and
+visualization tests reset global config via `symergetics.visualization.set_config`
+/ `reset_config` in `try/finally` blocks.
 
 ## Test Coverage
 
 ### Current Coverage
-- **Total Test Functions**: 1013 (as of 2026-09-05)
+- **Total Test Functions**: 1017 (as of 2026-09-05)
 - **Code Coverage**: 90%+ (target)
 - **Modules Covered**: All major Symergetics modules
 - **Integration Coverage**: Cross-module interactions validated
@@ -200,11 +196,16 @@ python -m pytest tests/ -k "performance" --benchmark-only
 
 ## Continuous Integration
 
-### Automated Testing
-- **Pre-commit Hooks**: Tests run before commits
-- **CI Pipeline**: Full test suite runs on every push
-- **Coverage Reports**: Automated coverage reporting
-- **Performance Monitoring**: Performance regression detection
+No CI workflow or pre-commit configuration is currently checked in (there is no
+`.github/` directory and no `.pre-commit-config.yaml`). Tests are run locally:
+
+```bash
+# Quick single-module check (per-file runs need --no-cov, see pyproject floor)
+uv run pytest tests/test_core_coordinates.py -q --no-cov
+
+# Full suite with the 85% coverage floor
+uv run pytest tests/ -q
+```
 
 ### Test Maintenance
 - **Regular Updates**: Tests updated with new functionality
@@ -262,14 +263,13 @@ python -m pytest tests/test_specific.py::test_failing_function -v -s
 ## References
 
 ### Documentation
-- **API Documentation**: [docs/api/](docs/api/)
-- **Core Concepts**: [docs/core-concept-guide.md](docs/core-concept-guide.md)
-- **Mathematical Foundations**: [docs/mathematical-foundations-synergetics.md](docs/mathematical-foundations-synergetics.md)
+- **API Documentation**: [docs/api/](../docs/api/)
+- **Core Concepts**: [docs/core-concept-guide.md](../docs/core-concept-guide.md)
+- **Mathematical Foundations**: [docs/mathematical-foundations-synergetics.md](../docs/mathematical-foundations-synergetics.md)
 
 ### Related Files
-- **Package Configuration**: `pyproject.toml`
-- **Test Configuration**: `pytest.ini`
-- **Coverage Configuration**: `.coveragerc`
+- **Package + test + coverage configuration**: `pyproject.toml`
+  (`[tool.pytest.ini_options]`, `[tool.coverage.*]`)
 
 ---
 

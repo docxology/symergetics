@@ -1,6 +1,7 @@
 # TODO — symergetics agent backlog
 
-Created 2026-08-31 by the agent-ergonomics fleet pass (see REVIEW_LOG_2026-08-31.md).
+Created 2026-08-31 by the agent-ergonomics fleet pass (point-in-time review log
+removed in commit 2c7edcf; receipts live in STATUS.md and git history).
 One line per entry + file path(s). Mark done items `x`.
 
 ## Minor

@@ -10,14 +10,10 @@ comprehensive functionality testing.
 import json
 import os
 import tempfile
-from pathlib import Path
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
-# Test data and fixtures
-TEST_DATA_DIR = Path(__file__).parent / "test_data"
 
 
 class TestPlotPalindromicHeatmapComprehensive:

@@ -19,12 +19,10 @@ import math
 from fractions import Fraction
 from typing import List, Optional, Tuple, Union
 
-# Handle gcd import for different Python versions; re-exported for
-# backwards compatibility (see tests/test_core_comprehensive.py).
-try:
-    from math import gcd  # noqa: F401
-except ImportError:  # pragma: no cover
-    from fractions import gcd  # noqa: F401
+# math.gcd exists on every supported Python (>=3.8); fractions.gcd was removed
+# in Python 3.9. Re-exported for backwards compatibility (see
+# tests/test_core_comprehensive.py).
+from math import gcd  # noqa: F401
 
 
 class SymergeticsNumber:

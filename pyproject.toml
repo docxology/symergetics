@@ -58,10 +58,10 @@ scientific = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/symergetics/symergetics"
-Repository = "https://github.com/symergetics/symergetics"
-Issues = "https://github.com/symergetics/symergetics/issues"
-Documentation = "https://symergetics.readthedocs.io/"
+Homepage = "https://github.com/docxology/symergetics"
+Repository = "https://github.com/docxology/symergetics"
+Issues = "https://github.com/docxology/symergetics/issues"
+Documentation = "https://github.com/docxology/symergetics/blob/main/docs/index.md"
 
 [build-system]
 requires = ["hatchling"]

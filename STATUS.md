@@ -3,11 +3,10 @@
 Executable truth over prose truth: every claim below names the command that
 verifies it. Re-run instead of trusting this file.
 
-- **State:** working tree carries the 2026-09-05 review fixes (package, tests,
-  run.py, docs); `output/` artifacts are regenerable and its `test_custom_dir`
-  residue was removed. Verify: `git status --porcelain | grep -v '^?? output/'`.
-- **Branch:** `main`, no commits made by the review (changes left in the
-  working tree). Verify: `git status -sb`.
+- **State:** the 2026-09-05 review fixes (package, tests, run.py, docs) are
+  committed; `output/` artifacts are regenerable and its `test_custom_dir`
+  residue was removed. Verify: `git status --porcelain`.
+- **Branch:** `main`, clean tree. Verify: `git status -sb`.
 - **Tests:** full suite receipt 2026-09-05 (final tree): `uv run pytest tests/ -q`
   → **997 passed, 20 skipped**, coverage **85.85%** (floor 85% reached), 9 min.
   Pre-fix baseline (same machine): 954 passed, 20 skipped with `--no-cov`, 279 s.
