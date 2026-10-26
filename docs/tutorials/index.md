@@ -6,7 +6,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/symergetics.git
+git clone https://github.com/docxology/symergetics.git
 cd symergetics
 
 # Install in development mode

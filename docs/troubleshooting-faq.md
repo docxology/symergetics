@@ -708,7 +708,7 @@ print(f"Compact representation: {memory_efficient}")
 
 ### Community Resources
 
-- **GitHub Repository:** https://github.com/username/symergetics
+- **GitHub Repository:** https://github.com/docxology/symergetics
 - **Issue Tracker:** For bug reports and feature requests
 - **Documentation:** Comprehensive guides and API reference
 - **Examples:** Working code samples and tutorials

@@ -20,8 +20,8 @@ uv                       # Fast Python package manager (recommended)
 #### Initial Setup
 ```bash
 # Clone the repository
-git clone https://github.com/username/symergetics.git
-cd synergetics
+git clone https://github.com/docxology/symergetics.git
+cd symergetics
 
 # Set up development environment
 uv sync
