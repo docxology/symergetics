@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A comprehensive research analysis and design framework based on Buckminster Fuller's Synergetics"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 authors = [
     { name = "Symergetics Team" }
 ]
