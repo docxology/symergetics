@@ -117,7 +117,7 @@ python -c "import symergetics; print('Package imported successfully')"
 pip install -e .
 
 # For production
-pip install symergetics
+pip install -e .   # symergetics is not on PyPI; install the checkout
 ```
 
 ## Mathematical Computation Issues

@@ -445,7 +445,7 @@ dependencies = []
 ```
 
 **Installation Options:**
-- **Basic**: `pip install symergetics`
+- **Basic**: `pip install -e .` from a checkout (`symergetics` is not on PyPI)
 - **Development**: `pip install -e .[dev]`
 - **Scientific**: `pip install symergetics[scientific]`
 
