@@ -12,6 +12,7 @@
 - Reuse the actual IVM sites across ASCII, Matplotlib, Plotly, coordinate backgrounds and demo density/counts, replacing raw tuple aliases and non-FCC points.
 - Propagate transformation callback errors instead of saving a misleading success image; reject unknown backends and close figures on exceptional exits. Initialize advanced dashboard dependencies on a cold first call.
 - Render numeric XYZ annotations in graphical abstracts, remove the unused overlapping 2D axes and reserve space for the overall title.
+- Use the existing exact denominator-based integrality convention in geometric-mnemonic analysis, preserving Python 3.11 support without newer `Fraction.is_integer()` methods or floating conversion.
 
 ### Orchestration and real tests
 

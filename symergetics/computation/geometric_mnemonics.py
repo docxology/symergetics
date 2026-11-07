@@ -82,7 +82,7 @@ def analyze_geometric_mnemonics(number: Union[int, str, SymergeticsNumber],
     # Check for direct volume relationships
     for solid, volume in platonic_volumes.items():
         ratio = num_value / volume
-        if ratio.value.is_integer() and ratio.value != 0:
+        if ratio.value.denominator == 1 and ratio.value != 0:
             analysis['platonic_relationships'][solid] = {
                 'scaling_factor': int(ratio.value),
                 'relationship_type': 'volume_multiple',

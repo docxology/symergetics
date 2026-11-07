@@ -230,15 +230,22 @@ The repeatable browser command and artifact/trace policy are in
 Mouse capture capability is recorded, not fabricated; keyboard movement remains
 available when the browser rejects native pointer lock. The patched scientific
 environment, including Pillow 13 and pytest 9, passed the full suite and all demos.
+The [merged Linux Chromium run](https://github.com/docxology/QuadCraft/actions/runs/42328466873)
+also passed every selected surface and recorded Doom mouse capture as active,
+so both actual native-capture outcomes have been exercised.
 
 On the local macOS workstation, the normal graphical native configuration
 could not complete because system GLEW was missing. The independent headless
-build and native coordinate adapter were exercised successfully. QuadCraft's
-Linux CI separately provisions and compiles the graphical configuration.
+build and native coordinate adapter were exercised successfully. The
+[Linux native workflow](https://github.com/docxology/QuadCraft/actions/runs/42328466897)
+succeeded for the graphical build and Debug/Release headless jobs. Interactive
+native gameplay was not exercised.
 
 The local manuscript PDF build did not complete: XeTeX could not load the required
 DejaVu Serif / DejaVu Sans Mono fonts. A process-local Fontconfig configuration
 found Matplotlib's bundled font files but did not make them available to
-XeTeX's font loader. Local published PDFs remain unchanged. QuadMath's Linux
-manuscript job provisions the actual font/TeX/video toolchain and publishes its
-combined PDF/TeX as workflow artifacts; a configured job is not itself a success receipt.
+XeTeX's font loader. Local published PDFs remain unchanged. The
+[Linux manuscript run](https://github.com/docxology/QuadMath/actions/runs/42327721786)
+successfully regenerated and validated the manuscript, producing the
+119-page combined PDF and TeX. The downloaded PDF text, metadata and rendered
+cover were inspected; its visible date uses the source commit's UTC date.
