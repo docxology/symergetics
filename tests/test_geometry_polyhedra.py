@@ -20,6 +20,55 @@ from symergetics.geometry.polyhedra import (
 )
 
 
+def test_exact_centroid_primitive_tetrahedron_and_existing_floor_snap():
+    from symergetics.core.coordinates import QuadrayCoordinate
+
+    tetra = Tetrahedron([QuadrayCoordinate(*row) for row in (
+        (0, 0, 0, 0), (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0))])
+    result = tetra.centroid_exact()
+    assert result == (Fraction(1, 4), Fraction(1, 4), Fraction(1, 4), Fraction(0))
+    assert all(isinstance(value, Fraction) for value in result)
+    assert tetra.centroid() == QuadrayCoordinate(0, 0, 0, 0)
+
+
+@pytest.mark.parametrize("scale", (1, 10**400 + 1))
+def test_exact_centroid_huge_inputs_and_independent_gauges(scale):
+    from symergetics.core.coordinates import QuadrayCoordinate
+
+    rows = [(scale, 0, 0, 0), (0, scale, scale, scale)]
+    gauges = [-(10**450), 10**500]
+    for normalize in (False, True):
+        poly = SymergeticsPolyhedron([
+            QuadrayCoordinate(*(value + gauge for value in row), normalize=normalize)
+            for row, gauge in zip(rows, gauges)])
+        assert poly.centroid_exact() == (Fraction(0),) * 4
+    poly = SymergeticsPolyhedron([
+        QuadrayCoordinate(scale, 0, 0, 0), QuadrayCoordinate(0, 0, 0, 0)])
+    assert poly.centroid_exact() == (
+        Fraction(scale, 2), Fraction(0), Fraction(0), Fraction(0))
+
+
+def test_exact_centroid_empty_is_undefined_but_snapped_origin_is_preserved():
+    from symergetics.core.coordinates import QuadrayCoordinate
+
+    poly = SymergeticsPolyhedron([])
+    with pytest.raises(ValueError, match="At least one"):
+        poly.centroid_exact()
+    assert poly.centroid() == QuadrayCoordinate(0, 0, 0, 0)
+
+
+def test_tetrahedron_volume_tracks_replaced_and_mutated_vertices():
+    from symergetics.core.coordinates import QuadrayCoordinate
+
+    tetra = Tetrahedron([QuadrayCoordinate(*row) for row in (
+        (0, 0, 0, 0), (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0))])
+    assert tetra.volume() == Fraction(1, 4)
+    tetra.vertices[1] = QuadrayCoordinate(2, 0, 0, 0)
+    assert tetra.volume() == Fraction(1, 2)
+    tetra.vertices[1].a = 3
+    assert tetra.volume() == Fraction(3, 4)
+
+
 class TestVolumeCalculations:
     """Test volume calculation functions."""
 
@@ -107,12 +156,7 @@ class TestSymergeticsPolyhedron:
             QuadrayCoordinate(0, 0, 2, 0),
         ]
 
-        # Create a mock polyhedron for testing
-        class MockPolyhedron(SymergeticsPolyhedron):
-            def _calculate_volume(self):
-                return 1
-
-        poly = MockPolyhedron(vertices)
+        poly = Tetrahedron(vertices)
         centroid = poly.centroid()
 
         # Centroid should be at (0.5, 0.5, 0.5, 0) after normalization

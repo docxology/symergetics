@@ -6,6 +6,19 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      quadmath_ref:
+        description: QuadMath branch, tag or commit to verify
+        type: string
+        default: main
+      symergetics_ref:
+        description: symergetics branch, tag or commit to verify
+        type: string
+        default: main
+      quadcraft_ref:
+        description: QuadCraft branch, tag or commit to verify
+        type: string
+        default: main
   schedule:
     - cron: '23 6 * * 1'
 
@@ -20,15 +33,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: symergetics
+          ref: ${{ inputs.symergetics_ref || github.sha }}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: docxology/QuadMath
-          ref: main
+          ref: ${{ inputs.quadmath_ref || 'main' }}
           path: QuadMath
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: docxology/QuadCraft
-          ref: main
+          ref: ${{ inputs.quadcraft_ref || 'main' }}
           path: QuadCraft
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -40,11 +54,24 @@ jobs:
         run: |
           python -m pip install uv==0.13.7
           sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install locked Chromium tooling
+        working-directory: QuadCraft/games/tests/browser
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
       - name: Verify actual repositories and runtimes
-        run: python symergetics/verify_suite.py --report '${{ runner.temp }}/suite-receipt.json'
+        env:
+          BROWSER_DIAGNOSTICS_DIR: ${{ runner.temp }}/browser-diagnostics
+        run: python symergetics/verify_suite.py --browser --require-clean --report '${{ runner.temp }}/suite-receipt.json'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: suite-execution-receipt
           path: ${{ runner.temp }}/suite-receipt.json
           if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: suite-browser-diagnostics
+          path: ${{ runner.temp }}/browser-diagnostics
+          if-no-files-found: warn

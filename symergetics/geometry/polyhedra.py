@@ -152,20 +152,17 @@ class SymergeticsPolyhedron:
             vertices: List of Quadray coordinates defining the polyhedron vertices
         """
         self.vertices = vertices
-        self._volume_cache: Optional[Fraction] = None
 
     def volume(self) -> Fraction:
         """
         Calculate the volume of the polyhedron in IVM units.
 
-        Cached; delegates the actual computation to _calculate_volume.
+        Recomputed from the current publicly mutable vertices on every call.
 
         Returns:
             Fraction: Volume in tetrahedral (IVM) units
         """
-        if self._volume_cache is None:
-            self._volume_cache = self._calculate_volume()
-        return self._volume_cache
+        return self._calculate_volume()
 
     def faces(self) -> List[List[QuadrayCoordinate]]:
         """
@@ -244,6 +241,25 @@ class SymergeticsPolyhedron:
         return QuadrayCoordinate(
             total_a // n, total_b // n, total_c // n, total_d // n
         )
+
+    def centroid_exact(self) -> Tuple[Fraction, Fraction, Fraction, Fraction]:
+        """Return the exact vertex mean in the minimum-zero gauge.
+
+        Components are converted to rational numbers before arithmetic. The
+        result is a tuple, not an integer-snapping QuadrayCoordinate; unlike
+        centroid(), this method never floors the mean. Independent input gauge
+        shifts leave the result unchanged. Empty vertex lists raise ValueError.
+        """
+        if not self.vertices:
+            raise ValueError("At least one vertex is required")
+        totals = [Fraction(0) for _ in range(4)]
+        for vertex in self.vertices:
+            for i, value in enumerate(vertex.as_tuple()):
+                totals[i] += Fraction(value)
+        minimum = min(totals)
+        count = len(self.vertices)
+        a, b, c, d = ((total - minimum) / count for total in totals)
+        return a, b, c, d
 
     def to_xyz_vertices(self, embedding=None) -> List[Tuple[float, float, float]]:
         """

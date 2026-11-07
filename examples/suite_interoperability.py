@@ -109,14 +109,14 @@ def main() -> None:
     sys.path[:0] = [str(here), str(math_root / "src"), str(craft_root)]
 
     from quadmath.core.quadray import (
-        DEFAULT_EMBEDDING, Quadray, ace_tetravolume_5x5, distance,
+        DEFAULT_EMBEDDING, Quadray, ace_tetravolume_5x5, centroid_exact, distance,
         integer_tetra_volume, magnitude, quadray_from_xyz, to_xyz,
     )
     from quadmath.lattice.conversions import xyz_to_quadray_canonical
     from quadmath.lattice.omni_numbering import cumulative_count, site_at_index
     from symergetics.core.coordinates import QuadrayCoordinate, enumerate_ivm_sites
     from symergetics.geometry.polyhedra import (
-        ace_tetra_volume_5x5, integer_tetra_volume as symer_volume,
+        SymergeticsPolyhedron, ace_tetra_volume_5x5, integer_tetra_volume as symer_volume,
     )
     from games.src.space.quadrays import Quadray as CraftQuadray
 
@@ -197,11 +197,41 @@ def main() -> None:
                   ace_tetra_volume_5x5(*(QuadrayCoordinate(*q) for q in shifted))]
         if any(volume != expected for volume in actual):
             raise AssertionError(f"exact volume case {i}: expected {expected}, got {actual}")
+
+    # Fractional centers are exchanged as rationals, never through an integer
+    # constructor or a binary64 transport. The oracle averages raw representatives;
+    # implementations may canonicalize each input first, which must be equivalent.
+    centroid_groups = [
+        *tetrahedra,
+        ((0, 0, 0, 0), (1, 0, 0, 0), (0, 1, 0, 0)),
+        ((10**400 + 1, 0, 0, 0), (0, 0, 0, 0)),
+        ((-10**450, -10**450, -10**450, -10**450),),
+    ]
+    for index, vertices in enumerate(centroid_groups):
+        mean = tuple(Fraction(sum(q[axis] for q in vertices), len(vertices))
+                     for axis in range(4))
+        minimum = min(mean)
+        expected = tuple(value - minimum for value in mean)
+        shifted = [tuple(value + (-1)**j * (10**500 + j) for value in q)
+                   for j, q in enumerate(vertices)]
+        for representatives in (vertices, shifted):
+            actual = [
+                centroid_exact(Quadray(*q) for q in representatives),
+                SymergeticsPolyhedron(
+                    [QuadrayCoordinate(*q) for q in representatives],
+                ).centroid_exact(),
+            ]
+            if any(center != expected for center in actual):
+                raise AssertionError(
+                    f"exact centroid case {index}: expected {expected}, got {actual}",
+                )
     print(json.dumps({"status": "passed", "coordinate_cases_per_runtime": len(cases),
                       "runtimes": ["QuadMath", "symergetics", "QuadCraft Python",
                                    "QuadCraft JavaScript", "QuadCraft C++"],
                       "exact_volume_cases": len(tetrahedra),
-                      "ivm_site_comparisons": ivm_site_comparisons}, indent=2))
+                      "ivm_site_comparisons": ivm_site_comparisons,
+                      "exact_centroid_cases": len(centroid_groups),
+                      "exact_centroid_libraries": ["QuadMath", "symergetics"]}, indent=2))
 
 
 if __name__ == "__main__":

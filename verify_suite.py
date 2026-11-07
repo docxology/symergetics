@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 """Verify all three Synergetics repositories without replacing their environments.
 
-Requires bash, uv, Node.js, CMake and a C++17 compiler. Locks are honored;
+Requires bash, git, uv, Node.js, CMake and a C++17 compiler. Locks are honored;
 Python environments and the native build live in an automatically removed
-scratch directory. Use --report for a machine-readable execution receipt.
+scratch directory. Use --browser for the installed Chromium gate and --report
+for a portable, revision-specific execution receipt.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
 
 
 @dataclass(frozen=True)
@@ -28,8 +31,66 @@ class Check:
     environment: dict[str, str] = field(default_factory=dict)
 
 
-def execute(checks: Iterable[Check]) -> tuple[int, dict]:
-    """Run checks in order, stopping on failure and identifying unexecuted checks."""
+GENERATED_PREFIXES = {
+    "QuadMath": ("quadmath/output/", "docs/manuscript/figures/"),
+    "symergetics": ("output/",),
+    "QuadCraft": (),
+}
+
+
+def repository_state(name: str, root: Path, git: str) -> dict:
+    """Identify this checkout, distinguishing generated changes from source."""
+    def inspect(*arguments: str) -> str:
+        return subprocess.run(
+            (git, *arguments), cwd=root, check=True, capture_output=True, text=True,
+        ).stdout
+
+    toplevel = Path(inspect("rev-parse", "--show-toplevel").rstrip("\n")).resolve()
+    if toplevel != root.resolve():
+        raise ValueError(f"{name} is not a repository root")
+    revision = inspect("rev-parse", "--verify", "HEAD").strip()
+    status = inspect("status", "--porcelain=v1", "-z", "--untracked-files=all")
+    paths = []
+    entries = iter(status.split("\0"))
+    for entry in entries:
+        if not entry:
+            continue
+        paths.append(entry[3:])
+        if "R" in entry[:2] or "C" in entry[:2]:
+            paths.append(next(entries))
+    if name == "QuadCraft":
+        declaration = re.search(
+            r"\bproject\s*\(\s*QuadCraft\s+VERSION\s+([0-9]+(?:\.[0-9]+)+)",
+            (root / "CMakeLists.txt").read_text(encoding="utf-8"),
+            re.IGNORECASE,
+        )
+        if declaration is None:
+            raise ValueError("QuadCraft has no declared project version")
+        version = declaration.group(1)
+    else:
+        with (root / "pyproject.toml").open("rb") as manifest:
+            version = tomllib.load(manifest)["project"]["version"]
+    generated = GENERATED_PREFIXES[name]
+    return {
+        "revision": revision,
+        "version": version,
+        "worktree_dirty": bool(status),
+        "source_dirty": any(not path.startswith(generated) for path in paths),
+        "generated_prefixes": list(generated),
+    }
+
+
+def execute(checks: Iterable[Check],
+            locations: Mapping[str, Path] | None = None) -> tuple[int, dict]:
+    """Run real commands, fail fast, and optionally replace host paths in reports."""
+    aliases = sorted((locations or {}).items(), key=lambda item: len(str(item[1])),
+                     reverse=True)
+
+    def portable(value: str) -> str:
+        for label, path in aliases:
+            value = value.replace(str(path), "${" + label + "}")
+        return value
+
     pending = list(checks)
     results = []
     exit_code = 0
@@ -49,12 +110,12 @@ def execute(checks: Iterable[Check]) -> tuple[int, dict]:
         except KeyboardInterrupt:
             code, error = 130, "interrupted"
         entry = {
-            "name": check.name, "command": list(check.command),
-            "cwd": str(check.cwd), "returncode": code,
+            "name": check.name, "command": [portable(part) for part in check.command],
+            "cwd": portable(str(check.cwd)), "returncode": code,
             "duration_seconds": round(time.monotonic() - started, 3),
         }
         if error is not None:
-            entry["error"] = error
+            entry["error"] = portable(error)
         results.append(entry)
         if code:
             exit_code = code if code > 0 else 128 - code
@@ -67,7 +128,8 @@ def execute(checks: Iterable[Check]) -> tuple[int, dict]:
 
 
 def plan(math_root: Path, symer_root: Path, craft_root: Path, scratch: Path,
-         python: str, uv: str, node: str, cmake: str, ctest: str, cxx: str, bash: str) -> list[Check]:
+         python: str, uv: str, node: str, cmake: str, ctest: str, cxx: str, bash: str,
+         npm: str | None = None) -> list[Check]:
     """Describe the real repository commands; do not emulate their test logic."""
     math_env, symer_env = scratch / "quadmath-env", scratch / "symergetics-env"
     executable_dir = "Scripts" if os.name == "nt" else "bin"
@@ -78,7 +140,7 @@ def plan(math_root: Path, symer_root: Path, craft_root: Path, scratch: Path,
     math_common = {**common, "UV_PROJECT_ENVIRONMENT": str(math_env)}
     symer_common = {**common, "UV_PROJECT_ENVIRONMENT": str(symer_env)}
     build = scratch / "native"
-    return [
+    checks = [
         Check("QuadMath locked environment", (uv, "sync", "--frozen", "--python", python,
               "--group", "dev"), math_root,
               math_common),
@@ -110,6 +172,12 @@ def plan(math_root: Path, symer_root: Path, craft_root: Path, scratch: Path,
         Check("QuadMath documentation links", (mp, "docs/development/check_links.py"),
               math_root, math_common),
     ]
+    if npm is not None:
+        checks.append(Check(
+            "QuadCraft live Chromium gate", (npm, "test"),
+            craft_root / "games/tests/browser", {**common, "PYTHON": sp},
+        ))
+    return checks
 
 
 def main() -> int:
@@ -119,28 +187,59 @@ def main() -> int:
     parser.add_argument("--quadcraft-root", type=Path, default=here.parent / "QuadCraft")
     parser.add_argument("--python", default="3.13", help="Python version supplied to uv (default: 3.13)")
     parser.add_argument("--report", type=Path, help="Write the execution receipt as JSON")
+    parser.add_argument("--browser", action="store_true",
+                        help="Include the real Chromium gate; install its locked tooling first")
+    parser.add_argument("--require-clean", action="store_true",
+                        help="Reject uncommitted source changes (generated output is recorded separately)")
     args = parser.parse_args()
+    python_selector = args.python
+    interpreter = Path(args.python).expanduser()
+    explicit_interpreter = interpreter.is_absolute() or "/" in args.python or "\\" in args.python
+    if explicit_interpreter:
+        interpreter = interpreter.absolute()
+        python_selector = str(interpreter)
     math_root, craft_root = args.quadmath_root.resolve(), args.quadcraft_root.resolve()
     for root, required in ((math_root, "pyproject.toml"), (math_root, "src/quadmath/core/quadray.py"),
                            (craft_root, "CMakeLists.txt"), (craft_root, "games/run_games.py")):
         if not (root / required).is_file():
             parser.error(f"missing checkout file: {root / required}")
     tools = {}
-    for name in ("bash", "uv", "node", "cmake", "ctest", os.environ.get("CXX", "c++")):
-        executable = shutil.which(name)
+    required_tools = {name: name for name in ("bash", "git", "uv", "node", "cmake", "ctest")}
+    required_tools["cxx"] = os.environ.get("CXX", "c++")
+    if args.browser:
+        required_tools["npm"] = "npm"
+    for name, command in required_tools.items():
+        executable = shutil.which(command)
         if executable is None:
-            parser.error(f"required executable not found: {name}")
+            parser.error(f"required executable not found: {command}")
         tools[name] = executable
+    roots = {"QuadMath": math_root, "symergetics": here, "QuadCraft": craft_root}
+    try:
+        repositories = {name: repository_state(name, root, tools["git"])
+                        for name, root in roots.items()}
+    except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as exc:
+        parser.error(f"cannot identify source checkouts: {exc}")
+    dirty = [name for name, state in repositories.items() if state["source_dirty"]]
+    if args.require_clean and dirty:
+        parser.error("uncommitted source changes in " + ", ".join(dirty))
     with tempfile.TemporaryDirectory(prefix="synergetics-verify-") as temporary:
-        checks = plan(math_root, here, craft_root, Path(temporary), args.python,
+        checks = plan(math_root, here, craft_root, Path(temporary), python_selector,
                       tools["uv"], tools["node"], tools["cmake"], tools["ctest"],
-                      tools[os.environ.get("CXX", "c++")], tools["bash"])
-        code, receipt = execute(checks)
+                      tools["cxx"], tools["bash"], tools.get("npm"))
+        locations = {**roots, "scratch": Path(temporary),
+                     **{f"tool_{name}": Path(path) for name, path in tools.items()}}
+        if explicit_interpreter:
+            locations["interpreter"] = interpreter
+        code, receipt = execute(checks, locations)
+    receipt = {"schema_version": 1, "profile": "full" if args.browser else "core",
+               "python_requested": "${interpreter}" if explicit_interpreter else args.python,
+               "repositories": repositories, **receipt}
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": receipt["status"], "executed": len(receipt["checks"]),
-                      "not_run": receipt["not_run"]}, indent=2))
+    print(json.dumps({"status": receipt["status"], "profile": receipt["profile"],
+                      "executed": len(receipt["checks"]), "not_run": receipt["not_run"]},
+                     indent=2))
     return code
 
 

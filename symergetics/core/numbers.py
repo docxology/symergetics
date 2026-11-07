@@ -3,7 +3,8 @@ SymergeticsNumber: Exact Rational Arithmetic for Synergetic Calculations
 
 This module implements the core SymergeticsNumber class that provides exact
 rational arithmetic using Python's fractions.Fraction as the foundation.
-All operations maintain mathematical precision without floating-point errors.
+Integer powers and perfect rational roots are exact; irrational powers and roots
+are returned as bounded-denominator rational approximations.
 
 Key Features:
 - Exact rational arithmetic with unlimited precision
@@ -16,6 +17,8 @@ Author: Symergetics Team
 """
 
 import math
+import operator
+from decimal import Decimal, localcontext
 from fractions import Fraction
 from typing import List, Optional, Tuple, Union
 
@@ -25,12 +28,71 @@ from typing import List, Optional, Tuple, Union
 from math import gcd  # noqa: F401
 
 
+def _integer_nth_root(value: int, degree: int) -> int:
+    """Return the floor of a nonnegative integer's root without float conversion."""
+    if value < 2 or degree == 1:
+        return value
+    if degree >= value.bit_length():
+        return 1
+    if degree == 2:
+        return math.isqrt(value)
+
+    root = 1 << ((value.bit_length() + degree - 1) // degree)
+    while True:
+        candidate = ((degree - 1) * root + value // root ** (degree - 1)) // degree
+        if candidate >= root:
+            return root
+        root = candidate
+
+
+def _rational_power(value: Fraction, exponent: Fraction, max_denominator: int) -> Fraction:
+    """Keep exact results rational; approximate only genuinely irrational results."""
+    power, degree = exponent.numerator, exponent.denominator
+    if degree == 1:
+        return value ** power
+    if value < 0 and degree % 2 == 0:
+        raise ValueError("An even root of a negative rational is not real")
+    if not value and power < 0:
+        raise ZeroDivisionError("Zero cannot be raised to a negative power")
+
+    magnitude = abs(value)
+    numerator = _integer_nth_root(magnitude.numerator, degree)
+    denominator = _integer_nth_root(magnitude.denominator, degree)
+    if numerator ** degree == magnitude.numerator and denominator ** degree == magnitude.denominator:
+        root = Fraction(-numerator if value < 0 else numerator, denominator)
+        return root ** power
+
+    # Decimal avoids binary overflow/underflow. Include input and exponent digits
+    # to retain ratios close to one, plus output integer digits and guard digits
+    # beyond the resolution needed by a bounded-denominator approximation.
+    input_bits = max(magnitude.numerator.bit_length(), magnitude.denominator.bit_length(),
+                     abs(power).bit_length(), degree.bit_length())
+    output_bits = ((abs(magnitude.numerator.bit_length() - magnitude.denominator.bit_length())
+                    + 1) * abs(power) // degree + 1)
+    # For near-one inputs, log2(1 + x) <= 2*x gives a much tighter
+    # magnitude bound when a large exponent compensates for a tiny difference.
+    near_one_bits = (2 * abs(magnitude.numerator - magnitude.denominator) * abs(power)
+                     // (min(magnitude.numerator, magnitude.denominator) * degree) + 1)
+    output_bits = min(output_bits, near_one_bits)
+    decimal_digits = (max(input_bits, output_bits) * 30103 // 100000) + 1
+    cap_digits = max_denominator.bit_length() * 30103 // 100000 + 1
+    precision = decimal_digits + 2 * cap_digits + 20
+    with localcontext() as context:
+        context.prec = precision
+        context.Emax = max(context.Emax, precision * 2)
+        context.Emin = min(context.Emin, -precision * 2)
+        base = Decimal(magnitude.numerator) / Decimal(magnitude.denominator)
+        decimal_power = Decimal(power) / Decimal(degree)
+        approximation = Fraction(context.power(base, decimal_power)).limit_denominator(max_denominator)
+    return -approximation if value < 0 and power % 2 else approximation
+
+
 class SymergeticsNumber:
     """
     Core class for exact rational arithmetic in Synergetics.
 
-    Provides mathematical operations with complete precision using rational numbers,
-    eliminating floating-point errors that compromise geometric calculations.
+    Integer powers and perfect rational roots retain complete precision.
+    Irrational roots and powers use bounded-denominator rational approximations.
 
     Attributes:
         value (Fraction): The exact rational representation of the number
@@ -120,22 +182,14 @@ class SymergeticsNumber:
         return SymergeticsNumber(result)
 
     def __pow__(self, exponent: Union[int, float, Fraction, 'SymergeticsNumber']) -> 'SymergeticsNumber':
-        """Exact exponentiation with rational arithmetic."""
-        if isinstance(exponent, SymergeticsNumber):
-            # Extract the rational value from SymergeticsNumber
-            if exponent.value.denominator == 1:
-                exponent = exponent.value.numerator
-            else:
-                exponent = float(exponent.value)
+        """Raise to an exact rational exponent, approximating only irrational results.
 
-        if isinstance(exponent, int):
-            result = self.value ** exponent
-        else:
-            # For non-integer exponents, convert to float then back to rational approximation
-            exp_float = float(Fraction(exponent))
-            result_float = float(self.value) ** exp_float
-            result = Fraction(result_float).limit_denominator(1000000)
-        return SymergeticsNumber(result)
+        Float exponents retain their exact binary rational value: use
+        ``Fraction(1, 3)``, not ``1 / 3``, to request a real cube root of a
+        negative number. Irrational results have denominator at most 1,000,000.
+        """
+        rational_exponent = exponent.value if isinstance(exponent, SymergeticsNumber) else Fraction(exponent)
+        return SymergeticsNumber(_rational_power(self.value, rational_exponent, 1000000))
 
     def __neg__(self) -> 'SymergeticsNumber':
         """Unary negation."""
@@ -323,25 +377,35 @@ class SymergeticsNumber:
         return cls(Fraction(value).limit_denominator(max_denominator))
 
     @classmethod
+    def nth_root(cls, value: Union['SymergeticsNumber', int, float, Fraction],
+                 degree: int, max_denominator: int = 1000000) -> 'SymergeticsNumber':
+        """Return a real root, exactly when the result is rational.
+
+        ``degree`` and ``max_denominator`` must be positive integers. Perfect
+        rational roots bypass the denominator cap, even for huge or tiny inputs.
+        Negative inputs require an odd degree; non-real roots raise ValueError.
+        Irrational results approximate a high-precision Decimal evaluation with
+        denominator at most ``max_denominator``; they are not symbolic values or
+        certified correctly rounded roots. A small cap can round tiny roots to
+        zero. Float inputs mean their exact binary rational values.
+        """
+        degree = operator.index(degree)
+        max_denominator = operator.index(max_denominator)
+        if degree < 1:
+            raise ValueError("degree must be a positive integer")
+        if max_denominator < 1:
+            raise ValueError("max_denominator must be a positive integer")
+        rational_value = value.value if isinstance(value, SymergeticsNumber) else Fraction(value)
+        return cls(_rational_power(rational_value, Fraction(1, degree), max_denominator))
+
+    @classmethod
     def sqrt(cls, value: Union['SymergeticsNumber', int, float, Fraction],
              max_denominator: int = 1000000) -> 'SymergeticsNumber':
+        """Return an exact rational square root or a bounded approximation.
+
+        See :meth:`nth_root` for precision, domain, and denominator-cap behavior.
         """
-        Calculate square root with rational approximation.
-
-        Args:
-            value: Number to take square root of
-            max_denominator: Maximum denominator for approximation
-
-        Returns:
-            SymergeticsNumber: Rational approximation of square root
-        """
-        if isinstance(value, cls):
-            float_val = float(value.value)
-        else:
-            float_val = float(Fraction(value))
-
-        sqrt_float = math.sqrt(float_val)
-        return cls.from_float(sqrt_float, max_denominator)
+        return cls.nth_root(value, 2, max_denominator)
 
     @classmethod
     def pi(cls, digits: int = 100) -> 'SymergeticsNumber':

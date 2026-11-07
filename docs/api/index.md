@@ -34,6 +34,10 @@ class SymergeticsNumber:
     def __add__(self, other) -> SymergeticsNumber
     def __mul__(self, other) -> SymergeticsNumber
     def to_float(self, precision=None) -> float
+    @classmethod
+    def nth_root(cls, value, degree, max_denominator=1000000) -> SymergeticsNumber
+    @classmethod
+    def sqrt(cls, value, max_denominator=1000000) -> SymergeticsNumber
     def to_mnemonic(self) -> str
     def is_palindromic() -> bool
 ```
@@ -44,6 +48,29 @@ class SymergeticsNumber:
 - Conversion: `to_float()`, `from_float()`
 - Analysis: `is_palindromic()`, `to_mnemonic()`
 - Properties: `numerator`, `denominator`
+
+Integer exponents, including `Fraction(n, 1)`, remain exact. Rational powers
+and `nth_root` preserve perfect rational roots without a float conversion,
+including arbitrarily large integers and tiny fractions. Odd roots of negative
+values are real; even roots of negative values raise `ValueError`. A negative
+power of zero raises `ZeroDivisionError`.
+
+```python
+from fractions import Fraction
+from symergetics import SymergeticsNumber as N
+
+assert N.sqrt(10**400).value == 10**200
+assert N.nth_root(Fraction(-8, 27), 3).value == Fraction(-2, 3)
+assert (N(-8) ** Fraction(1, 3)).value == -2
+```
+
+`degree` must be a positive integer. `max_denominator` bounds **approximations
+only**; an exact perfect root may have a larger denominator. Irrational results
+are finite-precision Decimal evaluations converted to bounded rational
+approximations, not symbolic exact values or certified rounding bounds. Tiny
+irrational results can approximate to zero. Float exponents retain their exact
+binary-rational value: use `Fraction(1, 3)`, not `1/3`, for an exact cube-root
+exponent.
 
 ```mermaid
 classDiagram
@@ -129,13 +156,23 @@ physical sites and graph-radius semantics.
 
 ### Polyhedra Classes
 
+All polyhedra expose `centroid_exact()`, returning a minimum-zero
+`tuple[Fraction, Fraction, Fraction, Fraction]` without lattice snapping.
+Empty input raises `ValueError`. This agrees with QuadMath's
+`centroid_exact(points)`; see [suite transport and units](../synergetics-suite.md).
+The existing `centroid()` remains a floor-snapped integer coordinate, not the
+continuous centroid.
+
+`vertices` remains mutable. `volume()` calculates from the current vertices
+rather than returning a stale cached value after a vertex replacement.
+
 #### Tetrahedron
 
 ```python
 class Tetrahedron(SymergeticsPolyhedron):
     """Regular tetrahedron - volume = 1 IVM unit."""
 
-    def volume(self) -> Fraction  # Returns Fraction(1)
+    def volume(self) -> Fraction  # Default vertices: Fraction(1)
     def faces(self) -> List[List[QuadrayCoordinate]]
     def edges(self) -> List[Tuple[QuadrayCoordinate, QuadrayCoordinate]]
 ```
@@ -146,7 +183,7 @@ class Tetrahedron(SymergeticsPolyhedron):
 class Octahedron(SymergeticsPolyhedron):
     """Regular octahedron - volume = 4 tetrahedra."""
 
-    def volume(self) -> Fraction  # Returns Fraction(4)
+    def volume(self) -> Fraction  # Default vertices: Fraction(4)
 ```
 
 #### Cube
@@ -155,7 +192,7 @@ class Octahedron(SymergeticsPolyhedron):
 class Cube(SymergeticsPolyhedron):
     """Cube - volume = 3 tetrahedra."""
 
-    def volume(self) -> Fraction  # Returns Fraction(3)
+    def volume(self) -> Fraction  # Default vertices: Fraction(3)
 ```
 
 #### Cuboctahedron
@@ -164,7 +201,7 @@ class Cube(SymergeticsPolyhedron):
 class Cuboctahedron(SymergeticsPolyhedron):
     """Vector equilibrium - volume = 20 tetrahedra."""
 
-    def volume(self) -> Fraction  # Returns Fraction(20)
+    def volume(self) -> Fraction  # Default vertices: Fraction(20)
 ```
 
 ### Volume Calculation Functions

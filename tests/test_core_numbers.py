@@ -178,6 +178,152 @@ class TestSymergeticsNumber:
         assert abs(float(pi_approx.value) - math.pi) < 1e-10
 
 
+class TestExactRationalPowersAndRoots:
+    """Public operations preserve rational intent across scale and domain edges."""
+
+    @pytest.mark.parametrize("exponent", [Fraction(2), SymergeticsNumber(2), 2.0])
+    @pytest.mark.parametrize("value", [Fraction(10**400, 3), Fraction(3, 10**400)])
+    def test_integer_exponents_do_not_round_or_overflow(self, value, exponent):
+        assert (SymergeticsNumber(value) ** exponent).value == value ** 2
+        assert (SymergeticsNumber(value) ** -Fraction(2)).value == value ** -2
+
+    @pytest.mark.parametrize(
+        "value,degree,expected",
+        [
+            (10**400, 2, Fraction(10**200)),
+            (Fraction(1, 10**800), 2, Fraction(1, 10**400)),
+            (Fraction(81, 10**400), 4, Fraction(3, 10**100)),
+            (Fraction(-8, 27), 3, Fraction(-2, 3)),
+            (-10**600, 3, Fraction(-10**200)),
+            (Fraction(16, 81), 4, Fraction(2, 3)),
+            (Fraction(3, 10**400), 1, Fraction(3, 10**400)),
+            (0, 7, Fraction(0)),
+            (1, 10**20, Fraction(1)),
+            (-1, 10**20 + 1, Fraction(-1)),
+        ],
+    )
+    def test_perfect_roots_ignore_approximation_cap(self, value, degree, expected):
+        result = SymergeticsNumber.nth_root(value, degree, max_denominator=1)
+        assert result.value == expected
+        assert result.value ** degree == value
+
+    def test_sqrt_and_convenience_function_preserve_tiny_exact_results(self):
+        value = SymergeticsNumber(Fraction(49, 10**800))
+        expected = Fraction(7, 10**400)
+        assert SymergeticsNumber.sqrt(value, max_denominator=1).value == expected
+        assert rational_sqrt(value, max_denominator=1).value == expected
+        assert SymergeticsNumber.sqrt(10**400).value == 10**200
+
+    @pytest.mark.parametrize(
+        "value,exponent,expected",
+        [
+            (-8, Fraction(1, 3), Fraction(-2)),
+            (-8, Fraction(2, 3), Fraction(4)),
+            (-8, Fraction(-1, 3), Fraction(-1, 2)),
+            (Fraction(-8, 27), Fraction(-2, 3), Fraction(9, 4)),
+            (Fraction(16, 81), Fraction(3, 4), Fraction(8, 27)),
+            (Fraction(1, 10**800), Fraction(-3, 2), Fraction(10**1200)),
+        ],
+    )
+    def test_exact_fractional_powers(self, value, exponent, expected):
+        number = SymergeticsNumber(value)
+        assert (number ** exponent).value == expected
+        assert (number ** SymergeticsNumber(exponent)).value == expected
+
+    @pytest.mark.parametrize(
+        "value,degree,cap,expected",
+        [
+            (2, 2, 1, Fraction(1)),
+            (2, 2, 10, Fraction(7, 5)),
+            (2, 2, 100, Fraction(140, 99)),
+            (2, 3, 10, Fraction(5, 4)),
+            (-2, 3, 10, Fraction(-5, 4)),
+            (2, 10000, 10, Fraction(1)),
+            (Fraction(2, 10**800), 2, 1000000, Fraction(0)),
+        ],
+    )
+    def test_irrational_roots_are_bounded_approximations(self, value, degree, cap, expected):
+        result = SymergeticsNumber.nth_root(value, degree, max_denominator=cap)
+        assert result.value == expected
+        assert result.denominator <= cap
+        assert result.value ** degree != value
+
+    def test_negative_irrational_powers_preserve_real_sign_and_accuracy(self):
+        cube_root = SymergeticsNumber(-2) ** Fraction(1, 3)
+        reciprocal = SymergeticsNumber(-2) ** Fraction(-1, 3)
+        square = SymergeticsNumber(-2) ** Fraction(2, 3)
+        assert cube_root.value < 0
+        assert reciprocal.value < 0
+        assert square.value > 0
+        assert abs(cube_root.value ** 3 + 2) < Fraction(1, 10**10)
+        assert abs(reciprocal.value ** 3 + Fraction(1, 2)) < Fraction(1, 10**10)
+        assert abs(square.value ** 3 - 4) < Fraction(1, 10**10)
+        assert max(cube_root.denominator, reciprocal.denominator, square.denominator) <= 1000000
+
+    def test_irrational_powers_do_not_overflow_or_invert_a_rounded_zero(self):
+        huge = SymergeticsNumber.sqrt(2 * 10**800)
+        reciprocal_of_tiny_root = SymergeticsNumber(Fraction(2, 10**800)) ** Fraction(-1, 2)
+        assert abs(huge.value ** 2 / (2 * 10**800) - 1) < Fraction(1, 10**30)
+        assert abs(reciprocal_of_tiny_root.value ** 2 / Fraction(10**800, 2) - 1) < Fraction(1, 10**30)
+        assert huge.denominator <= 1000000
+        assert reciprocal_of_tiny_root.denominator <= 1000000
+
+    def test_float_inputs_are_not_reinterpreted_as_intended_decimal_rationals(self):
+        binary_input = Fraction(0.1)
+        root = SymergeticsNumber.sqrt(0.1)
+        assert abs(root.value ** 2 - binary_input) < Fraction(1, 10**10)
+        assert (SymergeticsNumber(9) ** 0.5).value == 3
+        with pytest.raises(ValueError, match="not real"):
+            SymergeticsNumber(-8) ** (1 / 3)
+
+    @pytest.mark.parametrize("exponent", [Fraction(1, 2), Fraction(3, 4), Fraction(-1, 2)])
+    def test_non_real_powers_raise_domain_error(self, exponent):
+        with pytest.raises(ValueError, match="not real"):
+            SymergeticsNumber(-8) ** exponent
+
+    @pytest.mark.parametrize("degree", [2, 4, 10000])
+    def test_non_real_roots_raise_domain_error(self, degree):
+        with pytest.raises(ValueError, match="not real"):
+            SymergeticsNumber.nth_root(-8, degree)
+
+    def test_large_fractional_exponent_retains_a_near_one_input(self):
+        scale = 10**400
+        result = SymergeticsNumber(Fraction(scale + 1, scale)) ** Fraction(scale, 3)
+        reciprocal = SymergeticsNumber(Fraction(scale + 1, scale)) ** Fraction(-scale, 3)
+        assert abs(result.to_float() - math.exp(1 / 3)) < 1e-10
+        assert abs(reciprocal.to_float() - math.exp(-1 / 3)) < 1e-10
+        assert max(result.denominator, reciprocal.denominator) <= 1000000
+
+    @pytest.mark.parametrize("exponent", [Fraction(-1), Fraction(-1, 3), Fraction(-2, 3)])
+    def test_zero_negative_powers_raise_zero_division(self, exponent):
+        with pytest.raises(ZeroDivisionError):
+            SymergeticsNumber(0) ** exponent
+
+    def test_zero_power_boundaries(self):
+        assert (SymergeticsNumber(0) ** Fraction(0)).value == 1
+        assert (SymergeticsNumber(0) ** Fraction(2, 3)).value == 0
+
+    @pytest.mark.parametrize("degree", [0, -1])
+    def test_root_degree_must_be_positive(self, degree):
+        with pytest.raises(ValueError, match="degree"):
+            SymergeticsNumber.nth_root(4, degree)
+
+    @pytest.mark.parametrize("degree", [2.0, Fraction(2), "2"])
+    def test_root_degree_requires_an_integer(self, degree):
+        with pytest.raises(TypeError):
+            SymergeticsNumber.nth_root(4, degree)
+
+    @pytest.mark.parametrize("cap", [0, -1])
+    def test_denominator_cap_must_be_positive_even_for_exact_roots(self, cap):
+        with pytest.raises(ValueError, match="max_denominator"):
+            SymergeticsNumber.sqrt(4, max_denominator=cap)
+
+    @pytest.mark.parametrize("cap", [10.0, Fraction(10), "10"])
+    def test_denominator_cap_requires_an_integer(self, cap):
+        with pytest.raises(TypeError):
+            SymergeticsNumber.nth_root(2, 3, max_denominator=cap)
+
+
 class TestUtilityFunctions:
     """Test utility functions in numbers module."""
 

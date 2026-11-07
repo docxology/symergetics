@@ -97,29 +97,64 @@ a new serializer API; the shared JavaScript geometry uses `Number`, not
 arbitrary-precision geometric arithmetic. Do not convert large strings to
 `Number` and call the result exact.
 
+### Continuous centroids without integer snapping
+
+QuadMath `centroid_exact(points)` and symergetics
+`SymergeticsPolyhedron.centroid_exact()` return the same minimum-zero tuple of
+four `Fraction` components. They average the physical points exactly, including
+independent common-offset representatives and integers beyond floating range.
+The primitive tetrahedron's centroid is `(1/4, 1/4, 1/4, 0)`. Empty exact
+centroids raise `ValueError`.
+
+Exchange each rational component as decimal-string numerator/denominator pairs.
+Do not feed these fractions through symergetics' integer-snapping coordinate
+constructor. Existing snapped centroids remain distinct: QuadMath uses half-up
+component rounding; symergetics uses floor snapping.
+
 ## Coordinated software releases
 
 | Project | Version | Release notes |
 |---|---|---|
-| QuadMath | 0.4.0 | [Mathematical methods and manuscript pipeline](https://github.com/docxology/QuadMath/blob/main/CHANGELOG.md) |
-| symergetics | 1.1.0 | [Exact geometry, visualization and orchestration](../CHANGELOG.md) |
-| QuadCraft | v0.3.0 | [Interactive/native/browser applications](https://github.com/docxology/QuadCraft/blob/main/CHANGELOG.md) |
+| QuadMath | 0.5.0 | [Stable information geometry and exact centroids](https://github.com/docxology/QuadMath/blob/main/CHANGELOG.md) |
+| symergetics | 1.2.0 | [Exact roots, live geometry and release provenance](../CHANGELOG.md) |
+| QuadCraft | v0.4.0 | [All-game browser coverage and interactive fixes](https://github.com/docxology/QuadCraft/blob/main/CHANGELOG.md) |
 
 ## Complete suite verification
 
-From the symergetics checkout:
+Prepare QuadCraft's [locked Chromium tooling](https://github.com/docxology/QuadCraft/blob/main/games/tests/browser/README.md),
+then run from the symergetics checkout:
 
 ```bash
-python3 verify_suite.py --report /tmp/synergetics-suite.json
+python3 verify_suite.py --browser --report /tmp/synergetics-suite.json
 ```
 
-The [verifier](../verify_suite.py) requires bash, uv, Node.js, CMake and a
-C++17 compiler. It creates temporary locked Python environments and a native
-Release build, preserving existing project environments and interpreter pins.
-It invokes the actual repository gates, stops at the first failure, and records
-executed commands, return codes and unexecuted checks. A successful receipt has
-no unexecuted checks. Optional `--quadmath-root`, `--quadcraft-root` and
-`--python` arguments support non-sibling checkouts and explicit interpreters.
+The [verifier](../verify_suite.py) requires git, bash, uv, Node.js/npm, CMake,
+a C++17 compiler and the media prerequisites of the repository tests. It creates
+temporary locked Python environments and a native Release build, preserving
+existing project environments and interpreter pins. `--browser` includes the
+actual 30-game Chromium gate; it requires prepared tooling and never silently
+skips a missing browser. Without that flag, the explicitly labelled `core`
+profile runs the numerical/native/documentation checks only.
+
+The version-1 JSON receipt records the selected profile, all three declared
+versions and actual Git revisions, source/worktree dirty state, executed
+commands, durations, return codes and unexecuted checks. Repository, temporary
+and executable paths use logical aliases rather than personal absolute paths.
+`source_dirty` excludes only the listed generated-output prefixes;
+`worktree_dirty` still reports those changes. An enclosing repository cannot
+stand in for a missing independent checkout.
+
+The verifier stops at the first failure. A successful receipt has no unexecuted
+checks **within its selected profile**. `--require-clean` rejects uncommitted
+source changes before running stages; generated output remains visible in the
+receipt. Optional `--quadmath-root`, `--quadcraft-root` and `--python` arguments
+support non-sibling checkouts and explicit interpreters.
+
+The [suite workflow](../.github/workflows/suite.yml) runs the full profile with
+clean-source enforcement and uploads the receipt plus browser diagnostics.
+Manual dispatch accepts `quadmath_ref`, `symergetics_ref` and `quadcraft_ref`
+branches, tags or commit hashes, so a release can verify a fixed three-repository
+combination instead of moving `main` branches.
 
 Ordinary scientific demonstrations remain independent:
 
@@ -159,8 +194,8 @@ implementations, invokes the actual shared JavaScript module and compiles a
 small adapter against the actual native C++ header in a temporary directory.
 It checks signed/gauge-equivalent representatives, normalization, inversion,
 Cartesian norms, distinct-point distances, explicit unit mapping, independently
-enumerated FCC graph balls and agreement between exact volume formulations
-beyond binary64's integer precision.
+enumerated FCC graph balls, agreement between exact volume formulations and
+continuous rational centroids beyond binary64's range and integer precision.
 Missing runtimes and mismatches fail the command; they are not silently skipped.
 It neither launches the OpenGL game nor proves browser rendering or the entire
 mathematical library.
@@ -184,8 +219,10 @@ for each project's own checks.
 
 ## Review evidence and verification
 
-The review used Claim–Evidence Audit: mathematical identities, implementation
-claims and exercised behavior were checked separately.
+The review challenged load-bearing assumptions about exactness, finite-scale
+arithmetic, cache validity and unvisited browser surfaces. Reproductions,
+independent code review and runtime gates establish confidence in the exercised
+contracts, not universal correctness.
 
 | Boundary | Implemented correction and evidence |
 |---|---|
@@ -197,6 +234,10 @@ claims and exercised behavior were checked separately.
 | Physical enumeration | symergetics enumerates canonical FCC graph balls and reuses them across actual rendering backends; the interoperability example checks them independently against QuadMath. |
 | Live Snake geometry | The perspective camera stays outside the raw board's Cartesian bounding sphere, preventing a negative Canvas radius that halted the first frame. The browser gate exercises actual movement, turning, rotated rendering and pause/resume. |
 | Execution ownership | Local orchestration retains failed stages, demos fail truthfully, tests own temporary output, HTTP requests cannot block server shutdown, and native test invocation cannot pass an empty cached-OFF inventory. |
+| Exact roots and centers | Perfect rational roots/powers stay exact; canonical `Fraction` centroids agree across both Python projects, including huge integers and independent gauges. Mutable vertex updates immediately affect volume. |
+| Information geometry | Integral/large/mixed-scale Fisher scores retain finite curvature; log-domain probability arithmetic preserves positive support and recoverable rare-state contributions. |
+| Complete browser inventory | All 30 actual games exercise real input/state/rendering, including 2048 pause/merge/reset, Life paused redraw/full-domain fitting, Reversi reset history and Mahjong tile fitting. |
+| Release provenance | Versioned full/core receipts identify three Git revisions/versions, distinguish generated/source changes and redact host/interpreter paths. CI accepts fixed refs and enforces clean source. |
 
 Exact rational enumeration has no heuristic candidate cap. Its cost still
 depends on basis/input bit lengths; no constant-time claim is made for
@@ -206,47 +247,46 @@ Verified with Python 3.13.17, Node.js and the C++17 toolchain:
 
 | Check | Observed result |
 |---|---|
-| QuadMath full pytest/coverage run | 988 passed; 100% statement/branch coverage |
-| symergetics full pytest/coverage run | 1,344 passed, 12 skipped; 88.16% coverage, above the 85% floor |
+| QuadMath pytest/coverage | 1,071 cases; final Python 3.11/3.13 CI passed with 100% statement/branch coverage |
+| symergetics full pytest/coverage | 1,406 passed, 12 skipped; 88.29% coverage, above the 85% floor |
 | QuadCraft CLI, including nested shared suites | 2,395 reported checks passed; zero failures |
 | QuadCraft structural validation | All 30 games passed |
-| Graphics-free native build | Both CTest targets passed in Release; cached testing-OFF → enabled transition also exercised |
-| Cross-repository example | 279 coordinate cases per implementation, five real implementations; 34 exact-volume cases; 216 FCC site comparisons |
-| Complete suite command | All 13 checks executed successfully; no unexecuted checks |
+| Graphics-free native build | Both CTest targets passed in Release |
+| Cross-repository example | 279 coordinate cases per implementation, five real implementations; 34 exact volumes, 37 exact-centroid cases and 216 FCC site comparisons |
+| Full suite command | All 14 selected checks passed; no unexecuted checks; private interpreter/repository paths absent from the receipt |
 | Ordinary scientific demos | All 10 completed successfully through the actual examples-only orchestrator |
-| Locked Chromium gate | All 13 selected surfaces passed with actual rendering/input; native mouse capture was denied locally and the keyboard-control notice was visible |
-| Installed distributions | Both wheels exercised outside the checkouts; QuadMath generated data/PNG output in a path containing spaces, and symergetics imported/inverted/enumerated FCC sites without plotting dependencies |
-| Dependency advisory snapshot | All 98 open symergetics lockfile alert ranges excluded every newly resolved affected package version |
+| Locked Chromium gate | All 30 catalog games passed with actual rendering/input and initial/final screenshots; local mouse capture was denied and the keyboard-control notice was visible |
+| Installed distributions | Both new wheels exercised outside checkouts on Python 3.11.18/NumPy 2.4.6: exact roots, rational centroids, live volumes and stable information methods; symergetics without plotting/scientific extras |
+| Previous release advisory snapshot | All 98 then-captured symergetics lockfile alert ranges excluded the resolved affected-package versions; not a new advisory audit |
 
-The separate numerical smoke exercised 196 scaled inverse roundtrips, 21
+The earlier numerical smoke exercised 196 scaled inverse roundtrips, 21
 volume/radius scale-covariance checks and 120 nearest queries against a finite
-exhaustive oracle. Actual HTTP browser checks exercised Go, Hex, Lights Out,
-Memory, Rogue, Sokoban, Snake, Sudoku, Doom, Minesweeper, Connect Four, Tower Defense
-and Minecraft: picking, keyboard actions, rotation/zoom, raw-slot drop/undo,
-and displayed mathematical verification where applicable. This is not a claim
-that every gameplay path or every browser was tested.
+exhaustive oracle. The current browser gate covers the complete 30-game
+catalog with real picking, keyboard actions, simulation/gravity, pause/reset,
+rotation, placement and scoring transitions. This is not a claim that every
+gameplay path or every browser was tested.
 
 The repeatable browser command and artifact/trace policy are in
 [QuadCraft's browser gate](https://github.com/docxology/QuadCraft/blob/main/games/tests/browser/README.md).
 Mouse capture capability is recorded, not fabricated; keyboard movement remains
 available when the browser rejects native pointer lock. The patched scientific
 environment, including Pillow 13 and pytest 9, passed the full suite and all demos.
-The [merged Linux Chromium run](https://github.com/docxology/QuadCraft/actions/runs/42328466873)
-also passed every selected surface and recorded Doom mouse capture as active,
+The [merged Linux Chromium run](https://github.com/docxology/QuadCraft/actions/runs/42339885685)
+also passed all 30 surfaces and recorded Doom mouse capture as active,
 so both actual native-capture outcomes have been exercised.
 
 On the local macOS workstation, the normal graphical native configuration
 could not complete because system GLEW was missing. The independent headless
 build and native coordinate adapter were exercised successfully. The
-[Linux native workflow](https://github.com/docxology/QuadCraft/actions/runs/42328466897)
+[Linux native workflow](https://github.com/docxology/QuadCraft/actions/runs/42339885598)
 succeeded for the graphical build and Debug/Release headless jobs. Interactive
 native gameplay was not exercised.
 
 The local manuscript PDF build did not complete: XeTeX could not load the required
 DejaVu Serif / DejaVu Sans Mono fonts. A process-local Fontconfig configuration
 found Matplotlib's bundled font files but did not make them available to
-XeTeX's font loader. Local published PDFs remain unchanged. The
-[Linux manuscript run](https://github.com/docxology/QuadMath/actions/runs/42327721786)
+XeTeX's font loader. The release's fresh PDF/TeX come from the
+[Linux manuscript run](https://github.com/docxology/QuadMath/actions/runs/42339499328), which
 successfully regenerated and validated the manuscript, producing the
 119-page combined PDF and TeX. The downloaded PDF text, metadata and rendered
 cover were inspected; its visible date uses the source commit's UTC date.

@@ -15,7 +15,7 @@ Author: Symergetics Team
 License: Apache-2.0
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __author__ = "Symergetics Team"
 __license__ = "Apache-2.0"
 

@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.2.0 — 2026-11-07
+
+### Exact numbers and live geometry
+
+- Add `SymergeticsNumber.nth_root(value, degree, max_denominator=1000000)` and reuse it for `sqrt`.
+- Preserve integer `Fraction` exponents, perfect rational roots and powers without a binary-float conversion, including huge integers, tiny fractions and negative odd roots.
+- Bound only irrational approximations by `max_denominator`; exact roots may exceed that cap. Decimal approximation is finite precision, not certified symbolic algebra or rounding.
+- Add polyhedron `centroid_exact()` compatible with QuadMath's canonical rational centroid tuple, without integer coordinate snapping.
+- Remove stale volume caching: public vertex mutations immediately affect exact volume calculations. Existing floor-snapped centroids remain distinct.
+
+Exact-root compatibility: use `Fraction(1, 3)`, not the binary float `1/3`,
+for an exact cube-root exponent. Non-real roots raise domain errors; tiny
+irrational approximations may round to zero. Denominator limits apply only
+to approximations, never to exact perfect roots.
+
+### Coordinated verification and provenance
+
+- Version execution receipts and record the three declared package versions, actual Git revisions, selected core/full profile and truthful source/worktree dirty state.
+- Replace repository, scratch, tool and explicit interpreter paths with portable aliases in shared receipts.
+- Reject enclosing-repository provenance and optionally require clean source while retaining generated-output dirtiness.
+- Include the actual 30-game Chromium gate with `--browser`; missing browser tooling is a failure, never an implicit skip.
+- Accept explicit refs for all three CI checkouts and upload the complete receipt plus browser diagnostics.
+- Extend real interoperability to 37 exact-centroid cases, alongside 279 coordinates per implementation, 34 exact volumes and 216 independent FCC site comparisons.
+- Document exact-root approximation limits, centroid transport, mutation semantics and the coordinated QuadMath 0.5.0 / QuadCraft v0.4.0 release.
+
 ## 1.1.0 — 2026-11-06
 
 ### Exact and spatial methods

@@ -32,6 +32,10 @@ specification, lattice algorithms and formalization;
 native and browser games. See the [suite guide](docs/synergetics-suite.md) for
 coordinate/volume conventions and exact-data exchange boundaries.
 
+The current minor release adds exact rational roots/powers and continuous
+`Fraction` centroids compatible with QuadMath. Mutable polyhedron volumes
+follow live geometry. See the [API contracts](docs/api/index.md).
+
 With sibling checkouts, Node.js and a C++17 compiler:
 
 ```bash
@@ -41,14 +45,19 @@ uv run --python 3.13 --extra scientific --extra test python examples/suite_inter
 This exercises the actual implementations across all three projects; no
 production package depends on a sibling checkout.
 
-For the complete reproducible gate, run from this repository:
+For the complete gate, first prepare QuadCraft's
+[locked Chromium tooling](https://github.com/docxology/QuadCraft/blob/main/games/tests/browser/README.md),
+then run from this repository:
 
 ```bash
-python3 verify_suite.py --report /tmp/synergetics-suite-receipt.json
+python3 verify_suite.py --browser --report /tmp/synergetics-suite-receipt.json
 ```
 
-This requires `uv`, Node.js, CMake and a C++17 compiler. It uses frozen locks and
-temporary Python 3.13 environments/native builds, without replacing project
-environments. It stops on the first failed check and records unexecuted checks.
+This requires git, bash, `uv`, Node.js/npm, CMake and a C++17 compiler. It uses
+frozen locks and temporary Python 3.13 environments/native builds without
+replacing project environments. Receipts identify all three versions/revisions,
+record dirty-source state, replace host paths with logical aliases, and retain
+failed/unexecuted checks. Omit `--browser` for the explicitly labelled core
+profile; use `--require-clean` for release verification.
 See [release notes](CHANGELOG.md), the [suite workflow](.github/workflows/suite.yml)
 and [package verification](.github/workflows/verify.yml).

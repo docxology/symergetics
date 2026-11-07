@@ -40,7 +40,20 @@ jobs:
         run: |
           uv venv --python '${{ matrix.python }}' /tmp/symergetics-wheel
           uv pip install --python /tmp/symergetics-wheel/bin/python dist/*.whl
-          /tmp/symergetics-wheel/bin/python -I -c "import symergetics; from importlib.metadata import version; from symergetics.core.coordinates import QuadrayCoordinate; assert symergetics.__version__ == version('symergetics'); assert QuadrayCoordinate.from_xyz(2,0,0).as_tuple() == (1,0,0,1)"
+          /tmp/symergetics-wheel/bin/python -I - <<'PY'
+          from fractions import Fraction
+          from symergetics import SymergeticsNumber as N
+          from symergetics.core.coordinates import QuadrayCoordinate as Q
+          from symergetics.geometry.polyhedra import Tetrahedron
+          assert Q.from_xyz(2,0,0).as_tuple() == (1,0,0,1)
+          assert N.sqrt(10**400).value == 10**200
+          assert N.nth_root(Fraction(-8,27), 3).value == Fraction(-2,3)
+          shape = Tetrahedron([Q(0,0,0,0), Q(1,0,0,0), Q(0,1,0,0), Q(0,0,1,0)])
+          assert shape.centroid_exact() == (Fraction(1,4), Fraction(1,4), Fraction(1,4), Fraction(0))
+          assert shape.volume() == Fraction(1,4)
+          shape.vertices[1] = Q(2,0,0,0)
+          assert shape.volume() == Fraction(1,2)
+          PY
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: matrix.python == '3.13'
         with:
