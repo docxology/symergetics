@@ -17,6 +17,9 @@ Based on QuadMath implementation by docxology
 """
 
 import math
+from fractions import Fraction
+from itertools import product
+from operator import index
 from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
@@ -24,14 +27,172 @@ import numpy as np
 from .numbers import SymergeticsNumber
 
 
-def _snap_to_int(value: float) -> int:
-    """Round to the nearest integer with exact halves rounding away from zero.
+def _as_fraction(value) -> Fraction:
+    """Keep exact numeric inputs exact, including SymergeticsNumber values."""
+    if isinstance(value, SymergeticsNumber):
+        value = value.value
+    return Fraction(value)
 
-    Python's round() uses banker's rounding, which maps 0.5 -> 0 and would
-    snap genuine lattice points (whose pseudoinverse solution has exact .5
-    components) to the wrong coordinates.
+
+def _snap_to_int(value) -> int:
+    """Round exact numeric values to integers, with halves away from zero."""
+    value = _as_fraction(value)
+    whole, remainder = divmod(abs(value.numerator), value.denominator)
+    rounded = whole + (2 * remainder >= value.denominator)
+    return -rounded if value < 0 else rounded
+
+
+def _validated_embedding(embedding: Optional[np.ndarray]) -> np.ndarray:
+    """Validate a finite rank-three embedding with the all-ones gauge kernel.
+
+    Row sums may differ from zero only by floating-point summation roundoff.
+    The first three columns define the embedding in the d=0 gauge; the last
+    column is consequently their negative sum.
     """
-    return int(math.copysign(math.floor(abs(value) + 0.5), value))
+    if embedding is None:
+        return urner_embedding()
+    matrix = np.asarray(embedding, dtype=float)
+    if matrix.shape != (3, 4) or not np.isfinite(matrix).all():
+        raise ValueError("embedding must be a finite 3x4 matrix")
+    tolerance = 32 * np.finfo(float).eps
+    for row in matrix:
+        magnitude = max(abs(v) for v in row)
+        if magnitude and abs(math.fsum(v / magnitude for v in row)) > tolerance:
+            raise ValueError("embedding must annihilate the all-ones gauge")
+    a, b, c = [[Fraction(v) for v in row[:3]] for row in matrix]
+    determinant = (a[0] * (b[1] * c[2] - b[2] * c[1])
+                   - a[1] * (b[0] * c[2] - b[2] * c[0])
+                   + a[2] * (b[0] * c[1] - b[1] * c[0]))
+    if not determinant:
+        raise ValueError("embedding must have rank three")
+    return matrix
+
+
+def _canonical(values):
+    minimum = min(values)
+    return tuple(value - minimum for value in values)
+
+
+def _nearest_quadray(matrix, target):
+    """Solve the dimension-three closest-vector problem with exact bounds.
+
+    Binary floating-point matrix entries are interpreted as exact rationals.
+    A regular tetrahedral embedding has a body-centered cubic image; otherwise
+    exact lattice reduction and closest-first sphere enumeration visit every
+    possible minimizer, with coefficients mapped back to the original axes.
+    """
+    basis = [tuple(Fraction(matrix[i, j]) for i in range(3)) for j in range(3)]
+    def dot(a, b):
+        return sum(x * y for x, y in zip(a, b))
+
+    fourth = tuple(-sum(column[i] for column in basis) for i in range(3))
+    columns = basis + [fourth]
+    scale_squared = dot(columns[0], columns[0]) / 3
+    if all(dot(a, b) == scale_squared * (3 if i == j else -1)
+           for i, a in enumerate(columns) for j, b in enumerate(columns)):
+        # E = R U with R.T R = scale_squared I. In U's Cartesian frame,
+        # lattice sites have either three even or three odd integer coordinates.
+        urner = ((1, -1, -1, 1), (1, 1, -1, -1), (1, -1, 1, -1))
+        projections = [dot(column, target) for column in columns]
+        xyz = [sum(u * p for u, p in zip(row, projections)) / (4 * scale_squared)
+               for row in urner]
+        candidates = []
+        for parity in (0, 1):
+            choices = []
+            for value in xyz:
+                lower = 2 * ((value - parity) // 2) + parity
+                upper = lower + 2
+                errors = (abs(value - lower), abs(value - upper))
+                choices.append([n for n, error in zip((lower, upper), errors)
+                                if error == min(errors)])
+            for x, y, z in product(*choices):
+                coordinate = _canonical(((y + z) // 2, (y - x) // 2,
+                                         (z - x) // 2, 0))
+                error = sum((a - b) ** 2 for a, b in zip((x, y, z), xyz))
+                candidates.append((error, coordinate))
+        return min(candidates)[1]
+
+    # Put short directions first: sphere enumeration fixes the last direction
+    # first, so a tiny spacing must not create an enormous outer search range.
+    # LLL also removes integer shears; a permutation alone cannot handle them.
+    order = sorted(range(3), key=lambda i: (dot(basis[i], basis[i]), basis[i]))
+    basis = [basis[i] for i in order]
+    coefficients = [tuple(int(i == j) for j in range(3)) for i in order]
+
+    def gram_schmidt():
+        orthogonal = []
+        norms = []
+        mu = [[Fraction(0) for _ in range(3)] for _ in range(3)]
+        for j, column in enumerate(basis):
+            vector = list(column)
+            for i in range(j):
+                mu[i][j] = dot(column, orthogonal[i]) / norms[i]
+                vector = [v - mu[i][j] * u for v, u in zip(vector, orthogonal[i])]
+            orthogonal.append(vector)
+            norms.append(dot(vector, vector))
+        return orthogonal, norms, mu
+
+    orthogonal, norms, mu = gram_schmidt()
+    k = 1
+    while k < 3:
+        for j in range(k - 1, -1, -1):
+            multiple = _snap_to_int(mu[j][k])
+            if multiple:
+                basis[k] = tuple(v - multiple * u for v, u in zip(basis[k], basis[j]))
+                coefficients[k] = tuple(v - multiple * u
+                                        for v, u in zip(coefficients[k], coefficients[j]))
+                orthogonal, norms, mu = gram_schmidt()
+        if norms[k] >= (Fraction(3, 4) - mu[k - 1][k] ** 2) * norms[k - 1]:
+            k += 1
+        else:
+            basis[k], basis[k - 1] = basis[k - 1], basis[k]
+            coefficients[k], coefficients[k - 1] = coefficients[k - 1], coefficients[k]
+            orthogonal, norms, mu = gram_schmidt()
+            k = max(1, k - 1)
+
+    def canonical_candidate():
+        original = (sum(chosen[j] * coefficients[j][i] for j in range(3))
+                    for i in range(3))
+        return _canonical((*original, 0))
+
+    centers = [dot(target, vector) / norm for vector, norm in zip(orthogonal, norms)]
+    chosen = [0, 0, 0]
+    for i in range(2, -1, -1):
+        chosen[i] = _snap_to_int(centers[i] - sum(mu[i][j] * chosen[j]
+                                                for j in range(i + 1, 3)))
+    best = canonical_candidate()
+    best_error = sum(norms[i] * (chosen[i] + sum(mu[i][j] * chosen[j]
+                                                for j in range(i + 1, 3))
+                                 - centers[i]) ** 2 for i in range(3))
+
+    def search(i, partial_error):
+        nonlocal best, best_error
+        if i < 0:
+            candidate = canonical_candidate()
+            if (partial_error, candidate) < (best_error, best):
+                best_error, best = partial_error, candidate
+            return
+        center = centers[i] - sum(mu[i][j] * chosen[j] for j in range(i + 1, 3))
+        lower = center.numerator // center.denominator
+        upper = lower + 1
+        # Merge the integers on either side of the center in exact distance
+        # order. Recheck the current radius after each descent, including ties;
+        # a better candidate can eliminate the remaining interval immediately.
+        while True:
+            if center - lower <= upper - center:
+                value = lower
+                lower -= 1
+            else:
+                value = upper
+                upper += 1
+            error = partial_error + norms[i] * (value - center) ** 2
+            if error > best_error:
+                break
+            chosen[i] = value
+            search(i - 1, error)
+
+    search(2, Fraction(0))
+    return best
 
 
 
@@ -42,18 +203,18 @@ class QuadrayCoordinate:
     Implements the Quadray system following the QuadMath reference implementation,
     using integer coordinates with proper normalization and embedding matrices.
 
-    In the Quadray system, coordinates (a, b, c, d) are non-negative integers
-    with at least one coordinate being zero after normalization. This represents
-    positions in the Isotropic Vector Matrix (IVM) lattice.
+    Integer tuples modulo a common additive gauge represent a three-dimensional
+    lattice. Normalization subtracts the minimum component. Its integer image is
+    distinct from the 12-neighbor IVM/FCC sublattice.
 
     Attributes:
         a, b, c, d: The four coordinate values (integers)
     """
 
-    def __init__(self, a: Union[int, float, SymergeticsNumber],
-                 b: Union[int, float, SymergeticsNumber],
-                 c: Union[int, float, SymergeticsNumber],
-                 d: Union[int, float, SymergeticsNumber],
+    def __init__(self, a: Union[int, float, Fraction, SymergeticsNumber],
+                 b: Union[int, float, Fraction, SymergeticsNumber],
+                 c: Union[int, float, Fraction, SymergeticsNumber],
+                 d: Union[int, float, Fraction, SymergeticsNumber],
                  normalize: bool = True):
         """
         Initialize a Quadray coordinate with four values.
@@ -63,13 +224,14 @@ class QuadrayCoordinate:
             normalize: Whether to normalize using the IVM convention
 
         Note:
-            Following QuadMath convention, coordinates are converted to integers
-            and normalized so that at least one component is zero.
+            Inputs are rounded to integers with exact halves away from zero.
+            Integer, Fraction and SymergeticsNumber inputs are not converted to
+            float. Normalization then subtracts the minimum integer component.
         """
-        self.a = _snap_to_int(float(a.value) if hasattr(a, 'value') else float(a))
-        self.b = _snap_to_int(float(b.value) if hasattr(b, 'value') else float(b))
-        self.c = _snap_to_int(float(c.value) if hasattr(c, 'value') else float(c))
-        self.d = _snap_to_int(float(d.value) if hasattr(d, 'value') else float(d))
+        self.a = _snap_to_int(a)
+        self.b = _snap_to_int(b)
+        self.c = _snap_to_int(c)
+        self.d = _snap_to_int(d)
 
         if normalize:
             self._normalize_ivm()
@@ -136,73 +298,45 @@ class QuadrayCoordinate:
 
     def to_xyz(self, embedding: Optional[np.ndarray] = None) -> Tuple[float, float, float]:
         """
-        Convert Quadray coordinates to Cartesian XYZ coordinates using proper Urner embedding.
+        Convert to floating-point Cartesian coordinates.
 
-        Uses the standard Urner embedding matrix that maps the four quadray axes 
-        (A,B,C,D) to the vertices of a regular tetrahedron in R^3, following
-        established Quadray coordinate mathematics from Darrel Jarmusch (1981).
-
-        The transformation preserves tetrahedral symmetry and typically maps
-        integer Quadray coordinates to non-integer XYZ coordinates, which is
-        the expected mathematical behavior.
+        The optional finite rank-three 3x4 embedding must annihilate the
+        all-ones gauge (within summation roundoff). Its first three columns
+        define the d=0 gauge. Gauge removal uses exact integer subtraction
+        before crossing the floating-point XYZ boundary, so a large common
+        offset cannot erase small spatial displacements.
 
         Args:
-            embedding: Optional 3x4 embedding matrix (uses Urner embedding if None)
+            embedding: Gauge-compatible 3x4 matrix; defaults to Urner embedding.
 
         Returns:
             Tuple[float, float, float]: (x, y, z) Cartesian coordinates
         """
-        if embedding is None:
-            embedding = urner_embedding()
-        
-        # Apply the Urner embedding matrix transformation
-        quadray_vector = np.array([self.a, self.b, self.c, self.d], dtype=float)
-        xyz_vector = embedding @ quadray_vector
-        
-        return (float(xyz_vector[0]), float(xyz_vector[1]), float(xyz_vector[2]))
+        embedding = _validated_embedding(embedding)
+        differences = (self.a - self.d, self.b - self.d, self.c - self.d)
+        xyz_vector = embedding[:, :3] @ np.array(differences, dtype=float)
+        return tuple(float(value) for value in xyz_vector)
 
     @classmethod
     def from_xyz(cls, x: float, y: float, z: float,
                  embedding: Optional[np.ndarray] = None) -> 'QuadrayCoordinate':
         """
-        Convert Cartesian XYZ coordinates to Quadray coordinates.
+        Project XYZ onto the nearest integer-quadray lattice site.
 
-        Uses the Moore-Penrose pseudoinverse of the Urner embedding matrix
-        to find the least-squares solution, then normalizes to IVM convention.
+        Distances are Euclidean under the supplied finite, gauge-compatible,
+        rank-three 3x4 embedding. This projects onto the full integer-quadray
+        image, not just its IVM/FCC sublattice. Exact distance ties select the
+        lexicographically smallest normalized (a,b,c,d) tuple.
 
-        Args:
-            x, y, z: Cartesian coordinates
-            embedding: Optional 3x4 embedding matrix
-
-        Returns:
-            QuadrayCoordinate: Equivalent Quadray coordinates
+        Integer and rational XYZ inputs stay exact; finite float inputs and
+        embedding entries are interpreted as their exact binary values.
+        Regular tetrahedral embeddings use a body-centered-cubic fast path;
+        skewed embeddings use exhaustive bounded closest-vector enumeration
+        in three dimensions, rather than component-wise rounding.
         """
-        if embedding is None:
-            embedding = urner_embedding()
-
-        # Use pseudoinverse for the overdetermined system (3 equations, 4 unknowns)
-        xyz_vector = np.array([x, y, z], dtype=float)
-        
-        # Moore-Penrose pseudoinverse
-        embedding_pinv = np.linalg.pinv(embedding)
-        quadray_solution = embedding_pinv @ xyz_vector
-        
-        # The (1,1,1,1) kernel splits the lattice into two phase classes:
-        # integer quadray solutions and half-integer ones. Try both the
-        # unshifted and the half-shifted rounding and keep the candidate
-        # whose embedding is closest to the requested point.
-        best = None
-        best_err = None
-        for shift in (0.0, 0.5):
-            candidate = tuple(_snap_to_int(coord + shift) for coord in quadray_solution)
-            err_vec = embedding @ np.array(candidate, dtype=float) - xyz_vector
-            err = float(np.dot(err_vec, err_vec))
-            if best_err is None or err < best_err:
-                best_err = err
-                best = candidate
-        a, b, c, d = best
-        
-        return cls(a, b, c, d, normalize=True)
+        matrix = _validated_embedding(embedding)
+        target = tuple(_as_fraction(value) for value in (x, y, z))
+        return cls(*_nearest_quadray(matrix, target))
 
     def magnitude(self, embedding: Optional[np.ndarray] = None) -> float:
         """
@@ -303,6 +437,34 @@ IVM_NEIGHBORS = [
     QuadrayCoordinate(0, 1, 2, 1),
     QuadrayCoordinate(0, 1, 1, 2),
 ]
+
+
+def enumerate_ivm_sites(size: int) -> Tuple[QuadrayCoordinate, ...]:
+    """Return unique canonical FCC/IVM sites within ``size`` graph shells.
+
+    ``size`` is a nonnegative integer graph radius about the origin, using
+    the twelve ``IVM_NEIGHBORS`` moves (not a Cartesian or coefficient bound).
+    The origin comes first, followed by each shell in lexicographic canonical
+    coordinate order. Radii 0, 1, 2 and 3 contain 1, 13, 55 and 147 sites.
+    Every result has minimum component zero and component sum divisible by four.
+    """
+    size = index(size)
+    if size < 0:
+        raise ValueError("IVM graph-shell radius must be nonnegative")
+    origin = (0, 0, 0, 0)
+    seen = {origin}
+    frontier = [origin]
+    sites = [QuadrayCoordinate(*origin)]
+    moves = [neighbor.as_tuple() for neighbor in IVM_NEIGHBORS]
+    for _ in range(size):
+        shell = {
+            _canonical(tuple(a + b for a, b in zip(site, move)))
+            for site in frontier for move in moves
+        } - seen
+        frontier = sorted(shell)
+        seen.update(shell)
+        sites.extend(QuadrayCoordinate(*site) for site in frontier)
+    return tuple(sites)
 
 # Tetrahedron vertices (unit volume = 1 in IVM units)
 TETRAHEDRON_VERTICES = [

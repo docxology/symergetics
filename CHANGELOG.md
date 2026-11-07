@@ -1,0 +1,41 @@
+# Changelog
+
+## 1.1.0 — 2026-11-06
+
+### Exact and spatial methods
+
+- Preserve integral/Fraction/SymergeticsNumber precision through coordinate snapping, with halves away from zero; parse scientific rational strings without a lossy float conversion.
+- Find the true nearest full integer-quadray point, using the regular BCC fast path or exact-rational LLL reduction and bounded closest-first enumeration for compatible skew embeddings. Canonical tuple order resolves exact ties; there is no heuristic candidate cap.
+- Validate finite rank-three gauge-compatible embeddings with scaled arithmetic. Keep integer scaling, origin inversion and compatible integer maps exact; fractional spatial operations quantize explicitly.
+- Correct named reflection planes and the continuous 4×3 pseudoinverse, including extreme finite unit scales.
+- Add `enumerate_ivm_sites(size)` with graph-shell-radius semantics, canonical unique FCC sites and deterministic shell ordering. Radii 0/1/2/3 contain 1/13/55/147 sites.
+- Reuse the actual IVM sites across ASCII, Matplotlib, Plotly, coordinate backgrounds and demo density/counts, replacing raw tuple aliases and non-FCC points.
+- Propagate transformation callback errors instead of saving a misleading success image; reject unknown backends and close figures on exceptional exits. Initialize advanced dashboard dependencies on a cold first call.
+- Render numeric XYZ annotations in graphical abstracts, remove the unused overlapping 2D axes and reserve space for the overall title.
+
+### Orchestration and real tests
+
+- Keep one selected interpreter for setup, installation verification, tests and demos. `--python` selects an existing interpreter; setup uses declared extras without bypassing externally managed environment protections.
+- Continue requested stages after failures while retaining truthful stage/command results and a nonzero final status. Handle empty demo discovery and label existing output inventory honestly.
+- Discover ordinary `*_demo.py` files without implicitly requiring sibling repositories, Node or a C++ compiler. Required failures in PNG, comprehensive and geometric-mnemonic demos now reach their process exit status.
+- Correct exact-Fraction integration output, batch visualization result handling and high-radix positional demonstrations; register base-conversion matrices for batch visualization.
+- Isolate tests with temporary working directories and visualization configuration reset before/after each test, including mid-test resets. Remove teardown that deleted unrelated output files and replace renderer/path mocks with real isolated behavior checks.
+- Add `verify_suite.py`: frozen temporary Python environments, existing coverage gates, game checks, Release native tests, independent FCC enumeration, five actual mathematical implementations and documentation checks. It stops on failure and records unexecuted checks in an optional JSON receipt.
+
+### Distribution, CI and compatibility
+
+- Make NumPy a base dependency because public coordinate imports require it; scientific/test tools remain extras. Exercise minimally installed wheels without plotting dependencies.
+- Exclude generated visualization/paper output, logs and local PDFs from source distributions.
+- Align `__version__`, project/lock metadata and the versioned release at 1.1.0, following the legacy GitHub `1` release. Align license metadata with the existing Apache-2.0 LICENSE; this is not a new license grant.
+- Align tooling/classifiers with the existing Python ≥3.11 requirement; keep repository interpreter pins unchanged. CI exercises Python 3.11/3.13 plus cross-repository integration.
+- Document gauge equivalence, orientation reversal and scale conversion to QuadCraft, rational volume units, transport precision and distinct inverse contracts.
+
+### Dependency security
+
+- Selectively update the eleven packages implicated by all 98 open `uv.lock` Dependabot alerts, plus resolver-required dependencies. Every newly resolved version was checked against every captured affected range; none remained affected.
+- Require Pillow ≥13.0.0 in the scientific extra, pytest ≥9.0.3 in test tools and Black ≥26.10.1 in development tools. Other patched lock entries cover certifi, filelock, fonttools, idna, Pygments, requests, urllib3 and virtualenv.
+- Advisory evidence includes [certifi GHSA-6q48-6c7w-9gw2](https://github.com/advisories/GHSA-6q48-6c7w-9gw2), [pytest GHSA-6w46-j5rx-g56g](https://github.com/advisories/GHSA-6w46-j5rx-g56g) and [Black GHSA-cg8m-r9f2-5wm2](https://github.com/advisories/GHSA-cg8m-r9f2-5wm2). This is a bounded lockfile advisory check, not a claim of complete vulnerability absence.
+
+From sibling checkouts, run `python3 verify_suite.py --report /tmp/synergetics-suite.json`. To regenerate ordinary demonstrations in a prepared scientific environment, run `uv run --python 3.13 --extra scientific --extra test python run.py --examples-only`. See [suite contracts and receipts](docs/synergetics-suite.md).
+
+Release verification: **1,344 tests passed, 12 skipped, 88.16% coverage**; all **10 ordinary demos** and all **13 coordinated checks** passed with the patched scientific lock. A minimal installed wheel exercised exact coordinate inversion and FCC enumeration without Matplotlib, SciPy or Plotly installed.

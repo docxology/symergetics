@@ -32,6 +32,12 @@ from symergetics.geometry.transformations import (
     translate_polyhedron,
 )
 
+def spatial(coord):
+    """Independent integer Cartesian oracle for transformation behavior."""
+    a, b, c, d = coord.as_tuple()
+    return (a - b - c + d, a + b - c - d, a - b + c - d)
+
+
 
 class TestPolyhedraFunctions:
     """Test polyhedra creation and volume functions."""
@@ -109,110 +115,73 @@ class TestPolyhedraFunctions:
 
 
 class TestTransformations:
-    """Test geometric transformation functions."""
-    
+    """Exercise transformations against spatial results, not implementation details."""
+
     def test_translate_coordinate(self):
-        """Test coordinate translation."""
         coord = QuadrayCoordinate(1, 2, 3, 4)
-        offset = QuadrayCoordinate(1, 1, 1, 1)
-        
-        result = translate(coord, offset)
-        assert isinstance(result, QuadrayCoordinate)
-        assert result.a == coord.a + offset.a
-        assert result.b == coord.b + offset.b
-        assert result.c == coord.c + offset.c
-        assert result.d == coord.d + offset.d
-    
+        offset = QuadrayCoordinate(1, 1, 1, 1, normalize=False)
+        assert spatial(translate(coord, offset)) == spatial(coord)
+
     def test_scale_coordinate(self):
-        """Test coordinate scaling."""
         coord = QuadrayCoordinate(2, 4, 6, 8)
-        factor = 2
-        
-        result = scale(coord, factor)
-        assert isinstance(result, QuadrayCoordinate)
-        assert result.a == coord.a * factor
-        assert result.b == coord.b * factor
-        assert result.c == coord.c * factor
-        assert result.d == coord.d * factor
-    
+        assert spatial(scale(coord, 2)) == tuple(2 * value for value in spatial(coord))
+
     def test_reflect_coordinate(self):
-        """Test coordinate reflection."""
         coord = QuadrayCoordinate(1, 2, 3, 4)
-        
-        result = reflect(coord, 'origin')
-        assert isinstance(result, QuadrayCoordinate)
-        # Reflection should change the coordinate values
-    
+        assert spatial(reflect(coord, 'origin')) == tuple(-value for value in spatial(coord))
+
     def test_coordinate_transform(self):
-        """Test coordinate transformation."""
         import numpy as np
         coord = QuadrayCoordinate(1, 2, 3, 4)
-        
-        # Create identity matrix
-        identity_matrix = np.eye(4)
-        result = coordinate_transform(coord, identity_matrix)
-        assert isinstance(result, QuadrayCoordinate)
-    
+        assert coordinate_transform(coord, np.eye(4)) == coord
+
     def test_rotate_around_axis(self):
-        """Test rotation around axis."""
         coord = QuadrayCoordinate(1, 0, 0, 0)
-        
-        result = rotate_around_axis(coord, 'x', 90.0)
-        assert isinstance(result, QuadrayCoordinate)
-    
+        assert spatial(rotate_around_axis(coord, 'x', 90.0)) == (1, -1, 1)
+
     def test_project_to_plane(self):
-        """Test projection to plane."""
         coord = QuadrayCoordinate(1, 2, 3, 4)
-        plane_normal = (0, 0, 1)  # XY plane
-        
-        result = project_to_plane(coord, plane_normal)
-        assert isinstance(result, QuadrayCoordinate)
-    
+        assert spatial(project_to_plane(coord, (0, 0, 1))) == (0, -4, 0)
+
     def test_apply_transform_function(self):
-        """Test applying transform function to multiple coordinates."""
         coords = [
             QuadrayCoordinate(1, 0, 0, 0),
             QuadrayCoordinate(0, 1, 0, 0),
-            QuadrayCoordinate(0, 0, 1, 0)
+            QuadrayCoordinate(0, 0, 1, 0),
         ]
-        
-        def double_transform(coord):
-            return scale(coord, 2)
-        
-        result = apply_transform_function(coords, double_transform)
-        assert isinstance(result, list)
-        assert len(result) == len(coords)
-        assert all(isinstance(c, QuadrayCoordinate) for c in result)
+        result = apply_transform_function(coords, lambda point: scale(point, 2))
+        assert [spatial(point) for point in result] == [(2, 2, 2), (-2, 2, -2), (-2, -2, 2)]
+
+
 
 
 class TestPolyhedronTransformations:
-    """Test polyhedron transformation functions."""
-    
+    """Exercise transform consumers with exact tetrahedral volumes."""
+
     def test_translate_polyhedron(self):
-        """Test polyhedron translation."""
         tetra = create_unit_tetrahedron()
-        offset = QuadrayCoordinate(1, 1, 1, 1)
-        
+        offset = QuadrayCoordinate(1, 0, 0, 0)
         result = translate_polyhedron(tetra, offset)
-        assert result is not None
-        assert hasattr(result, 'vertices')
-    
+        assert result.volume() == tetra.volume() == 1
+        assert [spatial(point) for point in result.vertices] == [
+            tuple(value + 1 for value in spatial(point)) for point in tetra.vertices
+        ]
+
     def test_scale_polyhedron(self):
-        """Test polyhedron scaling."""
         tetra = create_unit_tetrahedron()
-        factor = 2
-        
-        result = scale_polyhedron(tetra, factor)
-        assert result is not None
-        assert hasattr(result, 'vertices')
-    
+        result = scale_polyhedron(tetra, 2)
+        assert result.volume() == 8
+        assert tetra.volume() == 1
+
     def test_reflect_polyhedron(self):
-        """Test polyhedron reflection."""
         tetra = create_unit_tetrahedron()
-        
         result = reflect_polyhedron(tetra, 'origin')
-        assert result is not None
-        assert hasattr(result, 'vertices')
+        assert result.volume() == tetra.volume() == 1
+        assert [spatial(point) for point in result.vertices] == [
+            tuple(-value for value in spatial(point)) for point in tetra.vertices
+        ]
+
+
 
 
 class TestGeometryIntegration:
@@ -234,21 +203,11 @@ class TestGeometryIntegration:
         assert (vol1 >= 0 and vol2 >= 0) or (vol1 < 0 and vol2 < 0)
     
     def test_transform_chain(self):
-        """Test chaining multiple transformations."""
-        coord = QuadrayCoordinate(1, 1, 1, 1)
-        
-        # Apply translation then scaling
+        """Gauge-shifted origin followed by translation and exact scaling."""
+        coord = QuadrayCoordinate(*(2**60,) * 4, normalize=False)
         translated = translate(coord, QuadrayCoordinate(1, 0, 0, 0))
-        scaled = scale(translated, 2)
-        
-        assert isinstance(scaled, QuadrayCoordinate)
-        # The add method doesn't normalize, so (1,1,1,1) + (1,0,0,0) = (2,1,1,1)
-        # Then scale by 2 gives (4,2,2,2), but normalization subtracts min(4,2,2,2)=2
-        # So final result is (2,0,0,0)
-        assert scaled.a == 2
-        assert scaled.b == 0
-        assert scaled.c == 0
-        assert scaled.d == 0
+        assert scale(translated, 2).as_tuple() == (2, 0, 0, 0)
+
     
     def test_polyhedron_properties(self):
         """Test polyhedron property consistency."""
@@ -285,39 +244,22 @@ class TestGeometryEdgeCases:
         coord = QuadrayCoordinate(1, 2, 3, 4)
         
         result = scale(coord, -1)
-        assert isinstance(result, QuadrayCoordinate)
-        # After scaling by -1: (-1, -2, -3, -4)
-        # After normalization (subtract min=-4): (3, 2, 1, 0)
         assert result.a == 3
         assert result.b == 2
         assert result.c == 1
         assert result.d == 0
     
     def test_large_coordinates(self):
-        """Test with large coordinate values."""
-        large_coord = QuadrayCoordinate(10**6, 10**6, 10**6, 10**6)
-        
-        # Test translation
-        offset = QuadrayCoordinate(1, 1, 1, 1)
-        result = translate(large_coord, offset)
-        assert isinstance(result, QuadrayCoordinate)
-        
-        # Test scaling
-        result = scale(large_coord, 2)
-        assert isinstance(result, QuadrayCoordinate)
+        """A large gauge must not hide a small physical displacement."""
+        gauge = 2**60
+        coord = QuadrayCoordinate(gauge + 1, gauge, gauge, gauge, normalize=False)
+        result = scale(coord, 0.75)
+        assert result.as_tuple() == (1, 0, 0, 0)
+
     
     def test_rotation_edge_cases(self):
-        """Test rotation with edge case angles."""
+        """Whole turns preserve points; a negative quarter-turn has known XYZ."""
         coord = QuadrayCoordinate(1, 0, 0, 0)
-        
-        # Test 0 degree rotation
-        result0 = rotate_around_axis(coord, 'x', 0.0)
-        assert isinstance(result0, QuadrayCoordinate)
-        
-        # Test 360 degree rotation
-        result360 = rotate_around_axis(coord, 'x', 360.0)
-        assert isinstance(result360, QuadrayCoordinate)
-        
-        # Test negative angle
-        result_neg = rotate_around_axis(coord, 'x', -90.0)
-        assert isinstance(result_neg, QuadrayCoordinate)
+        assert rotate_around_axis(coord, 'x', 0.0) == coord
+        assert rotate_around_axis(coord, 'x', 360.0) == coord
+        assert spatial(rotate_around_axis(coord, 'x', -90.0)) == (1, 1, -1)

@@ -80,6 +80,16 @@ class QuadrayCoordinate:
 - Operations: `add()`, `sub()`, `dot()`
 - Properties: `as_tuple()`, `as_array()`
 
+Components are integer lattice values. Integral and rational inputs are retained
+exactly until rounding; nonintegral components use nearest-integer,
+halves-away-from-zero rounding. `SymergeticsNumber` is a rational scalar type,
+not a rational-coordinate representation.
+
+`from_xyz` finds the spatially nearest integer quadray and resolves exact ties
+by canonical tuple order. Custom embeddings must be finite, rank-three 3×4
+matrices with the common-offset gauge in their kernel. `to_xyz` and `as_array`
+are floating-point boundaries; they do not promise arbitrary-precision XYZ.
+
 ```mermaid
 classDiagram
   class QuadrayCoordinate{
@@ -96,6 +106,25 @@ classDiagram
   }
 ```
 
+### Canonical IVM sites
+
+```python
+from symergetics.core.coordinates import enumerate_ivm_sites
+
+sites = enumerate_ivm_sites(2)
+assert len(sites) == 55
+```
+
+`size` is a nonnegative integer graph-shell radius about the origin under the
+twelve IVM neighbor moves, not a raw four-index L1 cutoff. The returned tuple
+contains unique min-zero coordinates with component sum divisible by four:
+origin first, then lexicographically ordered sites within each shell.
+Negative radii raise `ValueError`; noninteger radii raise `TypeError`.
+This FCC enumeration is separate from nearest conversion on the full
+integer-quadray image. Lattice plots and coordinate backgrounds use these same
+physical sites and graph-radius semantics.
+
+
 ## Geometry Module
 
 ### Polyhedra Classes
@@ -106,7 +135,7 @@ classDiagram
 class Tetrahedron(SymergeticsPolyhedron):
     """Regular tetrahedron - volume = 1 IVM unit."""
 
-    def volume(self) -> int  # Returns 1
+    def volume(self) -> Fraction  # Returns Fraction(1)
     def faces(self) -> List[List[QuadrayCoordinate]]
     def edges(self) -> List[Tuple[QuadrayCoordinate, QuadrayCoordinate]]
 ```
@@ -117,7 +146,7 @@ class Tetrahedron(SymergeticsPolyhedron):
 class Octahedron(SymergeticsPolyhedron):
     """Regular octahedron - volume = 4 tetrahedra."""
 
-    def volume(self) -> int  # Returns 4
+    def volume(self) -> Fraction  # Returns Fraction(4)
 ```
 
 #### Cube
@@ -126,7 +155,7 @@ class Octahedron(SymergeticsPolyhedron):
 class Cube(SymergeticsPolyhedron):
     """Cube - volume = 3 tetrahedra."""
 
-    def volume(self) -> int  # Returns 3
+    def volume(self) -> Fraction  # Returns Fraction(3)
 ```
 
 #### Cuboctahedron
@@ -135,15 +164,36 @@ class Cube(SymergeticsPolyhedron):
 class Cuboctahedron(SymergeticsPolyhedron):
     """Vector equilibrium - volume = 20 tetrahedra."""
 
-    def volume(self) -> int  # Returns 20
+    def volume(self) -> Fraction  # Returns Fraction(20)
 ```
 
 ### Volume Calculation Functions
 
 ```python
-def integer_tetra_volume(p0, p1, p2, p3) -> int
-def ace_tetra_volume_5x5(p0, p1, p2, p3) -> int
+def integer_tetra_volume(p0, p1, p2, p3) -> Fraction
+def ace_tetra_volume_5x5(p0, p1, p2, p3) -> Fraction
 ```
+
+Import these functions from `symergetics.geometry.polyhedra`. Both return
+`Fraction(abs(det), 4)`: a basis-corner tetrahedron has volume `1/4`, while the
+regular unit IVM tetrahedron has volume `1`.
+
+### Transformations
+
+Import from `symergetics.geometry.transformations`:
+
+- `scale(coord, factor)`: exact integer scaling; fractional factors scale in
+  XYZ and project back to the integer lattice.
+- `reflect(coord, axis)`: origin inversion, or reflection in the plane through
+  the origin perpendicular to basis direction `a`, `b`, `c` or `d`, followed by
+  lattice projection.
+- `coordinate_transform(coord, matrix)`: a 4×4 linear transform whose row sums
+  are equal, so it respects the common-offset gauge.
+- `xyz_to_quadray_matrix(embedding=None)`: the supplied embedding's continuous
+  4×3 pseudoinverse, not a discrete lattice inverse.
+
+Quantized transformations need not preserve distances or be invertible.
+See the [suite guide](../synergetics-suite.md) for embedding and volume units.
 
 ## Computation Module
 
@@ -314,9 +364,10 @@ The package uses standard Python exceptions:
 
 ## Performance Notes
 
-- All calculations use exact arithmetic (no floating-point errors)
-- Large integer operations are optimized
-- Coordinate conversions use efficient matrix operations
+- Rational scalar arithmetic and integer determinant volumes are exact.
+- XYZ conversion and continuous transforms use floating point; lattice
+  projection introduces discrete quantization.
+- Core coordinates require NumPy; visualization/scientific backends use extras.
 - Volume calculations use integer determinant methods
 
 ## Thread Safety

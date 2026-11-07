@@ -12,12 +12,12 @@ Core Features:
 - Cosmic hierarchy scaling relationships
 
 Author: Symergetics Team
-License: MIT
+License: Apache-2.0
 """
 
-__version__ = "0.1.0"
+__version__ = "1.1.0"
 __author__ = "Symergetics Team"
-__license__ = "MIT"
+__license__ = "Apache-2.0"
 
 # Import core classes for easy access
 from .computation.palindromes import extract_palindromic_patterns, is_palindromic

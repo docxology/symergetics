@@ -1,15 +1,13 @@
-#!/usr/bin/env python3
-"""
-Tests for advanced visualization methods in symergetics.visualization.advanced
-"""
+"""Exercise advanced visualizations with actual isolated rendering and files."""
 
 import os
-import tempfile
+import subprocess
+import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
+from symergetics.visualization import get_config, set_config
 from symergetics.visualization.advanced import (
     create_comparative_analysis_visualization,
     create_pattern_discovery_visualization,
@@ -17,569 +15,229 @@ from symergetics.visualization.advanced import (
 )
 
 
+@pytest.fixture
+def analysis_results():
+    return [
+        {
+            'length': 3, 'is_palindromic': True,
+            'pattern_complexity': {'complexity_score': 2.5},
+            'symmetry_analysis': {'symmetry_score': 0.8},
+            'palindromic_density': 1.0,
+            'digit_distribution': {'1': 1, '2': 1, '3': 1},
+        },
+        {
+            'length': 5, 'is_palindromic': False,
+            'pattern_complexity': {'complexity_score': 1.8},
+            'symmetry_analysis': {'symmetry_score': 0.6},
+            'palindromic_density': 0.4,
+            'digit_distribution': {'1': 1, '2': 2, '3': 1, '4': 1},
+        },
+        {
+            'length': 7, 'is_palindromic': True,
+            'pattern_complexity': {'complexity_score': 3.2},
+            'symmetry_analysis': {'symmetry_score': 0.9},
+            'palindromic_density': 0.8,
+        },
+        {
+            'length': 4, 'is_palindromic': False,
+            'pattern_complexity': {'complexity_score': 1.5},
+            'symmetry_analysis': {'symmetry_score': 0.3},
+            'palindromic_density': 0.2,
+        },
+    ]
+
+
+def assert_rendered(result):
+    output_dir = Path(get_config()['output_dir']).resolve()
+    assert result['files']
+    for filename in result['files']:
+        path = Path(filename).resolve()
+        assert path.is_relative_to(output_dir)
+        assert path.is_file()
+        assert path.read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
+
+
+def run_python(code):
+    env = os.environ.copy()
+    repo_root = str(Path(__file__).resolve().parents[1])
+    env['PYTHONPATH'] = os.pathsep.join(filter(None, [repo_root, env.get('PYTHONPATH')]))
+    return subprocess.run(
+        [sys.executable, '-c', code], capture_output=True, text=True,
+        timeout=120, check=False, env=env,
+    )
+
+
 class TestComparativeAnalysisVisualization:
-    """Test comparative analysis visualization."""
-
-    @patch('matplotlib.pyplot.colorbar')
-    @patch('matplotlib.pyplot.figure')
-    @patch('matplotlib.pyplot.subplots')
-    @patch('matplotlib.pyplot.savefig')
-    @patch('matplotlib.pyplot.tight_layout')
-    def test_comparative_analysis_basic(self, mock_tight_layout, mock_savefig,
-                                       mock_subplots, mock_figure, mock_colorbar):
-        """Test basic comparative analysis visualization."""
-        # Mock matplotlib components
-        mock_fig = MagicMock()
-        mock_ax1, mock_ax2, mock_ax3 = MagicMock(), MagicMock(), MagicMock()
-        mock_ax4, mock_ax5, mock_ax6 = MagicMock(), MagicMock(), MagicMock()
-        # Create a mock axes array that supports tuple indexing
-        mock_axes = MagicMock()
-        mock_axes.__getitem__.side_effect = lambda key: {
-            (0, 0): mock_ax1, (0, 1): mock_ax2, (0, 2): mock_ax3,
-            (1, 0): mock_ax4, (1, 1): mock_ax5, (1, 2): mock_ax6
-        }[key]
-        mock_subplots.return_value = (mock_fig, mock_axes)
-        mock_figure.return_value = mock_fig
-        mock_colorbar.return_value = MagicMock()  # Mock the colorbar return value
-
-        # Test data
-        domain1_data = [
-            {
-                'length': 3,
-                'is_palindromic': True,
-                'pattern_complexity': {'complexity_score': 2.5},
-                'symmetry_analysis': {'symmetry_score': 0.8},
-                'digit_distribution': {'1': 1, '2': 1, '3': 1}
-            }
-        ]
-
-        domain2_data = [
-            {
-                'length': 5,
-                'is_palindromic': False,
-                'pattern_complexity': {'complexity_score': 1.8},
-                'symmetry_analysis': {'symmetry_score': 0.6},
-                'digit_distribution': {'1': 1, '2': 2, '3': 1, '4': 1}
-            }
-        ]
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                mock_path.return_value = Path(temp_dir) / 'test_comparative.png'
-
-                result = create_comparative_analysis_visualization(
-                    domain1_data, domain2_data,
-                    "Domain1", "Domain2"
-                )
-
-                # Verify result structure
-                assert 'files' in result
-                assert 'metadata' in result
-                assert result['metadata']['type'] == 'comparative_analysis'
-                assert result['metadata']['domain1'] == 'Domain1'
-                assert result['metadata']['domain2'] == 'Domain2'
-                assert result['metadata']['panels'] == 6
-
-                # Verify matplotlib calls
-                mock_subplots.assert_called_once()
-                mock_savefig.assert_called_once()
-                mock_tight_layout.assert_called_once()
-
-    @patch('matplotlib.pyplot.figure')
-    @patch('matplotlib.pyplot.subplots')
-    @patch('matplotlib.pyplot.savefig')
-    def test_comparative_analysis_matplotlib_error(self, mock_savefig, mock_subplots, mock_figure):
-        """Test comparative analysis with matplotlib import error."""
-        # Mock the _ensure_matplotlib_numpy function to raise ImportError
-        with patch('symergetics.visualization.advanced._ensure_matplotlib_numpy') as mock_ensure:
-            mock_ensure.side_effect = ImportError("Required visualization libraries not available: matplotlib not available")
-
-            domain1_data = [{'length': 3}]
-            domain2_data = [{'length': 5}]
-
-            with pytest.raises(ImportError, match="Required visualization libraries not available"):
-                create_comparative_analysis_visualization(
-                    domain1_data, domain2_data,
-                    backend="matplotlib"
-                )
+    def test_comparative_analysis_basic(self, analysis_results):
+        result = create_comparative_analysis_visualization(
+            analysis_results[:2], analysis_results[2:], 'Domain1', 'Domain2'
+        )
+        assert_rendered(result)
+        assert result['metadata']['type'] == 'comparative_analysis'
+        assert result['metadata']['domain1_count'] == 2
+        assert result['metadata']['domain2_count'] == 2
 
     def test_comparative_analysis_invalid_backend(self):
-        """Test comparative analysis with invalid backend."""
-        domain1_data = [{'length': 3}]
-        domain2_data = [{'length': 5}]
-
-        with pytest.raises(ValueError, match="Comparative analysis visualization requires matplotlib backend"):
-            create_comparative_analysis_visualization(
-                domain1_data, domain2_data,
-                backend="invalid_backend"
-            )
+        with pytest.raises(ValueError):
+            create_comparative_analysis_visualization([{'length': 3}], [{'length': 5}], backend='invalid')
 
     def test_comparative_analysis_empty_domains(self):
-        """Test comparative analysis with empty domains raises ValueError."""
-        with pytest.raises(ValueError, match="Cannot create comparative analysis visualization with empty domains"):
-            create_comparative_analysis_visualization([], [], "Empty1", "Empty2")
+        with pytest.raises(ValueError):
+            create_comparative_analysis_visualization([], [], 'Empty1', 'Empty2')
 
 
 class TestPatternDiscoveryVisualization:
-    """Test pattern discovery visualization."""
-
-    @patch('matplotlib.pyplot.figure')
-    @patch('matplotlib.pyplot.subplots')
-    @patch('matplotlib.pyplot.savefig')
-    @patch('matplotlib.pyplot.tight_layout')
-    def test_pattern_discovery_basic(self, mock_tight_layout, mock_savefig,
-                                    mock_subplots, mock_figure):
-        """Test basic pattern discovery visualization."""
-        # Mock matplotlib components
-        mock_fig = MagicMock()
-        mock_ax1, mock_ax2 = MagicMock(), MagicMock()
-        mock_ax3, mock_ax4 = MagicMock(), MagicMock()
-        # Create a mock axes array that supports tuple indexing
-        mock_axes = MagicMock()
-        mock_axes.__getitem__.side_effect = lambda key: {
-            (0, 0): mock_ax1, (0, 1): mock_ax2,
-            (1, 0): mock_ax3, (1, 1): mock_ax4
-        }[key]
-        mock_subplots.return_value = (mock_fig, mock_axes)
-        mock_figure.return_value = mock_fig
-
-        # Test data with different patterns
-        analysis_results = [
-            {
-                'length': 3,
-                'is_palindromic': True,
-                'pattern_complexity': {'complexity_score': 2.5},
-                'symmetry_analysis': {'symmetry_score': 0.8}
-            },
-            {
-                'length': 5,
-                'is_palindromic': False,
-                'pattern_complexity': {'complexity_score': 1.8},
-                'symmetry_analysis': {'symmetry_score': 0.6}
-            },
-            {
-                'length': 7,
-                'is_palindromic': True,
-                'pattern_complexity': {'complexity_score': 3.2},
-                'symmetry_analysis': {'symmetry_score': 0.9}
-            }
-        ]
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                mock_path.return_value = Path(temp_dir) / 'test_pattern_discovery.png'
-
-                result = create_pattern_discovery_visualization(
-                    analysis_results,
-                    title="Test Pattern Discovery"
-                )
-
-                # Verify result structure
-                assert 'files' in result
-                assert 'metadata' in result
-                assert result['metadata']['type'] == 'pattern_discovery'
-                assert result['metadata']['title'] == 'Test Pattern Discovery'
-                assert result['metadata']['total_analyses'] == 3
-                assert 'palindromic_count' in result['metadata']
-                assert 'high_complexity_count' in result['metadata']
-
-                # Verify matplotlib calls
-                mock_subplots.assert_called_once()
-                mock_savefig.assert_called_once()
+    def test_pattern_discovery_basic(self, analysis_results):
+        result = create_pattern_discovery_visualization(
+            analysis_results[:3], title='Test Pattern Discovery'
+        )
+        assert_rendered(result)
+        assert result['metadata']['total_analyses'] == 3
+        assert result['metadata']['palindromic_count'] == 2
+        assert result['metadata']['high_complexity_count'] == 2
 
     def test_pattern_discovery_empty_results(self):
-        """Test pattern discovery with empty results."""
-        with patch('matplotlib.pyplot.subplots') as mock_subplots:
-            mock_fig = MagicMock()
-            mock_ax1, mock_ax2 = MagicMock(), MagicMock()
-            mock_ax3, mock_ax4 = MagicMock(), MagicMock()
-            # Create a mock axes array that supports tuple indexing
-            mock_axes = MagicMock()
-            mock_axes.__getitem__.side_effect = lambda key: {
-                (0, 0): mock_ax1, (0, 1): mock_ax2,
-                (1, 0): mock_ax3, (1, 1): mock_ax4
-            }[key]
-            mock_subplots.return_value = (mock_fig, mock_axes)
-
-            with patch('matplotlib.pyplot.savefig'):
-                with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                    mock_path.return_value = Path('/tmp/test.png')
-
-                    result = create_pattern_discovery_visualization([], title="Empty Test")
-
-                    assert result['metadata']['total_analyses'] == 0
-                    assert result['metadata']['palindromic_count'] == 0
+        result = create_pattern_discovery_visualization([], title='Empty Test')
+        assert_rendered(result)
+        assert result['metadata']['total_analyses'] == 0
+        assert result['metadata']['palindromic_count'] == 0
 
     def test_pattern_discovery_invalid_backend(self):
-        """Test pattern discovery with invalid backend."""
-        analysis_results = [{'length': 3}]
-
-        with pytest.raises(ValueError, match="Pattern discovery visualization requires matplotlib backend"):
-            create_pattern_discovery_visualization(
-                analysis_results,
-                backend="invalid_backend"
-            )
+        with pytest.raises(ValueError):
+            create_pattern_discovery_visualization([{'length': 3}], backend='invalid')
 
 
 class TestStatisticalAnalysisDashboard:
-    """Test statistical analysis dashboard."""
+    def test_statistical_dashboard_basic(self, analysis_results):
+        result = create_statistical_analysis_dashboard(
+            analysis_results, title='Test Statistical Dashboard'
+        )
+        assert_rendered(result)
+        assert result['metadata']['type'] == 'statistical_dashboard'
+        assert result['metadata']['total_analyses'] == 4
 
-    @patch('matplotlib.pyplot.figure')
-    @patch('matplotlib.pyplot.savefig')
-    @patch('matplotlib.pyplot.tight_layout')
-    @patch('matplotlib.pyplot.colorbar')
-    @patch('symergetics.visualization.advanced._np')
-    def test_statistical_dashboard_basic(self, mock_np, mock_colorbar, mock_tight_layout,
-                                        mock_savefig, mock_figure):
-        """Test basic statistical dashboard."""
-        # Mock matplotlib components for complex dashboard layout
-        mock_fig = MagicMock()
-        mock_figure.return_value = mock_fig
-        # Mock numpy methods
-        mock_np.array.return_value = [[1.0, 0.5], [0.5, 1.0]]  # Mock correlation matrix
-        mock_np.corrcoef.return_value = [[1.0, 0.5], [0.5, 1.0]]
-
-        # Test data with more entries to ensure non-empty histograms
-        analysis_results = [
-            {
-                'length': 3,
-                'is_palindromic': True,
-                'pattern_complexity': {'complexity_score': 2.5},
-                'symmetry_analysis': {'symmetry_score': 0.8},
-                'palindromic_density': 1.0
-            },
-            {
-                'length': 5,
-                'is_palindromic': False,
-                'pattern_complexity': {'complexity_score': 1.8},
-                'symmetry_analysis': {'symmetry_score': 0.6},
-                'palindromic_density': 0.4
-            },
-            {
-                'length': 7,
-                'is_palindromic': True,
-                'pattern_complexity': {'complexity_score': 3.2},
-                'symmetry_analysis': {'symmetry_score': 0.9},
-                'palindromic_density': 0.8
-            },
-            {
-                'length': 4,
-                'is_palindromic': False,
-                'pattern_complexity': {'complexity_score': 1.5},
-                'symmetry_analysis': {'symmetry_score': 0.3},
-                'palindromic_density': 0.2
-            }
-        ]
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                mock_path.return_value = Path(temp_dir) / 'test_dashboard.png'
-
-                result = create_statistical_analysis_dashboard(
-                    analysis_results,
-                    title="Test Statistical Dashboard"
-                )
-
-                # Verify result structure
-                assert 'files' in result
-                assert 'metadata' in result
-                assert result['metadata']['type'] == 'statistical_dashboard'
-                assert result['metadata']['title'] == 'Test Statistical Dashboard'
-                assert result['metadata']['total_analyses'] == 4
-                assert result['metadata']['panels'] == 8
-
-                # Verify matplotlib calls
-                mock_figure.assert_called_once()
-                mock_savefig.assert_called_once()
+    def test_dashboard_renders_as_first_visualization_in_fresh_process(self):
+        result = run_python('''
+from pathlib import Path
+from symergetics.visualization import set_config
+from symergetics.visualization.advanced import create_statistical_analysis_dashboard
+set_config({"dpi": 40})
+result = create_statistical_analysis_dashboard([
+    {"length": 3, "pattern_complexity": {"complexity_score": 2.5},
+     "symmetry_analysis": {"symmetry_score": 0.8}, "palindromic_density": 0.5},
+    {"length": 5, "pattern_complexity": {"complexity_score": 1.8},
+     "symmetry_analysis": {"symmetry_score": 0.6}, "palindromic_density": 0.4},
+])
+assert result["files"]
+for filename in result["files"]:
+    path = Path(filename).resolve()
+    assert path.is_relative_to(Path.cwd())
+    assert path.read_bytes().startswith(bytes.fromhex("89504e470d0a1a0a"))
+''')
+        assert result.returncode == 0, result.stdout + result.stderr
 
     def test_statistical_dashboard_empty_results(self):
-        """Test statistical dashboard with empty results."""
-        # Mock minimal matplotlib setup
-        with patch('matplotlib.pyplot.figure') as mock_figure:
-            mock_fig = MagicMock()
-            mock_figure.return_value = mock_fig
-
-            # Mock add_gridspec and subplots
-            with patch.object(mock_fig, 'add_gridspec') as mock_gridspec:
-                mock_gs = MagicMock()
-                mock_gridspec.return_value = mock_gs
-
-                # Mock axes creation
-                mock_axes = [MagicMock() for _ in range(8)]
-                for i, ax in enumerate(mock_axes):
-                    mock_gs.__getitem__.return_value = ax
-
-                with patch('matplotlib.pyplot.savefig'):
-                    with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                        mock_path.return_value = Path('/tmp/test.png')
-
-                        result = create_statistical_analysis_dashboard([], title="Empty Dashboard")
-
-                        assert result['metadata']['total_analyses'] == 0
+        result = create_statistical_analysis_dashboard([], title='Empty Dashboard')
+        assert_rendered(result)
+        assert result['metadata']['total_analyses'] == 0
 
     def test_statistical_dashboard_invalid_backend(self):
-        """Test statistical dashboard with invalid backend."""
-        analysis_results = [{'length': 3}]
-
-        with pytest.raises(ValueError, match="Statistical dashboard requires matplotlib backend"):
-            create_statistical_analysis_dashboard(
-                analysis_results,
-                backend="invalid_backend"
-            )
+        with pytest.raises(ValueError):
+            create_statistical_analysis_dashboard([{'length': 3}], backend='invalid')
 
 
 class TestVisualizationIntegration:
-    """Test integration with other modules."""
-
     def test_comparative_with_analysis_data(self):
-        """Test comparative visualization with real analysis data."""
         from symergetics.computation.analysis import analyze_mathematical_patterns
 
-        # Generate real analysis data
-        palindromic_data = [
-            analyze_mathematical_patterns(121),
-            analyze_mathematical_patterns(12321)
-        ]
-
-        non_palindromic_data = [
-            analyze_mathematical_patterns(123),
-            analyze_mathematical_patterns(456)
-        ]
-
-        # Mock matplotlib to avoid actual plotting in tests
-        with patch('matplotlib.pyplot.subplots') as mock_subplots:
-            # Create a mock that supports 2D indexing
-            mock_axes = MagicMock()
-            mock_axes.__getitem__ = lambda self, key: MagicMock()
-            mock_subplots.return_value = (MagicMock(), mock_axes)
-
-            with patch('matplotlib.pyplot.savefig'):
-                with patch('matplotlib.pyplot.colorbar'):
-                    with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                        mock_path.return_value = Path('/tmp/test.png')
-
-                    result = create_comparative_analysis_visualization(
-                        palindromic_data, non_palindromic_data,
-                        "Palindromic", "Non-Palindromic"
-                    )
-
-                    assert result['metadata']['domain1'] == 'Palindromic'
-                    assert result['metadata']['domain2'] == 'Non-Palindromic'
-                    assert result['metadata']['domain1_count'] == 2
-                    assert result['metadata']['domain2_count'] == 2
+        palindromes = [analyze_mathematical_patterns(n) for n in (121, 12321)]
+        non_palindromes = [analyze_mathematical_patterns(n) for n in (123, 456)]
+        result = create_comparative_analysis_visualization(
+            palindromes, non_palindromes, 'Palindromic', 'Non-Palindromic'
+        )
+        assert_rendered(result)
+        assert result['metadata']['domain1_count'] == 2
+        assert result['metadata']['domain2_count'] == 2
 
     def test_pattern_discovery_with_mixed_patterns(self):
-        """Test pattern discovery with mixed pattern types."""
-        analysis_results = [
+        data = [
             {'is_palindromic': True, 'pattern_complexity': {'complexity_score': 3.0}, 'symmetry_analysis': {'symmetry_score': 0.9}},
             {'is_palindromic': False, 'pattern_complexity': {'complexity_score': 1.5}, 'symmetry_analysis': {'symmetry_score': 0.4}},
             {'is_palindromic': True, 'pattern_complexity': {'complexity_score': 2.8}, 'symmetry_analysis': {'symmetry_score': 0.8}},
-            {'is_palindromic': False, 'pattern_complexity': {'complexity_score': 3.5}, 'symmetry_analysis': {'symmetry_score': 0.2}}
+            {'is_palindromic': False, 'pattern_complexity': {'complexity_score': 3.5}, 'symmetry_analysis': {'symmetry_score': 0.2}},
         ]
+        result = create_pattern_discovery_visualization(data)
+        assert_rendered(result)
+        assert result['metadata']['palindromic_count'] == 2
+        assert result['metadata']['high_complexity_count'] == 3
+        assert result['metadata']['high_symmetry_count'] == 2
 
-        with patch('matplotlib.pyplot.subplots') as mock_subplots:
-            # Create a mock that supports 2D indexing
-            mock_axes = MagicMock()
-            mock_axes.__getitem__ = lambda self, key: MagicMock()
-            mock_subplots.return_value = (MagicMock(), mock_axes)
-
-            with patch('matplotlib.pyplot.savefig'):
-                with patch('matplotlib.pyplot.colorbar'):
-                    with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                        mock_path.return_value = Path('/tmp/test.png')
-
-                        result = create_pattern_discovery_visualization(analysis_results)
-
-                    assert result['metadata']['palindromic_count'] == 2
-                    assert result['metadata']['high_complexity_count'] == 3  # complexity > 2
-                    assert result['metadata']['high_symmetry_count'] == 2   # symmetry > 0.7
-
-    def test_dashboard_with_comprehensive_data(self):
-        """Test dashboard with comprehensive analysis data."""
-        analysis_results = [
-            {
-                'length': 3,
-                'is_palindromic': True,
-                'pattern_complexity': {'complexity_score': 2.5},
-                'symmetry_analysis': {'symmetry_score': 0.8},
-                'palindromic_density': 1.0,
-                'digit_statistics': {'mean': 2.0, 'stdev': 0.8}
-            },
-            {
-                'length': 5,
-                'is_palindromic': False,
-                'pattern_complexity': {'complexity_score': 1.8},
-                'symmetry_analysis': {'symmetry_score': 0.6},
-                'palindromic_density': 0.4,
-                'digit_statistics': {'mean': 3.0, 'stdev': 1.2}
-            }
-        ]
-
-        # Mock complex dashboard setup
-        with patch('matplotlib.pyplot.figure') as mock_figure:
-            mock_fig = MagicMock()
-            mock_figure.return_value = mock_fig
-
-            with patch.object(mock_fig, 'add_gridspec') as mock_gridspec:
-                mock_gs = MagicMock()
-                mock_gridspec.return_value = mock_gs
-
-                mock_axes = [MagicMock() for _ in range(8)]
-                for ax in mock_axes:
-                    mock_gs.__getitem__.return_value = ax
-
-                with patch('matplotlib.pyplot.savefig'):
-                    with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                        mock_path.return_value = Path('/tmp/test.png')
-
-                        result = create_statistical_analysis_dashboard(analysis_results)
-
-                        assert result['metadata']['total_analyses'] == 2
-                        assert result['metadata']['panels'] == 8
+    def test_dashboard_with_comprehensive_data(self, analysis_results):
+        data = analysis_results[:2]
+        data[0]['digit_statistics'] = {'mean': 2.0, 'stdev': 0.8}
+        data[1]['digit_statistics'] = {'mean': 3.0, 'stdev': 1.2}
+        result = create_statistical_analysis_dashboard(data)
+        assert_rendered(result)
+        assert result['metadata']['total_analyses'] == 2
 
 
 class TestVisualizationOutputStructure:
-    """Test that visualizations create proper output structure."""
+    def test_output_paths_use_organized_structure(self, tmp_path, analysis_results):
+        output_dir = tmp_path / 'configured-output'
+        set_config({'output_dir': str(output_dir)})
+        result = create_comparative_analysis_visualization(
+            analysis_results[:2], analysis_results[2:], 'Test1', 'Test2'
+        )
+        assert_rendered(result)
+        assert Path(result['files'][0]).parent == output_dir / 'mathematical' / 'comparative_analysis'
 
-    def test_output_paths_use_organized_structure(self):
-        """Test that visualizations use organized output paths."""
-        with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-            mock_path.return_value = Path('/test/output/mathematical/comparative/test.png')
-
-            with patch('matplotlib.pyplot.subplots') as mock_subplots:
-                # Create a mock that supports 2D indexing
-                mock_axes = MagicMock()
-                mock_axes.__getitem__ = lambda self, key: MagicMock()
-                mock_subplots.return_value = (MagicMock(), mock_axes)
-
-                with patch('matplotlib.pyplot.savefig') as mock_savefig:
-                    with patch('matplotlib.pyplot.colorbar'):
-                        create_comparative_analysis_visualization(
-                            [{'length': 3}], [{'length': 5}],
-                            "Test1", "Test2"
-                        )
-
-                    # Verify the organized path function was called correctly
-                    # Note: The function may not be called if matplotlib operations fail
-                    # Let's check if it was called at least once
-                    if mock_path.call_count > 0:
-                        args, kwargs = mock_path.call_args
-                        assert args[0] == 'mathematical'
-                        assert args[1] == 'comparative_analysis'
-                        assert 'test1_vs_test2' in args[2]
-
-    def test_multiple_visualization_types_create_different_paths(self):
-        """Test that different visualization types create different output paths."""
-        path_calls = []
-
-        def mock_path_getter(*args, **kwargs):
-            path_calls.append(args)
-            return Path(f'/test/{args[0]}/{args[1]}/test.png')
-
-        with patch('symergetics.visualization.advanced.get_organized_output_path', side_effect=mock_path_getter):
-            with patch('matplotlib.pyplot.subplots') as mock_subplots:
-                # Create a mock that supports 2D indexing
-                mock_axes = MagicMock()
-                mock_axes.__getitem__ = lambda self, key: MagicMock()
-                mock_subplots.return_value = (MagicMock(), mock_axes)
-
-                with patch('matplotlib.pyplot.savefig'):
-                    with patch('matplotlib.pyplot.colorbar'):
-                        # Test comparative analysis
-                        create_comparative_analysis_visualization(
-                            [{'length': 3}], [{'length': 5}]
-                        )
-
-                        # Test pattern discovery
-                        create_pattern_discovery_visualization([{'length': 3}])
-
-                    # Test dashboard
-                    with patch('matplotlib.pyplot.figure') as mock_figure:
-                        mock_fig = MagicMock()
-                        mock_figure.return_value = mock_fig
-
-                        with patch.object(mock_fig, 'add_gridspec') as mock_gridspec:
-                            mock_gs = MagicMock()
-                            mock_gridspec.return_value = mock_gs
-
-                            mock_axes = [MagicMock() for _ in range(8)]
-                            mock_gs.__getitem__.return_value = mock_axes[0]
-
-                            create_statistical_analysis_dashboard([{'length': 3}])
-
-                    # Verify different paths were generated
-                    # Note: The functions may not call get_organized_output_path if matplotlib operations fail
-                    # Let's check if any paths were generated
-                    if len(path_calls) > 0:
-                        assert len(path_calls) >= 1  # At least one path was generated
-                        # Check the first path if available
-                        if len(path_calls) > 0:
-                            assert path_calls[0][1] == 'comparative_analysis'
-                        # Check the second path if available
-                        if len(path_calls) > 1:
-                            assert path_calls[1][1] == 'pattern_discovery'
+    def test_multiple_visualization_types_create_different_paths(self, analysis_results):
+        results = [
+            create_comparative_analysis_visualization(analysis_results[:2], analysis_results[2:]),
+            create_pattern_discovery_visualization(analysis_results),
+            create_statistical_analysis_dashboard(analysis_results),
+        ]
+        for result in results:
+            assert_rendered(result)
+        assert len({Path(result['files'][0]).resolve() for result in results}) == 3
 
 
 class TestErrorHandling:
-    """Test error handling in visualization functions."""
-
-    def test_missing_matplotlib_graceful_failure(self):
-        """Test graceful failure when matplotlib is not available."""
-        # This is tested indirectly through the ImportError tests above
-        # The functions should raise clear ImportError messages
-        pass
-
-    def test_invalid_data_structures(self):
-        """Test handling of invalid data structures."""
-        # Test with None values
-        with patch('matplotlib.pyplot.subplots') as mock_subplots:
-            # Create a mock that supports 2D indexing
-            mock_axes = MagicMock()
-            mock_axes.__getitem__ = lambda self, key: MagicMock()
-            mock_subplots.return_value = (MagicMock(), mock_axes)
-
-            with patch('matplotlib.pyplot.savefig'):
-                with patch('matplotlib.pyplot.colorbar'):
-                    with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                        mock_path.return_value = Path('/tmp/test.png')
-
-                        # Should handle None values gracefully
-                        result = create_comparative_analysis_visualization(
-                            [{'length': None}], [{'length': None}],
-                            "Test1", "Test2"
-                        )
-
-                    assert 'files' in result
+    @pytest.mark.parametrize('call', [
+        'create_comparative_analysis_visualization([{"length": 3}], [{"length": 5}])',
+        'create_pattern_discovery_visualization([{"length": 3}])',
+        'create_statistical_analysis_dashboard([{"length": 3}])',
+    ])
+    def test_missing_matplotlib_graceful_failure(self, call):
+        code = '''
+import importlib.abc
+import sys
+class Blocker(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path=None, target=None):
+        if name == 'matplotlib' or name.startswith('matplotlib.'):
+            raise ImportError('matplotlib is unavailable')
+        return None
+sys.meta_path.insert(0, Blocker())
+from symergetics.visualization.advanced import (
+    create_comparative_analysis_visualization,
+    create_pattern_discovery_visualization,
+    create_statistical_analysis_dashboard,
+)
+try:
+    CALL
+except ImportError:
+    pass
+else:
+    raise AssertionError('Rendering without matplotlib must fail')
+'''.replace('CALL', call)
+        result = run_python(code)
+        assert result.returncode == 0, result.stdout + result.stderr
 
     def test_extreme_data_values(self):
-        """Test handling of extreme data values."""
-        # Test with very large/small values
-        analysis_results = [
-            {
-                'length': 1000,
-                'pattern_complexity': {'complexity_score': 100.0},
-                'symmetry_analysis': {'symmetry_score': 1.0}
-            },
-            {
-                'length': 0,
-                'pattern_complexity': {'complexity_score': 0.0},
-                'symmetry_analysis': {'symmetry_score': 0.0}
-            }
+        data = [
+            {'length': 1000, 'pattern_complexity': {'complexity_score': 100.0}, 'symmetry_analysis': {'symmetry_score': 1.0}},
+            {'length': 0, 'pattern_complexity': {'complexity_score': 0.0}, 'symmetry_analysis': {'symmetry_score': 0.0}},
         ]
-
-        with patch('matplotlib.pyplot.subplots') as mock_subplots:
-            # Create a mock that supports 2D indexing
-            mock_axes = MagicMock()
-            mock_axes.__getitem__ = lambda self, key: MagicMock()
-            mock_subplots.return_value = (MagicMock(), mock_axes)
-
-            with patch('matplotlib.pyplot.savefig'):
-                with patch('matplotlib.pyplot.colorbar'):
-                    with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                        mock_path.return_value = Path('/tmp/test.png')
-
-                        # Should handle extreme values without crashing
-                        result = create_pattern_discovery_visualization(analysis_results)
-
-                        assert 'files' in result
-                        assert result['metadata']['total_analyses'] == 2
+        result = create_pattern_discovery_visualization(data)
+        assert_rendered(result)
+        assert result['metadata']['total_analyses'] == 2

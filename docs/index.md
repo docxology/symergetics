@@ -11,6 +11,7 @@ Quadray/4D coordinates, polyhedral volumes). Published with repo DOI
 - New to the package: [core-concept-guide.md](core-concept-guide.md)
 - API usage: [api/index.md](api/index.md) and [api-cookbook-recipes.md](api-cookbook-recipes.md)
 - Worked examples: [examples/index.md](examples/index.md)
+- Cross-project coordinates, units and executable integration: [Synergetics suite](synergetics-suite.md)
 - Research applications: [research/index.md](research/index.md)
 - Architecture: [architecture/index.md](architecture/index.md)
 - Problems: [troubleshooting-faq.md](troubleshooting-faq.md)
@@ -21,7 +22,7 @@ Quadray/4D coordinates, polyhedral volumes). Published with repo DOI
 | Area | Files |
 |---|---|
 | Concepts & math | `core-concept-guide.md`, `mathematical-foundations-synergetics.md`, `geometric-patterns-spatial-relationships.md`, `glossary-terminology.md` |
-| Usage | `api/`, `api-cookbook-recipes.md`, `examples/`, `integration-guides-platforms.md` |
+| Usage | `api/`, `api-cookbook-recipes.md`, `examples/`, `integration-guides-platforms.md`, `synergetics-suite.md` |
 | Operations | `testing-guide.md`, `test-architecture-summary.md`, `performance-optimization-guide.md`, `troubleshooting-faq.md` |
 | Context | `architecture/`, `research/`, case-studies, interdisciplinary and learning-theory guides, future-directions |
 

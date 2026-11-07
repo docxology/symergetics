@@ -218,11 +218,41 @@ class TestQuadrayConversions:
             assert recovered == original
 
     def test_non_lattice_point_snaps_to_nearest(self):
-        # (1, 0, 0) is not an IVM point; the nearest lattice point is the origin
+        # (1,0,0) is a bisector in the integer image; the lexical tie is origin.
         assert xyz_to_quadray(1.0, 0.0, 0.0).as_tuple() == (0, 0, 0, 0)
 
     def test_float_coordinates_snap_to_nearest_integer(self):
         assert QuadrayCoordinate(1.9, -1.2, 0, 3.7, normalize=False).as_tuple() == (2, -1, 0, 4)
+
+    def test_previous_two_phase_projection_missed_nearest_site(self):
+        target = (-1.5, -1.0, -0.5)
+        coordinate = QuadrayCoordinate.from_xyz(*target)
+        assert coordinate.as_tuple() == (0, 1, 1, 1)
+        squared_error = sum((actual - requested) ** 2
+                            for actual, requested in zip(coordinate.to_xyz(), target))
+        assert squared_error == Fraction(1, 2)
+
+    @pytest.mark.parametrize("scale", (2.0**1023, -(2.0**1023)))
+    def test_finite_extreme_embedding_does_not_overflow_gauge_validation(self, scale):
+        matrix = urner_embedding(scale)
+        origin = QuadrayCoordinate(0, 0, 0, 0)
+        assert origin.to_xyz(matrix) == (0.0, 0.0, 0.0)
+        assert QuadrayCoordinate.from_xyz(0, 0, 0, embedding=matrix) == origin
+        axis = QuadrayCoordinate(1, 0, 0, 0)
+        assert axis.to_xyz(matrix) == (scale, scale, scale)
+        assert QuadrayCoordinate.from_xyz(scale, scale, scale, embedding=matrix) == axis
+
+    @pytest.mark.parametrize("defect", ("gauge", "rank"))
+    def test_extreme_embedding_still_rejects_invalid_gauge_and_rank(self, defect):
+        matrix = urner_embedding(2.0**1023)
+        if defect == "gauge":
+            matrix[0, 0] *= 0.5
+        else:
+            matrix[1] = matrix[0]
+        with pytest.raises(ValueError):
+            QuadrayCoordinate(0, 0, 0, 0).to_xyz(matrix)
+        with pytest.raises(ValueError):
+            QuadrayCoordinate.from_xyz(0, 0, 0, embedding=matrix)
 
 
 class TestContinuedFractions:

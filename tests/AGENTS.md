@@ -1,7 +1,10 @@
 # tests/ — Agent Notes
 
-Comprehensive pytest suite (existing README: 977 test functions across 41
-modules, all real-method TDD — no mocks). Layout: `test_computation_*.py`,
-`test_*` modules at top level, plus `core/` (`test_constants.py`,
-`test_coordinates.py`, `test_numbers.py`). Run from repo root:
-`uv run pytest tests/ -q` (unverified this pass — no run performed).
+Pytest modules live directly under this directory. `conftest.py` gives each
+test a temporary working directory and resets visualization configuration before
+and after it, including tests that call `reset_config()` themselves. Never
+delete files from repository `output/` during teardown or mock renderer results.
+Use real APIs and test-owned paths. Run from the repository root:
+`uv run --python 3.13 --extra scientific --extra test python -m pytest tests/ -q`.
+Focused runs need `--no-cov` to avoid the package-wide coverage floor.
+Current full-suite receipts live in `../STATUS.md`.

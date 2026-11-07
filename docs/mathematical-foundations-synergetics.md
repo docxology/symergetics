@@ -115,9 +115,11 @@ class SymergeticsNumber:
 
 ## Geometric Foundations: The Quadray Coordinate System
 
-### Four-Dimensional Coordinate Geometry and High-Frequency Shapes
+### Four-Coordinate Geometry and High-Frequency Shapes
 
-Synergetics introduces a revolutionary coordinate system that transcends traditional three-dimensional thinking. The Quadray system represents points in four-dimensional space using tetrahedral coordinates, enabling **symbolic operations on geometric ratios derived from high-frequency shapes**.
+Quadray coordinates use four tetrahedral directions to describe three spatial
+dimensions. Adding the same value to all components leaves the spatial point
+unchanged; minimum-zero normalization selects one representative.
 
 #### Connecting Symbolic Operations to Geometric Ratios
 
@@ -125,7 +127,8 @@ The Quadray system enables exact symbolic operations on geometric relationships:
 
 ```python
 # Example: Exact volume ratios in Quadray coordinates
-from symergetics import QuadrayCoordinate, integer_tetra_volume
+from symergetics import QuadrayCoordinate
+from symergetics.geometry.polyhedra import integer_tetra_volume
 
 # Tetrahedron vertices in Quadray coordinates
 tetra_vertices = [
@@ -137,7 +140,7 @@ tetra_vertices = [
 
 # Exact volume calculation (symbolic operation)
 volume = integer_tetra_volume(*tetra_vertices)
-print(f"Exact volume: {volume}")  # Returns exact integer ratio
+print(f"Exact volume: {volume}")  # Fraction(1) in IVM units
 ```
 
 This demonstrates how **symbolic operations on all-integer accounting** work with **geometric ratios from high-frequency shapes** in the **Quadray/4D coordinate system**.
@@ -176,6 +179,10 @@ Each Quadray coordinate `(a, b, c, d)` represents a point in tetrahedral space:
 
 The Isotropic Vector Matrix (IVM) represents the optimal sphere packing in three dimensions:
 
+This is a sublattice of the full integer-quadray image: canonical IVM centers
+have component sum divisible by four. Arbitrary integer quadrays need not be
+centers in that same FCC packing.
+
 ```mermaid
 graph LR
     A[Quadray Points] --> B[IVM Lattice]
@@ -190,24 +197,26 @@ graph LR
 
 #### Tetrahedron Volume Calculation
 
-The volume of any tetrahedron can be calculated exactly using the determinant method:
+Integer quadray tetrahedra have exact rational volumes in quarter-unit IVM
+increments. The implementation uses an exact projected 3×3 determinant; the
+independent Ace 5×5 formulation returns the same `Fraction`.
 
 ```python
-def integer_tetra_volume(p0: QuadrayCoordinate, p1: QuadrayCoordinate,
-                        p2: QuadrayCoordinate, p3: QuadrayCoordinate) -> int:
-    """
-    Calculate tetrahedron volume using exact determinant method.
-    
-    Args:
-        p0, p1, p2, p3: Quadray coordinates of tetrahedron vertices
-        
-    Returns:
-        Exact integer volume in tetrahedral units
-    """
-    # Implementation uses 5x5 determinant for exact calculation
-    # Returns integer representing volume in IVM units
-    pass
+from fractions import Fraction
+from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.geometry.polyhedra import integer_tetra_volume, ace_tetra_volume_5x5
+
+corner = [QuadrayCoordinate(0, 0, 0, 0),
+          QuadrayCoordinate(1, 0, 0, 0),
+          QuadrayCoordinate(0, 1, 0, 0),
+          QuadrayCoordinate(0, 0, 1, 0)]
+assert integer_tetra_volume(*corner) == Fraction(1, 4)
+assert ace_tetra_volume_5x5(*corner) == Fraction(1, 4)
 ```
+
+XYZ conversions use floating point, and transformations that leave the integer
+lattice require quantization. See the [suite guide](synergetics-suite.md) for
+the exact-volume and Euclidean-unit distinction.
 
 #### Polyhedral Volume Relationships
 

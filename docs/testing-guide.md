@@ -2,14 +2,20 @@
 
 ## Overview
 
-The Symergetics test suite provides comprehensive validation of all package functionality through **1017 test functions** across **39 test modules**. All tests use **real Symergetics methods** and validate mathematical correctness following Test-Driven Development (TDD) principles.
+The 2026-11-06 scientific-environment receipt is **1,344 passed, 12 skipped, 88.16% coverage**. The configured package-wide coverage floor is 85%. Use pytest collection for current case names; category lists below are explanatory rather than an exhaustive inventory. See [suite contracts and receipts](synergetics-suite.md).
+
+```bash
+export UV_PYTHON=3.13
+uv sync --frozen --extra scientific --extra test
+uv run --frozen python -m pytest tests/
+```
 
 ## Test Architecture
 
 ### Core Philosophy
-- **Real Methods Only**: No mocks or fake tests - all tests use actual Symergetics functionality
+- **Consumer Behavior**: Prefer exact numerical oracles and actual renderers/artifacts; use failure injection only for explicit error paths.
 - **Mathematical Validation**: Tests verify mathematical correctness and implementation accuracy
-- **Comprehensive Coverage**: 90%+ code coverage across all modules
+- **Coverage Gate**: 85% package-wide; execution coverage does not prove numerical or workflow correctness.
 - **Integration Focus**: Tests validate cross-module interactions and workflows
 
 ### Test Categories

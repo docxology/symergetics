@@ -2,14 +2,20 @@
 
 ## Overview
 
-The Symergetics test suite provides comprehensive coverage of all package functionality with **1017 test functions** across **39 test modules** (as of 2026-09-05, verified by `uv run pytest tests/ --collect-only -q | tail -1`). All tests use **real Symergetics methods** and validate mathematical correctness following Test-Driven Development (TDD) principles.
+The 2026-11-06 scientific-environment receipt is **1,344 passed, 12 skipped, 88.16% coverage**. Category descriptions below are not a live test inventory; use pytest collection for current case names. See [suite contracts and receipts](../docs/synergetics-suite.md).
+
+```bash
+export UV_PYTHON=3.13
+uv sync --frozen --extra scientific --extra test
+uv run --frozen python -m pytest tests/
+```
 
 ## Test Architecture
 
 ### Core Philosophy
-- **Real Methods Only**: No mocks or fake tests - all tests use actual Symergetics functionality
+- **Consumer Behavior**: Prefer exact numerical oracles and actual renderer/artifact checks; keep failure injection confined to explicit error paths.
 - **Mathematical Validation**: Tests verify mathematical correctness and implementation accuracy
-- **Comprehensive Coverage**: 90%+ code coverage across all modules
+- **Coverage Gate**: The configured package-wide floor is 85%; coverage is evidence of execution, not a correctness proof.
 - **Integration Focus**: Tests validate cross-module interactions and workflows
 
 ### Test Categories
@@ -160,30 +166,35 @@ python -m pytest tests/ -k "performance" --benchmark-only
 ```
 
 ### Test Data and Fixtures
-Tests are self-contained: there is no shared `tests/test_data/` directory and no
-`conftest.py`. Modules that need scratch space use `tempfile`/`tmp_path`, and
-visualization tests reset global config via `symergetics.visualization.set_config`
-/ `reset_config` in `try/finally` blocks.
+`tests/conftest.py` gives every test its own `tmp_path` working directory and
+resets visualization configuration before the test and in a `finally` teardown.
+Default relative output therefore remains temporary even when a test calls
+`reset_config()` midway through rendering. Tests that configure a custom output
+directory must use temporary storage and check actual returned file containment;
+passing an unused `output_dir` keyword does not isolate a renderer.
+
+Visualization tests use actual renderers and inspect generated files. A child
+pytest-session regression preserves pre-existing output sentinels through full
+teardown, including filenames formerly targeted by the removed recursive
+cleanup. No fixture scans or deletes the repository's `output/` artifacts.
+A fresh-interpreter dashboard regression also checks lazy matplotlib/NumPy
+initialization without relying on a previous visualization to warm global state.
 
 ## Test Coverage
 
 ### Current Coverage
-- **Total Test Functions**: 1017 (as of 2026-09-05)
-- **Code Coverage**: 90%+ (target)
+- **Observed receipt**: 1,344 passed, 12 skipped on 2026-11-06
+- **Code Coverage**: 88.16% observed; 85% required
 - **Modules Covered**: All major Symergetics modules
 - **Integration Coverage**: Cross-module interactions validated
 
 ### Coverage by Module
-- **Core Modules**: 95%+ coverage
-- **Computation Modules**: 90%+ coverage
-- **Geometry Modules**: 85%+ coverage
-- **Visualization Modules**: 80%+ coverage
-- **Utils Modules**: 90%+ coverage
+Run `uv run --frozen coverage report --show-missing` after the full coverage command for current per-module results. There are no separate per-module percentage guarantees.
 
 ## Test Quality Assurance
 
 ### Validation Criteria
-1. **Real Method Usage**: All tests use actual Symergetics functionality
+1. **Consumer Behavior**: Regressions must observe meaningful results rather than mock echoes or incidental implementation details.
 2. **Mathematical Accuracy**: Tests verify correct mathematical results
 3. **Error Handling**: Tests cover edge cases and error conditions
 4. **Integration**: Tests validate cross-module interactions
@@ -273,4 +284,4 @@ python -m pytest tests/test_specific.py::test_failing_function -v -s
 
 ---
 
-*This test suite ensures the reliability and correctness of the Symergetics package through comprehensive testing of real functionality and mathematical validation.*
+Receipts identify exercised behavior and skipped cases; they do not establish complete correctness of every package path.

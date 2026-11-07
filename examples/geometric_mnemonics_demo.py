@@ -331,8 +331,8 @@ def create_comprehensive_visualizations(all_analyses):
 
         # 7. Create symbolic synergetics collage
         collage_result = create_symbolic_synergetics_collage(all_numbers, numeric_numbers)
-        if collage_result:
-            visualizations.append(collage_result)
+        visualizations.append(collage_result)
+        if 'error' not in collage_result:
             log(f"✅ Symbolic Synergetics collage created: {collage_result['files'][0]}")
 
         log(f"✅ Created {len(visualizations)} comprehensive visualizations")
@@ -342,7 +342,8 @@ def create_comprehensive_visualizations(all_analyses):
         log(f"❌ Visualization creation failed: {e}", "ERROR")
         import traceback
         traceback.print_exc()
-        return []
+        visualizations.append({'type': 'visualization_error', 'error': str(e)})
+        return visualizations
 
 
 def create_symbolic_synergetics_collage(all_numbers, numeric_numbers):
@@ -533,7 +534,7 @@ def create_symbolic_synergetics_collage(all_numbers, numeric_numbers):
 
     except Exception as e:
         log(f"❌ Collage creation failed: {e}", "ERROR")
-        return None
+        return {'type': 'collage_error', 'error': str(e)}
 
 
 def is_prime(n):
@@ -655,7 +656,8 @@ def generate_comprehensive_reports(all_analyses):
         log(f"❌ Report generation failed: {e}", "ERROR")
         import traceback
         traceback.print_exc()
-        return []
+        reports.append({'type': 'report_error', 'error': str(e)})
+        return reports
 
 
 
@@ -705,7 +707,7 @@ def main():
         print("\n" + "="*100)
         print("🔢 COMPREHENSIVE GEOMETRIC MNEMONICS ANALYSIS SUMMARY")
         print("="*100)
-        print(".1f")
+        print(f"Total execution time: {total_time:.1f} seconds")
         print(f"Total analyses performed: {len(all_analyses)}")
 
         # Count visualizations by type
@@ -744,7 +746,10 @@ def main():
         print("• Numbers become symbolic encodings of spatial relationships")
         print("• Arithmetic patterns reveal underlying geometric structures")
 
-        print("\n✅ Demo completed successfully!")
+        success = bool(vis_results) and bool(report_results) and all(
+            'error' not in result for result in vis_results + report_results
+        )
+        print("\n✅ Demo completed successfully!" if success else "\n❌ Demo completed with generation failures")
         print("📁 Check the output/mathematical/geometric_mnemonics/ directory")
         print("📋 Analysis demonstrates Symbolic Synergetics through comprehensive visualization")
 
@@ -754,7 +759,7 @@ def main():
         traceback.print_exc()
         return False
 
-    return True
+    return success
 
 
 if __name__ == "__main__":

@@ -86,6 +86,7 @@ def demo_geometric_png_visualizations():
             print(f"  Volume: {result['metadata']['volume']} IVM units")
         except Exception as e:
             print(f"❌ Error with {poly}: {e}")
+            results.append({'error': str(e), 'type': f'polyhedron:{poly}'})
     
     # 2. Quadray coordinate system
     print("\n2. Quadray Coordinate System")
@@ -108,6 +109,7 @@ def demo_geometric_png_visualizations():
             print(f"  XYZ position: ({xyz[0]}, {xyz[1]}, {xyz[2]})")
         except Exception as e:
             print(f"❌ Error with coordinate {coord}: {e}")
+            results.append({'error': str(e), 'type': f'coordinate:{coord}'})
     
     # 3. IVM lattice visualization
     print("\n3. IVM Lattice Structure")
@@ -120,6 +122,7 @@ def demo_geometric_png_visualizations():
         print(f"  Lattice points: {result['metadata']['total_points']}")
     except Exception as e:
         print(f"❌ Error with IVM lattice: {e}")
+        results.append({'error': str(e), 'type': 'ivm_lattice'})
     
     return results
 
@@ -154,6 +157,7 @@ def demo_number_pattern_png_visualizations():
             print(f"  Is palindromic: {is_pal}")
         except Exception as e:
             print(f"❌ Error with palindrome {pal}: {e}")
+            results.append({'error': str(e), 'type': f'palindrome:{pal}'})
     
     # 2. Scheherazade number patterns
     print("\n2. Scheherazade Number Patterns")
@@ -168,6 +172,7 @@ def demo_number_pattern_png_visualizations():
             print(f"  Number: {sch_num} (palindromic: {is_palindromic(sch_num)})")
         except Exception as e:
             print(f"❌ Error with Scheherazade power {power}: {e}")
+            results.append({'error': str(e), 'type': f'scheherazade:{power}'})
     
     # 3. Primorial distribution
     print("\n3. Primorial Distribution")
@@ -180,6 +185,7 @@ def demo_number_pattern_png_visualizations():
         print(f"  Maximum n: 15")
     except Exception as e:
         print(f"❌ Error with primorial distribution: {e}")
+        results.append({'error': str(e), 'type': 'primorial_distribution'})
     
     return results
 
@@ -212,6 +218,7 @@ def demo_mathematical_png_visualizations():
             print(f"  Value: {value:.10f}")
         except Exception as e:
             print(f"❌ Error with continued fraction {symbol}: {e}")
+            results.append({'error': str(e), 'type': f'continued_fraction:{symbol}'})
     
     # 2. Base conversions
     print("\n2. Base Conversion Analysis")
@@ -233,6 +240,7 @@ def demo_mathematical_png_visualizations():
             print(f"  Description: {description}")
         except Exception as e:
             print(f"❌ Error with base conversion {number} to base {base}: {e}")
+            results.append({'error': str(e), 'type': f'base_conversion:{number}:{base}'})
     
     # 3. Pattern analysis
     print("\n3. Advanced Pattern Analysis")
@@ -253,6 +261,7 @@ def demo_mathematical_png_visualizations():
             print(f"  Type: {pattern_type} - {description}")
         except Exception as e:
             print(f"❌ Error with pattern analysis {number}: {e}")
+            results.append({'error': str(e), 'type': f'pattern_analysis:{number}'})
     
     return results
 
@@ -264,13 +273,13 @@ def generate_summary_report(all_results):
     print("="*60)
     
     total_files = sum(len(result.get('files', [])) for result in all_results)
-    successful_results = [r for r in all_results if 'files' in r and r['files']]
+    successful_results = [r for r in all_results if 'error' not in r and r.get('files')]
     
     print(f"\n📊 GENERATION STATISTICS:")
     print(f"   Total visualizations attempted: {len(all_results)}")
     print(f"   Successful generations: {len(successful_results)}")
     print(f"   Total PNG files created: {total_files}")
-    print(f"   Success rate: {len(successful_results)/len(all_results)*100:.1f}%")
+    print(f"   Success rate: {len(successful_results)/len(all_results)*100:.1f}%" if all_results else "   No visualizations attempted")
     
     # Check organized file structure
     output_dir = Path('output')
@@ -282,7 +291,7 @@ def generate_summary_report(all_results):
             total_size = sum(f.stat().st_size for f in png_files)
             avg_size = total_size / len(png_files)
             print(f"\n📁 ORGANIZED FILE STATISTICS:")
-            print(f"   Total PNG files: {len(png_files)}")
+            print(f"   Existing PNG files (may predate this run): {len(png_files)}")
             print(f"   Total size: {total_size / 1024 / 1024:.2f} MB")
             print(f"   Average file size: {avg_size / 1024:.1f} KB")
             
@@ -351,14 +360,17 @@ def main():
         
     except KeyboardInterrupt:
         print("\n\n⚠️  Demo interrupted by user")
+        return False
     except Exception as e:
         print(f"\n\n❌ Demo failed with error: {e}")
         import traceback
         traceback.print_exc()
+        return False
     
     print("\nMake sure to check the 'output/' directory for all generated PNG files!")
+    return bool(all_results) and all('error' not in result and result.get('files') for result in all_results)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(0 if main() else 1)
 

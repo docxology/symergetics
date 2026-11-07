@@ -103,9 +103,9 @@ def xyz_to_quadray(x: Union[float, SymergeticsNumber],
     """
     Convert Cartesian XYZ coordinates to Quadray coordinates.
 
-    Uses the Moore-Penrose pseudoinverse of the Urner embedding matrix to
-    find the nearest IVM lattice point (same algorithm as
-    QuadrayCoordinate.from_xyz).
+    Delegates to QuadrayCoordinate.from_xyz: Euclidean nearest projection onto
+    the full integer-quadray image, not just the IVM/FCC sublattice. Exact ties
+    choose the lexicographically smallest normalized coordinate tuple.
 
     Args:
         x, y, z: Cartesian coordinates
@@ -119,7 +119,7 @@ def xyz_to_quadray(x: Union[float, SymergeticsNumber],
         >>> coord.to_xyz()  # Round-trips an IVM lattice point
         (2.0, 0.0, 0.0)
     """
-    return QuadrayCoordinate.from_xyz(float(x), float(y), float(z), embedding)
+    return QuadrayCoordinate.from_xyz(x, y, z, embedding)
 
 
 def quadray_to_xyz(coord: QuadrayCoordinate,
@@ -306,8 +306,7 @@ def scientific_notation_to_rational(scientific_str: str) -> SymergeticsNumber:
         SymergeticsNumber(1/4)
     """
     try:
-        value = float(scientific_str)
-        return float_to_exact_rational(value)
+        return SymergeticsNumber(Fraction(scientific_str))
     except ValueError:
         raise ValueError(f"Invalid scientific notation: {scientific_str}")
 

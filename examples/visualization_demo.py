@@ -234,6 +234,8 @@ def demo_batch_processing():
     # Create a report
     report_path = create_visualization_report(results, "Batch Processing Demo Report")
     print(f"\n📊 Report saved to: {report_path}")
+    if failed:
+        raise RuntimeError(f"{failed} required batch visualizations failed")
 
 
 def demo_advanced_features():

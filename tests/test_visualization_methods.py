@@ -7,6 +7,10 @@ matrices, and radar charts.
 """
 
 import os
+import shutil
+import subprocess
+import sys
+import textwrap
 from pathlib import Path
 
 import numpy as np
@@ -16,7 +20,6 @@ from symergetics.computation.primorials import primorial
 from symergetics.core.coordinates import QuadrayCoordinate
 from symergetics.core.numbers import SymergeticsNumber
 from symergetics.geometry.polyhedra import Tetrahedron
-from symergetics.visualization import ensure_output_dir
 
 # Import visualization functions
 from symergetics.visualization.geometry import (
@@ -38,12 +41,6 @@ from symergetics.visualization.numbers import (
 
 class TestEnhancedGeometryVisualizations:
     """Test enhanced geometry visualization methods."""
-
-    @pytest.fixture(autouse=True)
-    def setup_method(self):
-        """Set up test environment."""
-        self.output_dir = Path("output/test_visualizations")
-        ensure_output_dir()
 
     def test_plot_polyhedron_3d_matplotlib(self):
         """Test enhanced 3D polyhedron visualization."""
@@ -99,12 +96,6 @@ class TestEnhancedGeometryVisualizations:
 class TestEnhancedNumberVisualizations:
     """Test enhanced number visualization methods."""
 
-    @pytest.fixture(autouse=True)
-    def setup_method(self):
-        """Set up test environment."""
-        self.output_dir = Path("output/test_visualizations")
-        ensure_output_dir()
-
     def test_plot_palindromic_heatmap(self):
         """Test palindromic heatmap visualization."""
         result = plot_palindromic_heatmap(100, 200, backend='matplotlib')
@@ -153,12 +144,6 @@ class TestEnhancedNumberVisualizations:
 
 class TestEnhancedMathematicalVisualizations:
     """Test enhanced mathematical visualization methods."""
-
-    @pytest.fixture(autouse=True)
-    def setup_method(self):
-        """Set up test environment."""
-        self.output_dir = Path("output/test_visualizations")
-        ensure_output_dir()
 
     def test_plot_continued_fraction_convergence(self):
         """Test continued fraction convergence visualization."""
@@ -210,12 +195,6 @@ class TestEnhancedMathematicalVisualizations:
 
 class TestVisualizationIntegration:
     """Test integration between different visualization methods."""
-
-    @pytest.fixture(autouse=True)
-    def setup_method(self):
-        """Set up test environment."""
-        self.output_dir = Path("output/test_visualizations")
-        ensure_output_dir()
 
     def test_batch_visualization_with_new_methods(self):
         """Test batch visualization with new methods."""
@@ -319,11 +298,6 @@ class TestVisualizationPerformance:
         # Should complete within 30 seconds
         assert execution_time < 30.0
 
-        # Clean up created files
-        for file_path in result['files']:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-
     def test_memory_usage_during_visualization(self):
         """Test memory usage during visualization creation."""
         try:
@@ -344,11 +318,6 @@ class TestVisualizationPerformance:
 
         # Memory increase should be reasonable (< 500 MB)
         assert memory_increase < 500.0
-
-        # Clean up created files
-        for file_path in result['files']:
-            if os.path.exists(file_path):
-                os.remove(file_path)
 
 
 class TestVisualizationConfiguration:
@@ -375,45 +344,92 @@ class TestVisualizationConfiguration:
         # Should use custom configuration
         assert result['metadata']['backend'] == 'matplotlib'
 
-        # Clean up
-        for file_path in result['files']:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-
     def test_output_directory_configuration(self, tmp_path):
         """Test custom output directory configuration (self-cleaning via tmp_path)."""
         from symergetics.visualization import reset_config, set_config
 
-        custom_output_dir = str(tmp_path / "test_custom_dir")
-        set_config({'output_dir': custom_output_dir})
+        custom_output_dir = tmp_path / "test_custom_dir"
+        set_config({'output_dir': str(custom_output_dir)})
         try:
             tetra = Tetrahedron()
             result = plot_polyhedron_3d(tetra)
 
             # Check that files are in custom directory
             for file_path in result['files']:
-                assert custom_output_dir in file_path
-                assert os.path.exists(file_path)
+                assert Path(file_path).resolve().is_relative_to(custom_output_dir.resolve())
+                assert Path(file_path).is_file()
         finally:
             reset_config()
 
 
-# Cleanup fixture for all tests
-@pytest.fixture(scope="session", autouse=True)
-def cleanup_test_files():
-    """Clean up test files after all tests complete."""
-    yield
 
-    # Clean up test visualization files
-    import shutil
-    test_output_dir = Path("output/test_visualizations")
+def test_child_pytest_preserves_preexisting_outputs(tmp_path):
+    """A complete pytest teardown must leave unowned output artifacts intact."""
+    source_tests = Path(__file__).resolve().parent
+    child_root = tmp_path / "child-session"
+    child_tests = child_root / "tests"
+    child_tests.mkdir(parents=True)
+    shutil.copy2(source_tests / "conftest.py", child_tests / "conftest.py")
+    shutil.copy2(source_tests / "test_visualization_methods.py", child_tests / "test_visualization_methods.py")
+    (child_root / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
+    sentinels = [
+        child_root / "output" / name for name in (
+            "test_visualizations/keep.txt",
+            "geometric/polyhedra/tetrahedron_3d_enhanced.png",
+            "numbers/palindromes/user_heatmap.png",
+            "numbers/scheherazade/user_network.png",
+            "numbers/primorials/user_spectrum.png",
+            "mathematical/user_convergence.png",
+            "mathematical/user_matrix.png",
+            "mathematical/user_radar.png",
+        )
+    ]
+    for sentinel in sentinels:
+        sentinel.parent.mkdir(parents=True, exist_ok=True)
+        sentinel.write_bytes(b"pre-existing user artifact")
+    original_outputs = set((child_root / "output").rglob("*"))
+    (child_tests / "test_isolation_probe.py").write_text(textwrap.dedent('''
+        from pathlib import Path
+        from symergetics.visualization import get_config, reset_config, set_config
+        from symergetics.visualization.geometry import plot_polyhedron
 
-    if test_output_dir.exists():
-        shutil.rmtree(test_output_dir, ignore_errors=True)
+        def assert_local_files(result):
+            assert result["files"]
+            for filename in result["files"]:
+                path = Path(filename).resolve()
+                assert path.is_relative_to(Path.cwd())
+                assert path.is_file()
 
-    # Clean up any other test files
-    for pattern in ["*_3d_enhanced*", "*heatmap*", "*network*", "*spectrum*",
-                   "*convergence*", "*matrix*", "*radar*"]:
-        for file_path in Path("output").rglob(pattern):
-            if file_path.is_file():
-                file_path.unlink(missing_ok=True)
+        def test_reset_does_not_escape_temporary_cwd(tmp_path):
+            set_config({"output_dir": str(tmp_path / "custom"), "backend": "ascii"})
+            assert_local_files(plot_polyhedron("tetrahedron"))
+            reset_config()
+            assert_local_files(plot_polyhedron("tetrahedron", backend="ascii"))
+            set_config({"backend": "plotly", "colors": {"primary": "#abcdef"}})
+
+        def test_neighbor_starts_with_defaults(tmp_path):
+            assert Path.cwd() == tmp_path
+            assert get_config()["backend"] == "matplotlib"
+            assert get_config()["colors"]["primary"] == "#1f77b4"
+            assert get_config()["output_dir"] == "output"
+            assert not (Path.cwd() / "output").exists()
+    '''), encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
+    env.pop("PYTEST_ADDOPTS", None)
+    env["PYTHONPATH"] = os.pathsep.join(filter(None, [
+        str(source_tests.parent), env.get("PYTHONPATH"),
+    ]))
+    result = subprocess.run(
+        [
+            sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+            "-c", str(child_root / "pytest.ini"),
+            str(child_tests / "test_visualization_methods.py") + "::TestEnhancedGeometryVisualizations::test_invalid_backend_3d",
+            str(child_tests / "test_isolation_probe.py"),
+        ],
+        cwd=child_root, env=env, text=True, capture_output=True,
+        timeout=120, check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert all(sentinel.read_bytes() == b"pre-existing user artifact" for sentinel in sentinels)
+    assert set((child_root / "output").rglob("*")) == original_outputs

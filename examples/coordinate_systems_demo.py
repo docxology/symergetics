@@ -22,7 +22,10 @@ import math
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from symergetics.core.coordinates import QuadrayCoordinate, TETRAHEDRON_VERTICES, IVM_NEIGHBORS, ORIGIN
+from symergetics.core.coordinates import (
+    QuadrayCoordinate, TETRAHEDRON_VERTICES, IVM_NEIGHBORS, ORIGIN,
+    enumerate_ivm_sites,
+)
 from symergetics.geometry.transformations import (
     translate, scale, reflect,
     rotate_around_axis, compose_transforms, coordinate_transform,
@@ -137,16 +140,8 @@ def demonstrate_ivm_lattice():
     
     # Analyze lattice patterns at different scales
     for size in range(1, 5):
-        # Generate lattice points
-        lattice_points = []
-        for a in range(-size, size + 1):
-            for b in range(-size, size + 1):
-                for c in range(-size, size + 1):
-                    for d in range(-size, size + 1):
-                        if abs(a) + abs(b) + abs(c) + abs(d) <= size:
-                            lattice_points.append(QuadrayCoordinate(a, b, c, d))
-                            
-        print(f"Size ±{size}: {len(lattice_points)} lattice points")
+        lattice_points = enumerate_ivm_sites(size)
+        print(f"Graph-shell radius {size}: {len(lattice_points)} lattice points")
         
     print("\n4. Closest Packing Analysis:")
     print("-" * 30)
@@ -366,16 +361,12 @@ def demonstrate_spatial_patterns():
     print("\n3. Lattice Density Analysis:")
     print("-" * 25)
     
-    # Analyze packing density at different scales
+    # Count unique physical FCC sites, not four-index gauge representatives.
     for radius in [1, 2, 3]:
-        points_in_sphere = []
-        for a in range(-radius, radius + 1):
-            for b in range(-radius, radius + 1):
-                for c in range(-radius, radius + 1):
-                    for d in range(-radius, radius + 1):
-                        coord = QuadrayCoordinate(a, b, c, d)
-                        if coord.magnitude() <= radius:
-                            points_in_sphere.append(coord)
+        points_in_sphere = [
+            site for site in enumerate_ivm_sites(radius)
+            if site.magnitude() <= radius
+        ]
                             
         sphere_volume = (4/3) * math.pi * radius**3
         packing_density = len(points_in_sphere) / sphere_volume

@@ -5,6 +5,7 @@ Tests volume calculations, vertex operations, and geometric properties.
 """
 
 import math
+from fractions import Fraction
 
 import pytest
 
@@ -62,6 +63,25 @@ class TestVolumeCalculations:
 
         volume = ace_tetra_volume_5x5(p0, p1, p2, p3)
         assert volume == 1
+
+
+@pytest.mark.parametrize("normalize", (False, True))
+def test_large_translated_gauge_shifted_tetrahedron_volume_agreement(normalize):
+    """Constructor and subtraction retain the exact det/4 volume contract."""
+    from symergetics.core.coordinates import QuadrayCoordinate
+
+    p, q, r = 2**60 + 1, -(2**57 + 3), 5
+    translation = (2**100 + 17, -(2**95) + 1, 2**80 + 11, -(2**90) + 9)
+    edges = ((0, 0, 0, 0), (p, 0, 0, 0), (0, q, 0, 0), (0, 0, r, 0))
+    gauges = (2**110, -(2**109), 2**108 + 1, -(2**107) + 3)
+    vertices = [
+        QuadrayCoordinate(*(a + b + gauge for a, b in zip(translation, edge)),
+                          normalize=normalize)
+        for edge, gauge in zip(edges, gauges)
+    ]
+    expected = Fraction(abs(p * q * r), 4)
+    assert integer_tetra_volume(*vertices) == expected
+    assert ace_tetra_volume_5x5(*vertices) == expected
 
 
 class TestSymergeticsPolyhedron:

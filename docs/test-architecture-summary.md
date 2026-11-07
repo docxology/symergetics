@@ -2,14 +2,14 @@
 
 ## Executive Summary
 
-The Symergetics test suite represents a comprehensive validation framework with **1017 test functions** across **39 test modules**, all using **real Symergetics methods** for mathematical validation. The architecture follows Test-Driven Development (TDD) principles with a focus on mathematical correctness and implementation accuracy.
+The 2026-11-06 scientific-environment receipt is **1,344 passed, 12 skipped, 88.16% coverage** against the configured 85% floor. Category estimates below are not a live collection inventory. See [suite contracts and receipts](synergetics-suite.md) and the [testing guide](testing-guide.md) for executable commands.
 
 ## Test Architecture Overview
 
 ### Core Principles
-1. **Real Method Usage**: 100% of tests use actual Symergetics functionality
-2. **Mathematical Validation**: All tests verify correct mathematical results
-3. **Comprehensive Coverage**: 90%+ code coverage target across all modules
+1. **Consumer Behavior**: Prefer independent numerical oracles and real renderer/artifact checks; restrict failure injection to error paths.
+2. **Separate Evidence**: Numerical correctness, orchestration failures and packaging/import behavior require different checks.
+3. **Coverage Gate**: 85% package-wide; no per-module percentage guarantee.
 4. **Integration Focus**: Cross-module interactions are thoroughly tested
 5. **Edge Case Handling**: Boundary conditions and error cases are covered
 
@@ -69,21 +69,17 @@ The Symergetics test suite represents a comprehensive validation framework with 
 ## Test Quality Metrics
 
 ### Coverage Analysis
-- **Total Test Functions**: 1017
-- **Code Coverage**: 10-95% (varies by module)
-- **Core Modules**: 95%+ coverage
-- **Computation Modules**: 90%+ coverage
-- **Geometry Modules**: 85%+ coverage
-- **Visualization Modules**: 80%+ coverage
-- **Utils Modules**: 90%+ coverage
+- **Observed run**: 1,344 passed, 12 skipped
+- **Package coverage**: 88.16%, above the 85% gate
+- **Per-module evidence**: Run `uv run --frozen coverage report --show-missing` after the full test command; do not infer coverage from category estimates.
 
 ### Mock Usage Analysis
-- **Symergetics Methods**: 0% mocking (100% real methods)
-- **Visualization Libraries**: matplotlib/plotly/seaborn may be patched for rendering isolation; Symergetics functionality itself is never mocked
-- **External Dependencies**: Minimal mocking of external libraries only
+- **Numerical success paths**: Use independent expected results, not stubbed Symergetics methods.
+- **Visualization success paths**: Exercise actual renderers in owned temporary directories.
+- **Error paths**: Narrow failure injection is appropriate for otherwise unreachable dependency/process failures; no blanket 0% mocking claim is made.
 
 ### Test Patterns Validation
-1. **Real Method Usage**: ✅ All tests use actual Symergetics functionality
+1. **Consumer Behavior**: New regressions must exercise meaningful numerical, artifact or process outcomes.
 2. **Mathematical Validation**: ✅ Tests verify correct mathematical results
 3. **Edge Case Coverage**: ✅ Tests cover boundary conditions and error cases
 4. **Integration Testing**: ✅ Tests validate cross-module interactions
@@ -130,8 +126,8 @@ python -m pytest tests/test_integration*.py
 4. **`docs/test-architecture-summary.md`**: This summary document
 
 ### Key Documentation Features
-- **Complete Test Index**: All 1017 test functions documented
-- **Real Method Validation**: Confirmation of 100% real method usage
+- **Test Index**: Category navigation, not a continuously regenerated inventory
+- **Behavioral Evidence**: Independent numerical checks, real artifacts and explicit failure-path tests
 - **Mathematical Correctness**: Validation of mathematical accuracy
 - **Integration Testing**: Cross-module interaction validation
 - **Edge Case Coverage**: Boundary condition testing documentation
@@ -160,23 +156,15 @@ python -m pytest tests/test_integration*.py
 - **Performance Monitoring**: Performance regression detection
 
 ### Test Quality Gates
-- **All Tests Must Pass**: 100% test pass rate required
-- **Real Methods Only**: No mocking of Symergetics functionality
+- **No Failed Cases**: Report skipped cases separately rather than counting them as successful execution.
+- **Real Success Paths**: Do not substitute mocked numerical/rendering results for consumer behavior.
 - **Mathematical Validation**: Correct mathematical results required
 - **Documentation**: Comprehensive test documentation maintained
 
 ## Conclusion
 
-The Symergetics test suite represents a robust, comprehensive validation framework that ensures the reliability and correctness of the package through:
-
-1. **Complete Coverage**: 1017 test functions across all modules
-2. **Real Method Validation**: 100% use of actual Symergetics functionality
-3. **Mathematical Accuracy**: Verification of correct mathematical results
-4. **Integration Testing**: Cross-module interaction validation
-5. **Comprehensive Documentation**: Complete test architecture documentation
-
-This architecture provides confidence in the package's reliability and correctness while maintaining high standards for mathematical accuracy and implementation quality.
-
----
-
-*This test architecture summary confirms that the Symergetics test suite uses real methods exclusively and provides comprehensive validation of all package functionality.*
+The suite combines numerical boundary/oracle checks, real visualization output,
+isolated process/filesystem checks, and installed-package smoke scenarios.
+The coordinated verifier also exercises actual Python, JavaScript and C++
+implementations. Refer to the dated receipts rather than inferring complete
+correctness or universal real-renderer coverage from a test count.

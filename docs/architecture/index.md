@@ -2,7 +2,7 @@
 
 ## System Overview
 
-The Symergetics package implements Buckminster Fuller's mathematical concepts using a modular, test-driven architecture that ensures exact rational arithmetic throughout.
+The Symergetics package separates exact rational/integer arithmetic from floating-point XYZ geometry and discrete lattice projection.
 
 ```mermaid
 graph TD
@@ -52,7 +52,7 @@ symergetics/
 
 ### 1. Exact Arithmetic Foundation
 
-**Core Principle**: All calculations maintain mathematical precision using rational numbers.
+**Core Principle**: Preserve exact rational scalars and integer coordinates until an explicitly documented numerical or quantization boundary.
 
 ```python
 # Design: Use fractions.Fraction for unlimited precision
@@ -68,9 +68,9 @@ class SymergeticsNumber:
 
 **Benefits:**
 
-- Zero floating-point error accumulation
-- Exact geometric relationships
-- Predictable numerical behavior
+- No floating-point accumulation in rational scalar arithmetic
+- Exact integer determinant volumes
+- Explicit floating-point and lattice-quantization boundaries
 - Compatible with symbolic computation
 
 ### 2. Modular Architecture
@@ -96,7 +96,7 @@ flowchart LR
 
 ### 3. Test-Driven Development
 
-**100% Test Coverage** achieved through:
+The package-wide coverage floor is **85%** (`pyproject.toml`), exercised through:
 
 - Unit tests for all classes and functions
 - Integration tests for module interactions
@@ -153,38 +153,31 @@ class SymergeticsNumber:
 
 ### Quadray Coordinate System
 
-**IVM Implementation:**
+**Integer-coordinate boundary:**
+
 ```python
-class QuadrayCoordinate:
-    def __init__(self, a, b, c, d, normalize=True):
-        # Convert to integers for IVM lattice
-        self.a = int(float(a))
-        self.b = int(float(b))
-        self.c = c_int = int(float(c))
-        self.d = int(float(d))
+from fractions import Fraction
+from symergetics.core.coordinates import QuadrayCoordinate
 
-        if normalize:
-            self._normalize_ivm()
-
-    def _normalize_ivm(self):
-        """Normalize by subtracting minimum coordinate."""
-        k = min(self.a, self.b, self.c, self.d)
-        self.a -= k
-        self.b -= k
-        self.c -= k
-        self.d -= k
+large = QuadrayCoordinate(2**53 + 1, 0, 0, 0)
+assert large.a == 2**53 + 1
+half = QuadrayCoordinate(Fraction(7, 2), 0, 0, 0)
+assert half.a == 4
 ```
 
+Normalization subtracts the minimum component. Integral/rational inputs do not
+detour through binary64; `as_array` and XYZ conversion are float boundaries.
+
 **Coordinate Conversions:**
-- **Urner Embedding**: Correct 3×4 matrix for XYZ conversion
-- **Round-trip Accuracy**: Maintained within numerical precision
-- **Caching**: Frequently used embeddings cached for performance
+- **Urner embedding**: finite rank-three 3×4 matrix with the all-ones gauge in its kernel
+- **Discrete inverse**: nearest integer-quadray projection with canonical tuple tie-breaking
+- **Continuous inverse**: `xyz_to_quadray_matrix` returns the actual 4×3 pseudoinverse
 
 ```mermaid
 graph LR
   Q[(Quadray a,b,c,d)] -- urner_embedding() --> X[(XYZ x,y,z)]
-  X -- pinv(embedding) --> Q2[(Quadray a',b',c',d')]
-  Q2 -- normalize --> Q0[(Normalized Quadray)]
+  X -- nearest lattice projection --> Q2[(Integer Quadray)]
+  Q2 -- minimum-zero normalization --> Q0[(Canonical Quadray)]
 ```
 
 ## Geometry Module Architecture
@@ -216,29 +209,24 @@ class SymergeticsPolyhedron:
 
 ### Transformation System
 
-**Functional Approach:**
+Transforms operate on spatial points modulo the common-offset gauge, not on an
+arbitrarily chosen four-component representative. Integer scaling and origin
+inversion remain exact. Fractional scaling and named plane reflections operate
+in XYZ, then use the core nearest-point projection once.
+
 ```python
-def translate(coord: QuadrayCoordinate, offset: QuadrayCoordinate) -> QuadrayCoordinate:
-    """Pure function for coordinate translation."""
-    return coord.add(offset)
+from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.geometry.transformations import scale, reflect
 
-def scale(coord: QuadrayCoordinate, factor: float) -> QuadrayCoordinate:
-    """Pure function for coordinate scaling."""
-    scaled_a = int(coord.a * factor)
-    scaled_b = int(coord.b * factor)
-    scaled_c = int(coord.c * factor)
-    scaled_d = int(coord.d * factor)
-    return QuadrayCoordinate(scaled_a, scaled_b, scaled_c, scaled_d)
-
-def compose_transforms(*transforms):
-    """Compose multiple transformations."""
-    def composed(coord):
-        result = coord
-        for transform in transforms:
-            result = transform(result)
-        return result
-    return composed
+point = QuadrayCoordinate(1, 0, 0, 0)
+alias = QuadrayCoordinate(8, 7, 7, 7, normalize=False)
+assert scale(point, 0.75) == scale(alias, 0.75)
+assert reflect(point, "a") == reflect(alias, "a")
 ```
+
+A 4×4 coordinate transform is valid on the quotient only when it maps the
+all-ones vector to a multiple of itself. Quantization means that fractional
+transforms need not preserve lengths or admit an inverse.
 
 ## Computation Module Architecture
 

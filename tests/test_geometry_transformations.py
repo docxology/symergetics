@@ -1,10 +1,7 @@
-"""
-Tests for geometry.transformations module - Geometric transformations.
-
-Tests coordinate transformations, translations, rotations, and scaling.
-"""
+"""Spatial and exact-arithmetic contracts for quadray transformations."""
 
 import math
+from itertools import product
 
 import numpy as np
 import pytest
@@ -16,7 +13,6 @@ from symergetics.geometry.transformations import (
     coordinate_transform,
     reflect,
     rotate_around_axis,
-    rotate_around_xyz_axis,
     scale,
     scale_by_factor,
     translate,
@@ -24,192 +20,209 @@ from symergetics.geometry.transformations import (
 )
 
 
+def spatial(coord):
+    """Independent integer Urner oracle, without a float conversion."""
+    a, b, c, d = coord.as_tuple()
+    return np.array((a - b - c + d, a + b - c - d, a - b + c - d))
+
+
+def nearest_squared_error(target):
+    """Enumerate nearby XYZ sites: the integer image has common parity."""
+    ranges = [range(math.floor(value) - 2, math.floor(value) + 4) for value in target]
+    return min(
+        sum((value - expected) ** 2 for value, expected in zip(site, target))
+        for site in product(*ranges)
+        if site[0] % 2 == site[1] % 2 == site[2] % 2
+    )
+
+
+def shifted(coord, gauge=2**60):
+    return QuadrayCoordinate(*(value + gauge for value in coord.as_tuple()), normalize=False)
+
+
 class TestTranslation:
-    """Test translation operations."""
-
     def test_translate_coordinate(self):
-        """Test coordinate translation."""
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-        offset = QuadrayCoordinate(0, 1, 0, 0)
-
-        result = translate(coord, offset)
-        assert result.a == 1
-        assert result.b == 1
-        assert result.c == 0
-        assert result.d == 0
+        point = QuadrayCoordinate(2, 1, 0, 3)
+        offset = QuadrayCoordinate(0, 1, 2, 0)
+        np.testing.assert_array_equal(spatial(translate(point, offset)), spatial(point) + spatial(offset))
 
     def test_translate_by_vector_function(self):
-        """Test translate_by_vector function."""
-        translate_func = translate_by_vector(1, 2, 3)
-        coord = QuadrayCoordinate(1, 1, 1, 1)
-
-        result = translate_func(coord)
-        # Result will be normalized, so exact values depend on normalization
-        assert isinstance(result, QuadrayCoordinate)
+        # This vector is itself a lattice point, so no snapping is needed.
+        result = translate_by_vector(1, 3, -1)(QuadrayCoordinate(1, 0, 0, 0))
+        np.testing.assert_array_equal(spatial(result), (2, 4, 0))
 
 
 class TestScaling:
-    """Test scaling operations."""
+    @pytest.mark.parametrize("factor", [-3, -1, 0, 1, 2, 2.0])
+    def test_integer_scale_is_exact_above_float_precision(self, factor):
+        n = 2**60 + 1
+        point = QuadrayCoordinate(n, 2, 0, 7)
+        result = scale(point, factor)
+        values = tuple(int(factor) * value for value in point.as_tuple())
+        expected = tuple(value - min(values) for value in values)
+        assert result.as_tuple() == expected
+        assert scale(shifted(point), factor).as_tuple() == expected
 
-    def test_scale_coordinate(self):
-        """Test coordinate scaling."""
-        coord = QuadrayCoordinate(2, 1, 1, 0)
-        result = scale(coord, 2.0)
+    @pytest.mark.parametrize("factor", [0.5, -0.5, 0.3, -1.25])
+    def test_fractional_scale_is_gauge_invariant_and_spatially_nearest(self, factor):
+        point = QuadrayCoordinate(3, 1, 2, 0)
+        target = spatial(point) * factor
+        result = scale(point, factor)
+        assert scale(shifted(point), factor) == result
+        error = np.sum((spatial(result) - target) ** 2)
+        assert error == pytest.approx(nearest_squared_error(target))
 
-        # Scaling may change due to normalization
-        assert isinstance(result, QuadrayCoordinate)
+    def test_fractional_scale_does_not_truncate_components(self):
+        # XYZ (1,1,1) * .75 is uniquely nearer (1,1,1) than the origin.
+        point = QuadrayCoordinate(1, 0, 0, 0)
+        assert scale(point, 0.75) == point
+        assert scale_by_factor(0.75)(shifted(point)) == point
 
-    def test_scale_by_factor_function(self):
-        """Test scale_by_factor function."""
-        scale_func = scale_by_factor(2.0)
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-
-        result = scale_func(coord)
-        assert isinstance(result, QuadrayCoordinate)
+    @pytest.mark.parametrize("factor", [math.inf, -math.inf, math.nan])
+    def test_nonfinite_factor_rejected(self, factor):
+        with pytest.raises(ValueError, match="finite"):
+            scale(QuadrayCoordinate(1, 0, 0, 0), factor)
 
 
 class TestReflection:
-    """Test reflection operations."""
+    @pytest.mark.parametrize("axis", ["origin", "a", "b", "c", "d"])
+    def test_shifted_origin_stays_at_origin(self, axis):
+        result = reflect(QuadrayCoordinate(*(2**60,) * 4, normalize=False), axis)
+        assert result.as_tuple() == (0, 0, 0, 0)
 
-    def test_reflect_origin(self):
-        """Test reflection through origin."""
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-        result = reflect(coord, 'origin')
+    def test_origin_inversion_remains_exact(self):
+        point = QuadrayCoordinate(2**60 + 1, 0, 5, 9)
+        result = reflect(shifted(point), "origin")
+        maximum = max(point.as_tuple())
+        assert result.as_tuple() == tuple(maximum - value for value in point.as_tuple())
+        assert reflect(result, "origin") == point
 
-        # Reflection of (1,0,0,0) gives (-1,0,0,0), which normalizes to (0,1,1,1)
-        assert result.a == 0
-        assert result.b == 1
-        assert result.c == 1
-        assert result.d == 1
+    @pytest.mark.parametrize("index,axis", enumerate("abcd"))
+    def test_named_plane_fixes_tangents_and_reverses_normal(self, index, axis):
+        # Each basis vector has norm squared 3 and pairwise dot product -1.
+        # One normal plus three of another basis is tangent to this plane.
+        values = [0] * 4
+        values[index] = 1
+        values[(index + 1) % 4] = 3
+        tangent = QuadrayCoordinate(*values)
+        assert reflect(tangent, axis) == tangent
+        normal_values = [0] * 4
+        normal_values[index] = 2
+        normal = QuadrayCoordinate(*normal_values)
+        np.testing.assert_array_equal(spatial(reflect(normal, axis)), -spatial(normal))
 
-    def test_reflect_axis(self):
-        """Test reflection across axis."""
-        coord = QuadrayCoordinate(1, 2, 3, 4)  # Normalizes to (0, 1, 2, 3)
-        result = reflect(coord, 'a')
+    @pytest.mark.parametrize("axis,normal", [
+        ("a", (1, 1, 1)), ("b", (-1, 1, -1)),
+        ("c", (-1, -1, 1)), ("d", (1, -1, -1)),
+    ])
+    def test_named_plane_euclidean_reflection_on_lattice(self, axis, normal):
+        point = QuadrayCoordinate(3, 6, 9, 0)
+        xyz = spatial(point)
+        normal = np.array(normal)
+        expected = xyz - 2 * np.dot(xyz, normal) * normal / 3
+        result = reflect(point, axis)
+        np.testing.assert_array_equal(spatial(result), expected)
+        assert reflect(shifted(point), axis) == result
+        assert reflect(result, axis) == point
+        assert np.dot(spatial(result), spatial(result)) == np.dot(xyz, xyz)
 
-        # Reflecting (0, 1, 2, 3) across 'a' gives (0, -1, -2, -3)
-        # which normalizes to (3, 2, 1, 0)
-        assert result.a == 3
-        assert result.b == 2
-        assert result.c == 1
-        assert result.d == 0
+    def test_off_lattice_reflection_uses_nearest_spatial_site(self):
+        point = QuadrayCoordinate(0, 1, 2, 3)
+        xyz = spatial(point)
+        target = xyz - 2 * sum(xyz) / 3
+        result = reflect(point, "a")
+        error = np.sum((spatial(result) - target) ** 2)
+        assert error == pytest.approx(nearest_squared_error(target))
+        assert reflect(shifted(point), "a") == result
 
-
-class TestRotation:
-    """Test rotation operations."""
-
-    def test_rotate_around_axis(self):
-        """Test rotation around XYZ axis."""
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-        result = rotate_around_axis(coord, 'z', 90)
-
-        # Rotation should produce valid coordinates
-        assert isinstance(result, QuadrayCoordinate)
-
-    def test_rotate_around_xyz_axis_function(self):
-        """Test rotate_around_xyz_axis function."""
-        rotate_func = rotate_around_xyz_axis('z', 45)
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-
-        result = rotate_func(coord)
-        assert isinstance(result, QuadrayCoordinate)
-
-
-class TestTransformationComposition:
-    """Test transformation composition."""
-
-    def test_compose_transforms(self):
-        """Test composing multiple transformations."""
-        def add_one(coord):
-            return translate(coord, QuadrayCoordinate(1, 0, 0, 0))
-
-        def multiply_two(coord):
-            return scale(coord, 2.0)
-
-        composed = compose_transforms(add_one, multiply_two)
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-
-        result = composed(coord)
-        assert isinstance(result, QuadrayCoordinate)
-
-    def test_apply_transform_function(self):
-        """Test applying transformation to list of coordinates."""
-        coords = [
-            QuadrayCoordinate(1, 0, 0, 0),
-            QuadrayCoordinate(0, 1, 0, 0),
-        ]
-
-        def double_scale(coord):
-            return scale(coord, 2.0)
-
-        result = apply_transform_function(coords, double_scale)
-        assert len(result) == 2
-        assert all(isinstance(coord, QuadrayCoordinate) for coord in result)
+    def test_invalid_plane_rejected(self):
+        with pytest.raises(ValueError, match="Unknown reflection"):
+            reflect(QuadrayCoordinate(1, 0, 0, 0), "invalid")
 
 
 class TestCoordinateTransform:
-    """Test general coordinate transformation."""
+    @pytest.mark.parametrize("matrix", [np.eye(4, dtype=int), -np.eye(4), 3 * np.eye(4)])
+    def test_integer_maps_are_exact_and_gauge_invariant(self, matrix):
+        point = QuadrayCoordinate(2**60 + 1, 2, 0, 7)
+        factor = int(matrix[0, 0])
+        values = tuple(value * factor for value in point.as_tuple())
+        expected = tuple(value - min(values) for value in values)
+        assert coordinate_transform(point, matrix).as_tuple() == expected
+        assert coordinate_transform(shifted(point), matrix).as_tuple() == expected
 
-    def test_coordinate_transform(self):
-        """Test coordinate transformation with matrix."""
-        import numpy as np
+    def test_basis_permutation_is_a_spatial_rotation(self):
+        # Swapping b/c exchanges Y/Z while leaving X unchanged.
+        matrix = np.eye(4, dtype=int)[[0, 2, 1, 3]]
+        point = QuadrayCoordinate(5, 1, 2, 0)
+        result = coordinate_transform(shifted(point), matrix)
+        x, y, z = spatial(point)
+        np.testing.assert_array_equal(spatial(result), (x, z, y))
 
-        coord = QuadrayCoordinate(1, 0, 0, 0)
+    @pytest.mark.parametrize("factor", [0.5, 0.75, -0.3])
+    def test_fractional_matrix_quantizes_in_xyz(self, factor):
+        point = QuadrayCoordinate(3, 1, 2, 0)
+        target = spatial(point) * factor
+        result = coordinate_transform(point, factor * np.eye(4))
+        assert result == coordinate_transform(shifted(point), factor * np.eye(4))
+        assert np.sum((spatial(result) - target) ** 2) == pytest.approx(nearest_squared_error(target))
 
-        # Identity transformation
-        identity_matrix = np.eye(4)
-        result = coordinate_transform(coord, identity_matrix)
+    def test_general_spatial_shear_uses_nearest_lattice_projection(self):
+        # Lift a Cartesian shear to the zero-sum quadray representatives.
+        embedding = np.array([[1, -1, -1, 1], [1, 1, -1, -1], [1, -1, 1, -1]])
+        shear = np.array([[1, 0.3, 0], [0, 1, -0.2], [0, 0, 1]])
+        matrix = embedding.T @ shear @ embedding / 4
+        point = QuadrayCoordinate(4, 0, 1, 2)
+        target = shear @ spatial(point)
+        result = coordinate_transform(point, matrix)
+        assert coordinate_transform(shifted(point), matrix) == result
+        assert np.sum((spatial(result) - target) ** 2) == pytest.approx(nearest_squared_error(target))
 
-        assert result.a == 1
-        assert result.b == 0
-        assert result.c == 0
-        assert result.d == 0
+    def test_added_output_gauge_does_not_change_map(self):
+        point = QuadrayCoordinate(3, 1, 0, 2)
+        matrix = 0.75 * np.eye(4)
+        output_gauge = np.ones((4, 1)) @ np.array([[0.25, -0.5, 1.5, 0.75]])
+        assert coordinate_transform(point, matrix + output_gauge) == coordinate_transform(point, matrix)
 
-    def test_coordinate_transform_invalid_matrix(self):
-        """Test coordinate transformation with invalid matrix."""
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-        invalid_matrix = np.array([[1, 0], [0, 1]])  # Wrong size
+    @pytest.mark.parametrize("matrix", [np.diag([1, 2, 3, 4]), np.diag([0.5, 1, 1, 1])])
+    def test_gauge_incompatible_map_rejected(self, matrix):
+        with pytest.raises(ValueError, match="all-ones gauge"):
+            coordinate_transform(QuadrayCoordinate(1, 0, 0, 0), matrix)
 
+    @pytest.mark.parametrize("matrix", [np.eye(3), np.zeros((4, 3))])
+    def test_invalid_shape_rejected(self, matrix):
+        with pytest.raises(ValueError, match="4x4"):
+            coordinate_transform(QuadrayCoordinate(1, 0, 0, 0), matrix)
+
+    @pytest.mark.parametrize("value", [math.inf, math.nan])
+    def test_nonfinite_matrix_rejected(self, value):
+        matrix = np.eye(4)
+        matrix[0, 0] = value
+        with pytest.raises(ValueError, match="finite"):
+            coordinate_transform(QuadrayCoordinate(1, 0, 0, 0), matrix)
+
+
+class TestTransformationComposition:
+    def test_composition_preserves_order(self):
+        offset = QuadrayCoordinate(0, 1, 0, 0)
+        composed = compose_transforms(lambda point: translate(point, offset), scale_by_factor(2))
+        point = QuadrayCoordinate(1, 0, 0, 0)
+        np.testing.assert_array_equal(spatial(composed(point)), (0, 4, 0))
+
+    def test_list_transform_preserves_order_and_values(self):
+        points = [QuadrayCoordinate(1, 0, 0, 0), QuadrayCoordinate(0, 1, 0, 0)]
+        result = apply_transform_function(points, scale_by_factor(2))
+        assert [point.as_tuple() for point in result] == [(2, 0, 0, 0), (0, 2, 0, 0)]
+        assert apply_transform_function([], scale_by_factor(2)) == []
+
+
+class TestRotation:
+    @pytest.mark.parametrize("axis,expected", [
+        ("x", (1, -1, 1)), ("y", (1, 1, -1)), ("z", (-1, 1, 1)),
+    ])
+    def test_quarter_turn(self, axis, expected):
+        result = rotate_around_axis(QuadrayCoordinate(1, 0, 0, 0), axis, 90)
+        np.testing.assert_array_equal(spatial(result), expected)
+
+    def test_invalid_rotation_axis_rejected(self):
         with pytest.raises(ValueError):
-            coordinate_transform(coord, invalid_matrix)
-
-
-class TestEdgeCases:
-    """Test edge cases and error conditions."""
-
-    def test_translate_with_none(self):
-        """Test translation with None values."""
-        coord = QuadrayCoordinate(0, 0, 0, 0)
-        offset = QuadrayCoordinate(0, 0, 0, 0)
-
-        result = translate(coord, offset)
-        assert result.a == 0
-        assert result.b == 0
-        assert result.c == 0
-        assert result.d == 0
-
-    def test_scale_with_zero(self):
-        """Test scaling with zero factor."""
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-
-        result = scale(coord, 0.0)
-        # Scaling by zero may result in origin due to normalization
-        assert isinstance(result, QuadrayCoordinate)
-
-    def test_reflect_invalid_axis(self):
-        """Test reflection with invalid axis."""
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-
-        with pytest.raises(ValueError):
-            reflect(coord, 'invalid_axis')
-
-    def test_rotate_invalid_axis(self):
-        """Test rotation with invalid axis."""
-        coord = QuadrayCoordinate(1, 0, 0, 0)
-
-        with pytest.raises(ValueError):
-            rotate_around_axis(coord, 'invalid', 45)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
+            rotate_around_axis(QuadrayCoordinate(1, 0, 0, 0), "invalid", 45)

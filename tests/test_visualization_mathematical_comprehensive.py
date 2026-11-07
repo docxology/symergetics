@@ -1,652 +1,182 @@
-#!/usr/bin/env python3
-"""
-Comprehensive tests for symergetics.visualization.mathematical module.
-
-This module provides extensive test coverage for mathematical visualization functions
-to achieve 90%+ test coverage, focusing on edge cases, error handling, and
-comprehensive functionality testing.
-"""
+"""Consumer-visible mathematical data and artifacts from real rendering backends."""
 
 import json
-import os
-import tempfile
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, Mock, patch
+import math
+from collections import Counter
+from pathlib import Path
 
+import matplotlib.pyplot as plt
 import pytest
 
-
-class TestPlotContinuedFractionConvergenceComprehensive:
-    """Test comprehensive continued fraction convergence plotting functionality."""
-
-    def test_plot_continued_fraction_convergence_matplotlib(self):
-        """Test continued fraction convergence plotting with matplotlib."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            result = plot_continued_fraction_convergence(
-                value=3.14159,
-                max_terms=15,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-            assert result['metadata']['type'] == 'continued_fraction_convergence'
-
-    @pytest.mark.skip(reason="Plotly backend not implemented for continued fraction convergence")
-    def test_plot_continued_fraction_convergence_plotly(self):
-        """Test continued fraction convergence plotting with plotly."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with patch('plotly.graph_objects.Figure') as mock_figure, \
-             patch('plotly.graph_objects.Scatter') as mock_scatter, \
-             patch('plotly.graph_objects.Figure.update_layout') as mock_update_layout, \
-             patch('plotly.graph_objects.Figure.add_trace') as mock_add_trace, \
-             patch('plotly.graph_objects.Figure.write_html') as mock_write_html:
-            
-            result = plot_continued_fraction_convergence(
-                value=3.14159,
-                max_terms=15,
-                backend='plotly'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    @pytest.mark.skip(reason="ASCII backend not implemented for continued fraction convergence")
-    def test_plot_continued_fraction_convergence_ascii(self):
-        """Test continued fraction convergence plotting with ASCII backend."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        result = plot_continued_fraction_convergence(
-            value=3.14159,
-            max_terms=15,
-            backend='ascii'
-        )
-        
-        assert 'files' in result
-        assert 'metadata' in result
-        assert any('ascii' in str(f) for f in result['files'])
-
-    def test_plot_continued_fraction_convergence_integer(self):
-        """Test continued fraction convergence plotting with integer value."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            result = plot_continued_fraction_convergence(
-                value=5,
-                max_terms=10,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_continued_fraction_convergence_few_terms(self):
-        """Test continued fraction convergence plotting with few terms."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            result = plot_continued_fraction_convergence(
-                value=1.618,
-                max_terms=3,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_continued_fraction_convergence_invalid_backend(self):
-        """Test continued fraction convergence plotting with invalid backend."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with pytest.raises(ValueError, match="Convergence visualization requires matplotlib or plotly backend"):
-            plot_continued_fraction_convergence(
-                value=3.14159,
-                max_terms=15,
-                backend='invalid'
-            )
-
-    def test_plot_continued_fraction_convergence_error_handling(self):
-        """Test continued fraction convergence plotting error handling."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            # Simulate matplotlib error
-            mock_figure.side_effect = Exception("Matplotlib error")
-            
-            with pytest.raises(Exception, match="Matplotlib error"):
-                plot_continued_fraction_convergence(
-                    value=3.14159,
-                    max_terms=15,
-                    backend='matplotlib'
-                )
+from symergetics.visualization import get_config, set_config
+from symergetics.visualization.mathematical import (
+    plot_base_conversion,
+    plot_base_conversion_matrix,
+    plot_continued_fraction,
+    plot_continued_fraction_convergence,
+    plot_pattern_analysis,
+    plot_pattern_analysis_radar,
+)
 
 
-class TestPlotBaseConversionMatrixComprehensive:
-    """Test comprehensive base conversion matrix plotting functionality."""
-
-    def test_plot_base_conversion_matrix_matplotlib(self):
-        """Test base conversion matrix plotting with matplotlib."""
-        from symergetics.visualization.mathematical import plot_base_conversion_matrix
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.table') as mock_table:
-            
-            result = plot_base_conversion_matrix(
-                number=255,
-                bases=[2, 8, 10, 16],
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-            assert result['metadata']['type'] == 'base_conversion_matrix'
-
-    @pytest.mark.skip(reason="Plotly backend not implemented for base conversion matrix")
-    def test_plot_base_conversion_matrix_plotly(self):
-        """Test base conversion matrix plotting with plotly."""
-        from symergetics.visualization.mathematical import plot_base_conversion_matrix
-        
-        with patch('plotly.graph_objects.Figure') as mock_figure, \
-             patch('plotly.graph_objects.Heatmap') as mock_heatmap, \
-             patch('plotly.graph_objects.Figure.update_layout') as mock_update_layout, \
-             patch('plotly.graph_objects.Figure.add_trace') as mock_add_trace, \
-             patch('plotly.graph_objects.Figure.write_html') as mock_write_html:
-            
-            result = plot_base_conversion_matrix(
-                number=255,
-                bases=[2, 8, 10, 16],
-                backend='plotly'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    @pytest.mark.skip(reason="ASCII backend not implemented for base conversion matrix")
-    def test_plot_base_conversion_matrix_ascii(self):
-        """Test base conversion matrix plotting with ASCII backend."""
-        from symergetics.visualization.mathematical import plot_base_conversion_matrix
-        
-        result = plot_base_conversion_matrix(
-            number=255,
-            bases=[2, 8, 10, 16],
-            backend='ascii'
-        )
-        
-        assert 'files' in result
-        assert 'metadata' in result
-        assert any('ascii' in str(f) for f in result['files'])
-
-    def test_plot_base_conversion_matrix_wide_range(self):
-        """Test base conversion matrix plotting with wide range of bases."""
-        from symergetics.visualization.mathematical import plot_base_conversion_matrix
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.table') as mock_table:
-            
-            result = plot_base_conversion_matrix(
-                number=1000,
-                bases=list(range(2, 17)),
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_base_conversion_matrix_invalid_range(self):
-        """Test base conversion matrix plotting with invalid range."""
-        from symergetics.visualization.mathematical import plot_base_conversion_matrix
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.table') as mock_table:
-            
-            # Test with invalid base range
-            result = plot_base_conversion_matrix(
-                number=255,
-                bases=[1, 2, 3],  # Base 1 is invalid
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_base_conversion_matrix_large_number(self):
-        """Test base conversion matrix plotting with large number."""
-        from symergetics.visualization.mathematical import plot_base_conversion_matrix
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.table') as mock_table:
-            
-            result = plot_base_conversion_matrix(
-                number=10**6,
-                bases=[2, 8, 10, 16, 32],
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
+@pytest.fixture
+def rendering_output(tmp_path):
+    """Own configuration locally; conftest also contains default outputs in cwd."""
+    original = get_config()
+    figures = plt.get_fignums()
+    output = tmp_path / "renders"
+    set_config({
+        "output_dir": str(output), "figure_size": (6, 5), "dpi": 40,
+        "organize_by_type": False, "include_timestamps": False,
+    })
+    try:
+        yield output
+        assert plt.get_fignums() == figures
+    finally:
+        for figure in set(plt.get_fignums()) - set(figures):
+            plt.close(figure)
+        set_config(original)
 
 
-class TestPlotPatternAnalysisRadarComprehensive:
-    """Test comprehensive pattern analysis radar plotting functionality."""
-
-    def test_plot_pattern_analysis_radar_matplotlib(self):
-        """Test pattern analysis radar plotting with matplotlib."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        sequence = "121123211234321"
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot:
-            
-            result = plot_pattern_analysis_radar(
-                sequence=sequence,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-            assert result['metadata']['type'] == 'pattern_analysis_radar'
-
-    @pytest.mark.skip(reason="Plotly backend not implemented for pattern analysis radar")
-    def test_plot_pattern_analysis_radar_plotly(self):
-        """Test pattern analysis radar plotting with plotly."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        sequence = "121123211234321"
-        
-        with patch('plotly.graph_objects.Figure') as mock_figure, \
-             patch('plotly.graph_objects.Scatterpolar') as mock_scatterpolar, \
-             patch('plotly.graph_objects.Figure.update_layout') as mock_update_layout, \
-             patch('plotly.graph_objects.Figure.add_trace') as mock_add_trace, \
-             patch('plotly.graph_objects.Figure.write_html') as mock_write_html:
-            
-            result = plot_pattern_analysis_radar(
-                sequence=sequence,
-                backend='plotly'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    @pytest.mark.skip(reason="ASCII backend not implemented for pattern analysis radar")
-    def test_plot_pattern_analysis_radar_ascii(self):
-        """Test pattern analysis radar plotting with ASCII backend."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        sequence = "121123211234321"
-        
-        result = plot_pattern_analysis_radar(
-            sequence=sequence,
-            backend='ascii'
-        )
-        
-        assert 'files' in result
-        assert 'metadata' in result
-        assert any('ascii' in str(f) for f in result['files'])
-
-    def test_plot_pattern_analysis_radar_empty_sequence(self):
-        """Test pattern analysis radar plotting with empty sequence."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot:
-            
-            result = plot_pattern_analysis_radar(
-                sequence="1",
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_pattern_analysis_radar_single_character(self):
-        """Test pattern analysis radar plotting with single character."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot:
-            
-            result = plot_pattern_analysis_radar(
-                sequence="1",
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_pattern_analysis_radar_long_sequence(self):
-        """Test pattern analysis radar plotting with long sequence."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        # Create a long sequence
-        long_sequence = "121123211234321123454321" * 10
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot:
-            
-            result = plot_pattern_analysis_radar(
-                sequence=long_sequence,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_pattern_analysis_radar_invalid_backend(self):
-        """Test pattern analysis radar plotting with invalid backend."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        with pytest.raises(ValueError, match="Radar visualization requires matplotlib or plotly backend"):
-            plot_pattern_analysis_radar(
-                sequence="121123211234321",
-                backend='invalid'
-            )
+def _rendered_data(result, output, backend):
+    """Decode the actual PNG or interactive HTML, never a mocked figure."""
+    assert result["metadata"]["backend"] == backend
+    assert len(result["files"]) == 1
+    path = Path(result["files"][0])
+    assert path.resolve().is_relative_to(output.resolve())
+    assert path.stat().st_size > 0
+    if backend == "matplotlib":
+        assert path.suffix == ".png"
+        image = plt.imread(path)
+        assert image.shape[0] > 1 and image.shape[1] > 1
+        assert image[..., :3].std() > 0
+        return None
+    assert path.suffix == ".html"
+    html = path.read_text()
+    call = html.index("Plotly.newPlot(")
+    data_start = html.index("[", call)
+    traces, _ = json.JSONDecoder().raw_decode(html[data_start:])
+    assert traces
+    return {trace.get("name", trace["type"]): trace for trace in traces}
 
 
-class TestOriginalMathematicalVisualizationsComprehensive:
-    """Test comprehensive original mathematical visualization functionality."""
-
-    def test_plot_continued_fraction_custom_value(self):
-        """Test original continued fraction plotting with custom value."""
-        from symergetics.visualization.mathematical import plot_continued_fraction
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.subplots') as mock_subplots, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            # Mock subplots to return a figure and 2x2 array of axes
-            mock_fig = mock_figure.return_value
-            mock_axes = [[mock_fig, mock_fig], [mock_fig, mock_fig]]
-            mock_subplots.return_value = (mock_fig, mock_axes)
-            
-            result = plot_continued_fraction(
-                value=2.71828,  # e
-                max_terms=20,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_base_conversion_large_number(self):
-        """Test original base conversion plotting with large number."""
-        from symergetics.visualization.mathematical import plot_base_conversion
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.subplots') as mock_subplots, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            # Mock subplots to return a figure and 2x2 array of axes
-            mock_fig = mock_figure.return_value
-            mock_axes = [[mock_fig, mock_fig], [mock_fig, mock_fig]]
-            mock_subplots.return_value = (mock_fig, mock_axes)
-            
-            result = plot_base_conversion(
-                number=10**9,
-                bases=[2, 8, 10, 16, 32, 64],
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
-
-    def test_plot_pattern_analysis_complex_sequence(self):
-        """Test original pattern analysis plotting with complex sequence."""
-        from symergetics.visualization.mathematical import plot_pattern_analysis
-        
-        # Create a complex sequence with multiple patterns
-        complex_sequence = "12112321123432112345432112345654321"
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout, \
-             patch('matplotlib.pyplot.subplots') as mock_subplots:
-            
-            # Mock subplots to return proper structure
-            mock_axes = [[mock_subplot, mock_subplot], [mock_subplot, mock_subplot]]
-            mock_subplots.return_value = (mock_figure, mock_axes)
-            
-            result = plot_pattern_analysis(
-                number=complex_sequence,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
+@pytest.mark.parametrize("backend", ["matplotlib", "plotly"])
+@pytest.mark.parametrize("value,max_terms,terms,approximations", [
+    (5, 10, [5], [5]),
+    (math.pi, 3, [3, 7, 15], [3, 22 / 7, 333 / 106]),
+    (1e-10, 1000, [0, 10_000_000_000], [0, 1e-10]),
+])
+def test_convergence_integer_truncated_and_tiny_values(
+    rendering_output, backend, value, max_terms, terms, approximations,
+):
+    result = plot_continued_fraction_convergence(value, max_terms=max_terms, backend=backend)
+    assert result["metadata"]["terms_found"] == len(terms)
+    assert result["metadata"]["convergents_found"] == len(approximations)
+    traces = _rendered_data(result, rendering_output, backend)
+    if traces is not None:
+        assert traces["Terms"]["y"] == terms
+        assert traces["Convergents"]["y"] == pytest.approx(approximations)
+        assert traces["Error"]["y"] == pytest.approx([abs(a - value) for a in approximations])
 
 
-class TestMathematicalVisualizationErrorHandling:
-    """Test comprehensive error handling in mathematical visualizations."""
-
-    def test_missing_matplotlib_graceful_failure(self):
-        """Test graceful failure when matplotlib is missing."""
-        # This test is skipped because matplotlib is a required dependency
-        # and is imported at module level, making it impractical to test
-        pytest.skip("matplotlib is a required dependency imported at module level")
-
-    def test_missing_plotly_graceful_failure(self):
-        """Test graceful failure when plotly is missing."""
-        # This test is skipped because plotly is not used in the convergence function
-        # and the function only supports matplotlib backend
-        pytest.skip("plot_continued_fraction_convergence only supports matplotlib backend")
-
-    def test_invalid_data_structures(self):
-        """Test handling of invalid data structures."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        # Test with invalid value type - should raise ValueError
-        with pytest.raises(ValueError, match="requires a real number"):
-            plot_continued_fraction_convergence(
-                value="invalid",
-                max_terms=15,
-                backend='matplotlib'
-            )
-
-    def test_extreme_data_values(self):
-        """Test handling of extreme data values."""
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            # Test with extreme values
-            result = plot_continued_fraction_convergence(
-                value=1e-10,
-                max_terms=1000,
-                backend='matplotlib'
-            )
-            
-            assert 'files' in result
-            assert 'metadata' in result
+@pytest.mark.parametrize("backend", ["matplotlib", "plotly"])
+def test_exact_rational_continued_fraction(rendering_output, backend):
+    result = plot_continued_fraction(3.25, max_terms=20, backend=backend)
+    assert result["metadata"]["terms_calculated"] == 2
+    assert result["metadata"]["convergents_found"] == 2
+    assert result["metadata"]["final_error"] == 0
+    traces = _rendered_data(result, rendering_output, backend)
+    if traces is not None:
+        assert traces["Terms"]["y"] == [3, 4]
+        assert traces["Convergents"]["y"] == [3, 3.25]
+        assert traces["Error"]["y"] == [0.25, 0]
 
 
-class TestMathematicalVisualizationIntegration:
-    """Test integration between different mathematical visualization functions."""
-
-    def test_multiple_mathematical_visualizations(self):
-        """Test multiple mathematical visualization types."""
-        from symergetics.visualization.mathematical import (
-            plot_base_conversion_matrix,
-            plot_continued_fraction_convergence,
-            plot_pattern_analysis_radar,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout, \
-             patch('matplotlib.pyplot.table') as mock_table:
-            
-            # Test different visualization types
-            cf_result = plot_continued_fraction_convergence(
-                value=3.14159,
-                max_terms=15,
-                backend='matplotlib'
-            )
-            
-            bc_result = plot_base_conversion_matrix(
-                number=255,
-                bases=[2, 8, 10, 16],
-                backend='matplotlib'
-            )
-            
-            pa_result = plot_pattern_analysis_radar(
-                sequence="121123211234321",
-                backend='matplotlib'
-            )
-            
-            # Check that all results have consistent structure
-            for result in [cf_result, bc_result, pa_result]:
-                assert 'files' in result
-                assert 'metadata' in result
-                assert 'type' in result['metadata']
-                assert 'backend' in result['metadata']
-
-    def test_visualization_metadata_consistency(self):
-        """Test that visualization metadata is consistent across functions."""
-        from symergetics.visualization.mathematical import (
-            plot_base_conversion_matrix,
-            plot_continued_fraction_convergence,
-            plot_pattern_analysis_radar,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout, \
-             patch('matplotlib.pyplot.table') as mock_table:
-            
-            cf_result = plot_continued_fraction_convergence(
-                value=3.14159,
-                max_terms=15,
-                backend='matplotlib'
-            )
-            
-            bc_result = plot_base_conversion_matrix(
-                number=255,
-                bases=[2, 8, 10, 16],
-                backend='matplotlib'
-            )
-            
-            pa_result = plot_pattern_analysis_radar(
-                sequence="121123211234321",
-                backend='matplotlib'
-            )
-            
-            # Check that all results have consistent metadata structure
-            for result in [cf_result, bc_result, pa_result]:
-                assert 'files' in result
-                assert 'metadata' in result
-                assert 'type' in result['metadata']
-                assert 'backend' in result['metadata']
-                # Note: timestamp is not always included in metadata
+@pytest.mark.parametrize("backend", ["matplotlib", "plotly"])
+def test_large_number_conversion_uses_requested_base(rendering_output, backend):
+    number = 10**9
+    result = plot_base_conversion(number, from_base=10, to_base=16, backend=backend)
+    expected = format(number, "X")
+    assert result["metadata"]["result"] == expected
+    assert result["metadata"]["steps"] == len(expected)
+    traces = _rendered_data(result, rendering_output, backend)
+    if traces is not None:
+        coefficients = [int(digit, 16) for digit in expected]
+        assert traces["Remainders"]["y"] == coefficients
+        assert traces["Coefficients"]["y"] == coefficients
 
 
-class TestMathematicalVisualizationPerformance:
-    """Test performance aspects of mathematical visualizations."""
-
-    def test_visualization_execution_time(self):
-        """Test that visualizations execute within reasonable time."""
-        import time
-
-        from symergetics.visualization.mathematical import (
-            plot_continued_fraction_convergence,
-        )
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot, \
-             patch('matplotlib.pyplot.tight_layout') as mock_tight_layout:
-            
-            start_time = time.time()
-            result = plot_continued_fraction_convergence(
-                value=3.14159,
-                max_terms=100,
-                backend='matplotlib'
-            )
-            end_time = time.time()
-            
-            execution_time = end_time - start_time
-            assert execution_time < 3.0  # Should complete within 3 seconds
-            assert 'files' in result
-
-    def test_large_sequence_performance(self):
-        """Test performance with large sequences."""
-        import time
-
-        from symergetics.visualization.mathematical import plot_pattern_analysis_radar
-        
-        # Create a very long sequence
-        long_sequence = "121123211234321" * 100
-        
-        with patch('matplotlib.pyplot.figure') as mock_figure, \
-             patch('matplotlib.pyplot.savefig') as mock_savefig, \
-             patch('matplotlib.pyplot.subplot') as mock_subplot:
-            
-            start_time = time.time()
-            result = plot_pattern_analysis_radar(
-                sequence=long_sequence,
-                backend='matplotlib'
-            )
-            end_time = time.time()
-            
-            execution_time = end_time - start_time
-            assert execution_time < 5.0  # Should complete within 5 seconds
-            assert 'files' in result
+@pytest.mark.parametrize("backend", ["matplotlib", "plotly"])
+@pytest.mark.parametrize("number", [0, 10**6])
+def test_matrix_clamps_to_supported_bases_and_preserves_values(rendering_output, backend, number):
+    result = plot_base_conversion_matrix(start_base=1, end_base=37, number=number, backend=backend)
+    assert result["metadata"]["total_bases"] == 35
+    assert result["metadata"]["valid_conversions"] == 35
+    traces = _rendered_data(result, rendering_output, backend)
+    if traces is not None:
+        bases, representations, lengths = traces["table"]["cells"]["values"]
+        assert bases == list(range(2, 37))
+        assert [int(value, base) for base, value in zip(bases, representations)] == [number] * 35
+        assert lengths == [str(len(value)) for value in representations]
+        for base, expected in [(2, format(number, "b")), (8, format(number, "o")),
+                               (10, str(number)), (16, format(number, "X"))]:
+            assert representations[bases.index(base)] == expected
 
 
-if __name__ == "__main__":
-    pytest.main([__file__])
+@pytest.mark.parametrize("backend", ["matplotlib", "plotly"])
+def test_complex_pattern_renders_similarity_and_frequency(rendering_output, backend):
+    sequence = "12112321123432112345432112345654321"
+    result = plot_pattern_analysis(sequence, pattern_type="palindrome", backend=backend)
+    counts = Counter(map(int, sequence))
+    assert result["metadata"]["length"] == len(sequence)
+    assert result["metadata"]["unique_digits"] == len(counts)
+    traces = _rendered_data(result, rendering_output, backend)
+    if traces is not None:
+        digits = list(map(int, sequence))
+        assert traces["Sequence"]["y"] == digits
+        assert traces["Similarity"]["z"] == [[int(a == b) for b in digits] for a in digits]
+        assert dict(zip(traces["Frequency"]["x"], traces["Frequency"]["y"])) == counts
 
+
+@pytest.mark.parametrize("backend", ["matplotlib", "plotly"])
+@pytest.mark.parametrize("sequence,entropy,symmetry", [
+    ("5", 0, 0),
+    ("1221" * 30, 1, 1),
+])
+def test_radar_singleton_and_long_balanced_palindrome(
+    rendering_output, backend, sequence, entropy, symmetry,
+):
+    result = plot_pattern_analysis_radar(sequence, backend=backend)
+    assert result["metadata"]["sequence_length"] == len(sequence)
+    assert result["metadata"]["unique_digits"] == len(set(sequence))
+    entropy_key = "entropy" if backend == "matplotlib" else "digit_entropy"
+    assert result["metadata"][entropy_key] == pytest.approx(entropy)
+    traces = _rendered_data(result, rendering_output, backend)
+    if traces is not None:
+        radar = traces["Pattern Metrics"]
+        assert radar["r"][0] == min(len(sequence) / 100, 1)
+        assert radar["r"][1] == len(set(sequence)) / 10
+        assert radar["r"][2] == pytest.approx(entropy / 4)
+        assert radar["r"][-2] == symmetry
+        assert radar["r"][-1] == radar["r"][0]
+        assert radar["theta"][-1] == radar["theta"][0]
+
+
+@pytest.mark.parametrize("renderer,arguments", [
+    (plot_continued_fraction_convergence, {"value": math.pi}),
+    (plot_base_conversion_matrix, {"number": 255}),
+    (plot_pattern_analysis_radar, {"sequence": "1221"}),
+])
+@pytest.mark.parametrize("backend", ["ascii", "invalid"])
+def test_unsupported_backends_fail_without_artifacts(rendering_output, renderer, arguments, backend):
+    with pytest.raises(ValueError):
+        renderer(backend=backend, **arguments)
+    assert not list(rendering_output.rglob("*"))
+
+
+@pytest.mark.parametrize("backend", ["matplotlib", "plotly"])
+@pytest.mark.parametrize("value", ["invalid", float("nan"), float("inf")])
+def test_non_real_or_non_finite_convergence_rejected_without_artifacts(rendering_output, backend, value):
+    with pytest.raises((ValueError, OverflowError)):
+        plot_continued_fraction_convergence(value, max_terms=15, backend=backend)
+    assert not list(rendering_output.rglob("*"))

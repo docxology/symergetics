@@ -261,15 +261,12 @@ def integrated_research_workflow():
     # From Scheherazade sequence
     for power in range(1, 5):
         sch = scheherazade_power(power)
-        interesting_numbers.append(('Scheherazade', f'1001^{power}', sch.value))
+        interesting_numbers.append(('Scheherazade', f'1001^{power}', int(sch.value)))
         
     # From primorials
     for n in [5, 7]:
-        try:
-            p = primorial(n)
-            interesting_numbers.append(('Primorial', f'{n}#', p.value))
-        except:
-            pass
+        p = primorial(n)
+        interesting_numbers.append(('Primorial', f'{n}#', int(p.value)))
             
     # From polyhedron volumes (scaled to integers)
     poly = Cuboctahedron()
@@ -299,11 +296,8 @@ def integrated_research_workflow():
         
         # Memory aid for complex numbers
         if len(num_str) > 8:
-            try:
-                memory_aid = create_memory_aid(number)
-                print(f"  Memory aid: {memory_aid[:50]}{'...' if len(memory_aid) > 50 else ''}")
-            except:
-                print(f"  Memory aid: [generation failed]")
+            memory_aid = create_memory_aid(number)
+            print(f"  Memory aid: {memory_aid}")
 
 
 def demonstrate_batch_research_pipeline():
@@ -399,6 +393,8 @@ def demonstrate_batch_research_pipeline():
         print("  Assessment: ⚠️ Research pipeline moderately reliable")
     else:
         print("  Assessment: ❌ Research pipeline needs improvement")
+    if failed:
+        raise RuntimeError(f"{len(failed)} required research visualizations failed")
 
 
 def main():

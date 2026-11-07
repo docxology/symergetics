@@ -480,8 +480,10 @@ def main():
                 log("✅ Geometric mnemonics demonstration completed successfully")
             else:
                 log("⚠️ Geometric mnemonics demonstration had issues")
+                all_results.append({'type': 'geometric_mnemonics', 'error': 'Geometric mnemonics demo failed'})
         except Exception as e:
             log(f"⚠️ Geometric mnemonics demonstration failed: {e}")
+            all_results.append({'type': 'geometric_mnemonics', 'error': str(e)})
 
         # Phase 6: Batch processing
         log("Phase 6: Batch Processing Demonstration", "INFO")
@@ -502,6 +504,7 @@ def main():
             log(f"   Dimensions: {mega_result['metadata']['dimensions']}")
         except Exception as e:
             log(f"⚠️ Mega graphical abstract creation failed: {e}", "WARNING")
+            all_results.append({'type': 'mega_graphical_abstract', 'error': str(e)})
 
         # Generate comprehensive report
         log("Generating visualization report", "DATA")
@@ -530,11 +533,11 @@ def main():
                 if 'error' in result:
                     print(f"   • {result.get('error', 'Unknown error')}")
 
-        print("\n✅ Demo completed successfully!")
+        print("\n✅ Demo completed successfully!" if failed == 0 else "\n❌ Demo completed with generation failures")
         print(f"📁 Check the output/ directory for generated visualizations")
         print(f"📋 Detailed report: {report_path}")
 
-        return True
+        return bool(all_results) and failed == 0
 
     except Exception as e:
         log(f"💥 Demo failed with exception: {e}", "ERROR")

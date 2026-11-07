@@ -372,6 +372,7 @@ def batch_visualize(visualization_tasks: List[Dict[str, Any]],
 
             # New mathematical visualizations
             'plot_continued_fraction_convergence': plot_continued_fraction_convergence,
+            'plot_base_conversion_matrix': plot_base_conversion_matrix,
             'plot_pattern_analysis_radar': plot_pattern_analysis_radar,
 
             # Animation

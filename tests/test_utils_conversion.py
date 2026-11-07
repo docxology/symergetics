@@ -5,6 +5,7 @@ Tests rational/float conversions, coordinate transformations, and number base co
 """
 
 import math
+from fractions import Fraction
 
 import pytest
 
@@ -60,24 +61,34 @@ class TestRationalFloatConversion:
         assert abs(float(result_pi.value) - 3.14159) < 1e-5
 
 
+@pytest.mark.parametrize("text, expected", [
+    ("1.234567890123456789e-25", Fraction(1234567890123456789, 10**43)),
+    ("-9.007199254740993e15", Fraction(-(2**53 + 1))),
+    ("7.5E-400", Fraction(75, 10**401)),
+    ("-2.5e400", Fraction(-25 * 10**399)),
+    ("1e-7", Fraction(1, 10**7)),
+    ("+3.125E+2", Fraction(625, 2)),
+])
+def test_scientific_notation_is_exact(text, expected):
+    assert scientific_notation_to_rational(text).value == expected
+
+
 class TestCoordinateConversions:
     """Test coordinate system conversions."""
 
-    def test_xyz_to_quadray_round_trip(self):
-        """Test round-trip conversion XYZ -> Quadray -> XYZ."""
-        original_xyz = (1.0, 0.5, -0.5)
+    def test_off_lattice_projection_is_actual_nearest(self):
+        """Utility conversion uses the full integer image, including odd XYZ."""
+        coordinate = xyz_to_quadray(-1.5, -1, -0.5)
+        assert coordinate.as_tuple() == (0, 1, 1, 1)
+        assert quadray_to_xyz(coordinate) == (-1.0, -1.0, -1.0)
 
-        # Convert to Quadray
-        quadray_coord = xyz_to_quadray(*original_xyz)
-
-        # Convert back to XYZ
-        back_to_xyz = quadray_to_xyz(quadray_coord)
-
-        # Coordinate systems may not be perfectly invertible
-        # Just check that we get valid coordinates
-        assert isinstance(back_to_xyz, tuple)
-        assert len(back_to_xyz) == 3
-        assert all(isinstance(coord, (int, float)) for coord in back_to_xyz)
+    def test_exact_xyz_values_are_not_rounded_before_projection(self):
+        # Just beyond this bisector, (-1,-1,-1) is uniquely closer; a float
+        # conversion would erase the perturbation and choose origin at the tie.
+        epsilon = Fraction(1, 10**40)
+        coordinate = xyz_to_quadray(SymergeticsNumber(Fraction(-1, 2) - epsilon),
+                                    Fraction(-1, 2), Fraction(-1, 2))
+        assert coordinate.as_tuple() == (0, 1, 1, 1)
 
     def test_quadray_to_xyz_origin(self):
         """Test conversion of origin."""

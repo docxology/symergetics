@@ -590,15 +590,7 @@ def _create_statistical_dashboard_matplotlib(
     **kwargs
 ) -> Dict[str, Any]:
     """Create statistical dashboard using matplotlib."""
-    try:
-        import matplotlib.pyplot as plt
-        import numpy as np
-    except ImportError:
-        raise ImportError("matplotlib is required for statistical dashboard")
-
-    # Make plt available to helper functions
-    global _plt
-    _plt = plt
+    _ensure_matplotlib_numpy()
 
     # Extract statistical data
     lengths = [r.get('length', 0) for r in analysis_results]

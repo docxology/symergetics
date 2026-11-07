@@ -3,23 +3,22 @@ Comprehensive real tests for visualization modules.
 Tests actual functionality without mocks.
 """
 
-import os
-import tempfile
-from fractions import Fraction
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-import numpy as np
 import pytest
 
-from symergetics.computation.analysis import analyze_mathematical_patterns
-from symergetics.computation.palindromes import analyze_number_for_synergetics
-from symergetics.computation.primorials import primorial, scheherazade_power
-from symergetics.core.constants import SymergeticsConstants
-from symergetics.core.numbers import SymergeticsNumber
-from symergetics.utils.conversion import float_to_exact_rational, rational_to_float
-from symergetics.utils.mnemonics import create_memory_aid, mnemonic_encode
-from symergetics.utils.reporting import generate_statistical_summary
+
+from symergetics.visualization import get_config
+
+
+def assert_output_contained(result):
+    output_dir = Path(get_config()['output_dir']).resolve()
+    assert result['files']
+    for filename in result['files']:
+        path = Path(filename).resolve()
+        assert path.is_relative_to(output_dir)
+        assert path.is_file()
+        assert path.stat().st_size > 0
 
 
 class TestVisualizationMathematical:
@@ -210,37 +209,11 @@ class TestVisualizationAdvanced:
             }
         ]
         
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "test_comprehensive.png"
-            
-            # Mock matplotlib and numpy to avoid actual plotting
-            with patch('matplotlib.pyplot.figure') as mock_figure:
-                mock_fig = MagicMock()
-                mock_figure.return_value = mock_fig
-                
-                with patch.object(mock_fig, 'add_gridspec') as mock_gridspec:
-                    mock_gs = MagicMock()
-                    mock_gridspec.return_value = mock_gs
-                    
-                    mock_axes = [MagicMock() for _ in range(8)]
-                    mock_gs.__getitem__.return_value = mock_axes[0]
-                    
-                    with patch('matplotlib.pyplot.savefig'):
-                        with patch('symergetics.visualization.advanced._np') as mock_np:
-                            mock_np.array.return_value = [[1.0, 0.5], [0.5, 1.0]]
-                            mock_np.corrcoef.return_value = [[1.0, 0.5], [0.5, 1.0]]
-                            
-                            with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                                mock_path.return_value = Path('/tmp/test.png')
-                                
-                                result = create_statistical_analysis_dashboard(
-                                    analysis_data,
-                                    title="Comprehensive Analysis Test"
-                                )
-            
-            assert result is not None
-            assert 'files' in result
-            assert 'metadata' in result
+        result = create_statistical_analysis_dashboard(
+            analysis_data, title="Comprehensive Analysis Test"
+        )
+        assert_output_contained(result)
+        assert result['metadata']['total_analyses'] == len(analysis_data)
     
     def test_visualize_cross_module_analysis(self):
         """Test cross-module analysis visualization."""
@@ -258,29 +231,12 @@ class TestVisualizationAdvanced:
             {'length': 6, 'pattern_complexity': {'complexity_score': 3.5}, 'symmetry_analysis': {'symmetry_score': 0.8}}
         ]
         
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "test_cross_module.png"
-            
-            # Mock matplotlib to avoid actual plotting
-            with patch('matplotlib.pyplot.subplots') as mock_subplots:
-                # Create a mock that supports 2D indexing
-                mock_axes = MagicMock()
-                mock_axes.__getitem__ = lambda self, key: MagicMock()
-                mock_subplots.return_value = (MagicMock(), mock_axes)
-
-                with patch('matplotlib.pyplot.savefig'):
-                    with patch('matplotlib.pyplot.colorbar'):
-                        with patch('symergetics.visualization.advanced.get_organized_output_path') as mock_path:
-                            mock_path.return_value = Path('/tmp/test.png')
-                            
-                            result = create_comparative_analysis_visualization(
-                                domain1_data, domain2_data,
-                                "Arithmetic", "Geometry"
-                            )
-            
-            assert result is not None
-            assert 'files' in result
-            assert 'metadata' in result
+        result = create_comparative_analysis_visualization(
+            domain1_data, domain2_data, "Arithmetic", "Geometry"
+        )
+        assert_output_contained(result)
+        assert result['metadata']['domain1_count'] == len(domain1_data)
+        assert result['metadata']['domain2_count'] == len(domain2_data)
 
 
 class TestVisualizationIntegration:
@@ -292,60 +248,20 @@ class TestVisualizationIntegration:
         from symergetics.visualization.mathematical import plot_pattern_analysis
         from symergetics.visualization.numbers import plot_palindromic_pattern
         
-        # Test with real integrated data
-        numbers = [SymergeticsNumber(1001), SymergeticsNumber(12321), SymergeticsNumber(456)]
-        polyhedra = {'tetrahedron': 1, 'octahedron': 4, 'cube': 3}
-        
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            
-            # Test multiple visualizations in sequence
-            result1 = plot_pattern_analysis(
-                number=12321,
-                pattern_type='palindrome'
-            )
-            
-            result2 = plot_polyhedron(
-                polyhedron='tetrahedron'
-            )
-            
-            analysis_data = {
-                'numbers': [1001, 12321, 456],
-                'patterns': ['scheherazade', 'palindrome', 'ascending'],
-                'properties': ['composite', 'palindromic', 'composite']
-            }
-            
-            result3 = plot_palindromic_pattern(
-                number=12321,
-                title="Palindromic Pattern Test"
-            )
-            
-            assert result1 is not None
-            assert result2 is not None
-            assert result3 is not None
-            
-            # Verify functions returned results (files are mocked in tests)
-            # Note: File creation is mocked in visualization tests
+        results = [
+            plot_pattern_analysis(number=12321, pattern_type='palindrome'),
+            plot_polyhedron(polyhedron='tetrahedron'),
+            plot_palindromic_pattern(number=12321, title="Palindromic Pattern Test"),
+        ]
+        for result in results:
+            assert_output_contained(result)
     
     def test_visualization_error_handling(self):
         """Test visualization error handling."""
         from symergetics.visualization.mathematical import plot_pattern_analysis
         
-        # Test with invalid data
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "test_error.png"
-            
-            # This should handle errors gracefully
-            try:
-                result = plot_pattern_analysis(
-                    numbers=[],  # Empty list
-                    output_path=str(output_path)
-                )
-                # Should either succeed or raise a meaningful error
-                assert result is not None or True  # Allow for graceful failure
-            except Exception as e:
-                # Should be a meaningful error, not a crash
-                assert isinstance(e, (ValueError, TypeError, FileNotFoundError))
+        with pytest.raises(TypeError):
+            plot_pattern_analysis(numbers=[])
 
 
 class TestVisualizationPerformance:
@@ -355,39 +271,14 @@ class TestVisualizationPerformance:
         """Test visualization with large datasets."""
         from symergetics.visualization.mathematical import plot_pattern_analysis
         
-        # Test with larger dataset
-        # Test with a simple integer that works well with pattern analysis
-        test_number = 12321  # A palindrome number
-        
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "test_large.png"
-            
-            result = plot_pattern_analysis(
-                number=test_number,
-                pattern_type='palindrome'
-            )
-            
-            assert result is not None
-            # Note: File creation is mocked in visualization tests
+        result = plot_pattern_analysis(number=12321, pattern_type='palindrome')
+        assert_output_contained(result)
     
     def test_visualization_memory_usage(self):
         """Test visualization memory usage."""
         from symergetics.visualization.numbers import plot_palindromic_pattern
         
-        # Test with memory-intensive data
-        analysis_data = {
-            'numbers': list(range(1, 1001)),  # 1000 numbers
-            'patterns': ['ascending'] * 1000,
-            'properties': ['composite'] * 1000
-        }
-        
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = Path(temp_dir) / "test_memory.png"
-            
-            result = plot_palindromic_pattern(
-                number=12321,
-                title="Memory Usage Test"
-            )
-            
-            assert result is not None
-            # Note: File creation is mocked in visualization tests
+        result = plot_palindromic_pattern(
+            number=12321, title="Memory Usage Test"
+        )
+        assert_output_contained(result)

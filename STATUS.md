@@ -1,7 +1,29 @@
-# STATUS — symergetics (as of 2026-09-05)
+# STATUS — symergetics
 
 Executable truth over prose truth: every claim below names the command that
 verifies it. Re-run instead of trusting this file.
+
+## Suite review receipt — 2026-11-06
+
+- Python 3.13.17 with the scientific/test extras: full suite **1,344 passed,
+  12 skipped**, coverage **88.16%** (85% floor). Command in that environment:
+  `MPLBACKEND=Agg python -m pytest tests/ -q -o 'addopts=--strict-markers --strict-config --cov=symergetics --cov-report=term-missing --cov-fail-under=85'`.
+- `python examples/suite_interoperability.py`: **279 coordinate cases per
+  implementation** across actual QuadMath, symergetics, QuadCraft Python,
+  JavaScript and C++, plus **34 exact-volume cases** and **216 FCC site comparisons**.
+- `python verify_suite.py --report /tmp/synergetics-suite.json`: all **13**
+  real checks passed, with zero unexecuted checks, using frozen temporary environments.
+- `python run.py --examples-only` in the prepared scientific environment:
+  all **10** ordinary demos succeeded; setup/tests were explicitly skipped.
+- Minimal isolated package installation imports the core successfully; NumPy
+  is required rather than hidden in the scientific extra.
+- The patched lockfile excludes all 98 captured open Dependabot affected ranges.
+  The full coverage gate and all demos also passed with Pillow 13 and pytest 9.
+- [Suite contracts and evidence](docs/synergetics-suite.md) document the exact
+  integer/rational boundaries, nearest-point algorithms, embedding units and
+  actual browser/native verification limits. Python pins were not changed.
+
+## Earlier receipt — 2026-09-05
 
 - **State:** the 2026-09-05 review fixes (package, tests, run.py, docs) are
   committed; `output/` artifacts are regenerable and its `test_custom_dir`

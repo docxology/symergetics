@@ -14,12 +14,14 @@ Key Features:
 Author: Symergetics Team
 """
 
+import math
+from numbers import Integral
+
 from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from ..core.coordinates import QuadrayCoordinate, urner_embedding
-from ..core.numbers import SymergeticsNumber
+from ..core.coordinates import QuadrayCoordinate, _validated_embedding, urner_embedding
 from .polyhedra import SymergeticsPolyhedron
 
 
@@ -55,25 +57,29 @@ def translate_polyhedron(polyhedron: SymergeticsPolyhedron,
 
 
 def scale(coord: QuadrayCoordinate, factor: Union[int, float]) -> QuadrayCoordinate:
+    """Scale a spatial point, independently of its all-ones gauge.
+
+    Integral factors (including integral floats) preserve integer coordinates
+    exactly. Other finite factors scale in XYZ space and snap once to the
+    nearest integer quadray using :meth:`QuadrayCoordinate.from_xyz`, including
+    its deterministic tie rule. Thus fractional scaling need not be invertible.
     """
-    Scale a Quadray coordinate by a scalar factor.
+    if isinstance(factor, Integral):
+        integer_factor = int(factor)
+    else:
+        factor = float(factor)
+        if not math.isfinite(factor):
+            raise ValueError("Scaling factor must be finite")
+        integer_factor = int(factor) if factor.is_integer() else None
 
-    Note: Scaling can break the integer properties of the IVM lattice.
-    The result is converted back to integers.
+    values = coord.as_tuple()
+    gauge = min(values)
+    canonical = tuple(value - gauge for value in values)
+    if integer_factor is not None:
+        return QuadrayCoordinate(*(value * integer_factor for value in canonical))
 
-    Args:
-        coord: The coordinate to scale
-        factor: The scaling factor
-
-    Returns:
-        QuadrayCoordinate: The scaled coordinate
-    """
-    scaled_a = int(coord.a * factor)
-    scaled_b = int(coord.b * factor)
-    scaled_c = int(coord.c * factor)
-    scaled_d = int(coord.d * factor)
-
-    return QuadrayCoordinate(scaled_a, scaled_b, scaled_c, scaled_d)
+    xyz = QuadrayCoordinate(*canonical).to_xyz()
+    return QuadrayCoordinate.from_xyz(*(value * factor for value in xyz))
 
 
 def scale_polyhedron(polyhedron: SymergeticsPolyhedron,
@@ -93,39 +99,32 @@ def scale_polyhedron(polyhedron: SymergeticsPolyhedron,
 
 
 def reflect(coord: QuadrayCoordinate, axis: str = 'origin') -> QuadrayCoordinate:
-    """
-    Reflect a coordinate across a specified axis or plane.
+    """Reflect a spatial point through the origin or a named plane.
 
-    Args:
-        coord: The coordinate to reflect
-        axis: The axis of reflection ('origin', 'a', 'b', 'c', 'd')
-
-    Returns:
-        QuadrayCoordinate: The reflected coordinate
+    ``origin`` is exact integer inversion. Each of ``a``, ``b``, ``c``, ``d``
+    names the plane through the origin perpendicular to that Urner basis
+    vector, not a component sign change. Plane reflections happen in Euclidean
+    XYZ space and then snap to the nearest integer quadray with ``from_xyz``'s
+    deterministic ties. A reflected point off the lattice is therefore
+    quantized; distances and involution are exact only when no snapping occurs.
     """
     if axis == 'origin':
-        # Reflect through origin: negate all coordinates
-        return QuadrayCoordinate(-coord.a, -coord.b, -coord.c, -coord.d)
-    elif axis == 'a':
-        # Reflect across a=constant plane: negate b, c, d
-        return QuadrayCoordinate(coord.a, -coord.b, -coord.c, -coord.d)
-    elif axis == 'b':
-        # Reflect across b=constant plane: negate a, c, d
-        return QuadrayCoordinate(-coord.a, coord.b, -coord.c, -coord.d)
-    elif axis == 'c':
-        # Reflect across c=constant plane: negate a, b, d
-        return QuadrayCoordinate(-coord.a, -coord.b, coord.c, -coord.d)
-    elif axis == 'd':
-        # Reflect across d=constant plane: negate a, b, c
-        return QuadrayCoordinate(-coord.a, -coord.b, -coord.c, coord.d)
-    else:
+        return scale(coord, -1)
+    if axis not in ('a', 'b', 'c', 'd'):
         raise ValueError(f"Unknown reflection axis: {axis}")
+
+    values = coord.as_tuple()
+    gauge = min(values)
+    point = np.array(QuadrayCoordinate(*(value - gauge for value in values)).to_xyz())
+    normal = urner_embedding()[:, ('a', 'b', 'c', 'd').index(axis)]
+    reflected = point - (2 * np.dot(point, normal) / np.dot(normal, normal)) * normal
+    return QuadrayCoordinate.from_xyz(*reflected)
 
 
 def reflect_polyhedron(polyhedron: SymergeticsPolyhedron,
                       axis: str = 'origin') -> SymergeticsPolyhedron:
     """
-    Reflect all vertices of a polyhedron across a specified axis.
+    Reflect all vertices through the origin or a named basis-normal plane.
 
     Args:
         polyhedron: The polyhedron to reflect
@@ -140,39 +139,61 @@ def reflect_polyhedron(polyhedron: SymergeticsPolyhedron,
 
 def coordinate_transform(coord: QuadrayCoordinate,
                         matrix: np.ndarray) -> QuadrayCoordinate:
-    """
-    Apply a 4x4 transformation matrix to a Quadray coordinate.
+    """Apply a linear map on quadrays modulo the all-ones gauge.
 
-    Args:
-        coord: The coordinate to transform
-        matrix: 4x4 transformation matrix
-
-    Returns:
-        QuadrayCoordinate: The transformed coordinate
+    ``matrix @ ones(4)`` must be proportional to ``ones(4)`` so equivalent
+    quadrays remain equivalent. Integral matrices are applied with exact
+    integer arithmetic. Other matrices act continuously, followed by one
+    Euclidean nearest-lattice projection via ``from_xyz``; component truncation
+    or independent rounding is not a geometric projection.
     """
+    matrix = np.asarray(matrix)
     if matrix.shape != (4, 4):
         raise ValueError("Transformation matrix must be 4x4")
 
-    # Convert coordinate to vector
-    vec = np.array([[coord.a], [coord.b], [coord.c], [coord.d]], dtype=float)
-
-    # Apply transformation
-    transformed = matrix @ vec
-
-    # Convert back to Quadray coordinate
-    return QuadrayCoordinate(
-        int(transformed[0, 0]),
-        int(transformed[1, 0]),
-        int(transformed[2, 0]),
-        int(transformed[3, 0])
+    # Preserve integer maps without passing either coefficients or coordinates
+    # through float, including matrices supplied as integral-valued floats.
+    entries = list(matrix.flat)
+    integral = all(
+        isinstance(value, Integral)
+        or isinstance(value, (float, np.floating))
+        and math.isfinite(value) and value.is_integer()
+        for value in entries
     )
+    values = coord.as_tuple()
+    gauge = min(values)
+    canonical = tuple(value - gauge for value in values)
+    if integral:
+        rows = [tuple(int(value) for value in row) for row in matrix]
+        row_sums = [sum(row) for row in rows]
+        if any(total != row_sums[0] for total in row_sums[1:]):
+            raise ValueError("Transformation matrix must preserve the all-ones gauge")
+        return QuadrayCoordinate(*(
+            sum(coefficient * value for coefficient, value in zip(row, canonical))
+            for row in rows
+        ))
+
+    matrix = np.asarray(matrix, dtype=float)
+    if not np.all(np.isfinite(matrix)):
+        raise ValueError("Transformation matrix must be finite")
+    row_sums = matrix @ np.ones(4)
+    tolerance = 16 * np.finfo(float).eps * np.max(np.sum(np.abs(matrix), axis=1))
+    if np.max(np.abs(row_sums - row_sums[0])) > tolerance:
+        raise ValueError("Transformation matrix must preserve the all-ones gauge")
+
+    transformed = matrix @ np.asarray(canonical, dtype=float)
+    transformed -= transformed.min()
+    xyz = urner_embedding() @ transformed
+    return QuadrayCoordinate.from_xyz(*xyz)
 
 
 def rotate_around_axis(coord: QuadrayCoordinate, axis: str, angle_degrees: float) -> QuadrayCoordinate:
     """
     Rotate a coordinate around a specified axis by a given angle.
 
-    This function converts to XYZ space, performs the rotation, then converts back.
+    This function rotates in XYZ space, then snaps to the nearest integer
+    quadray using ``from_xyz``'s deterministic ties. Off-lattice rotations
+    are quantized and need not preserve lengths or be invertible.
 
     Args:
         coord: The coordinate to rotate
@@ -222,7 +243,9 @@ def project_to_plane(coord: QuadrayCoordinate, plane_normal: Tuple[float, float,
         plane_point: A point on the plane (defaults to origin)
 
     Returns:
-        QuadrayCoordinate: The projected coordinate
+        QuadrayCoordinate: Nearest integer quadray to the Euclidean projection,
+            with ``from_xyz``'s deterministic ties. Quantization may move the
+            result off the specified plane.
     """
     if plane_point is None:
         plane_point = (0.0, 0.0, 0.0)
@@ -301,36 +324,19 @@ def create_rotation_matrix(axis: str, angle_degrees: float) -> np.ndarray:
 
 
 def xyz_to_quadray_matrix(embedding: Optional[np.ndarray] = None) -> np.ndarray:
+    """Return the continuous 4x3 Moore-Penrose inverse of an embedding.
+
+    The supplied embedding must be a finite rank-three 3x4 matrix annihilating
+    the all-ones gauge. The result chooses the zero-sum, minimum-norm quadray
+    representative and satisfies ``embedding @ inverse == identity(3)`` up to
+    floating-point error, including scaled and nonsymmetric embeddings.
+    It neither normalizes nor snaps to integer quadrays; use ``from_xyz`` for
+    nearest-lattice projection.
     """
-    Get the inverse transformation matrix from XYZ to Quadray coordinates.
-
-    Args:
-        embedding: Optional 3x4 embedding matrix
-
-    Returns:
-        np.ndarray: 3x3 matrix for XYZ to Quadray transformation
-    """
-    if embedding is None:
-        embedding = urner_embedding()
-
-    # For the Urner embedding, we can analytically find the inverse
-    # This is a simplified approach - full matrix inversion could be used
-    # for more general embeddings
-
-    # Urner embedding inverse (approximate):
-    # a = (x + y + z) / 2
-    # b = (-x + y - z) / 2
-    # c = (-x - y + z) / 2
-    # d = (x - y - z) / 2
-
-    inverse_matrix = np.array([
-        [0.5, 0.5, 0.5],   # a coefficients
-        [-0.5, 0.5, -0.5],  # b coefficients
-        [-0.5, -0.5, 0.5],  # c coefficients
-        [0.5, -0.5, -0.5],  # d coefficients
-    ])
-
-    return inverse_matrix
+    embedding = _validated_embedding(embedding)
+    scale = float(np.max(np.abs(embedding)))
+    # SVD singular values can overflow even when every matrix entry is finite.
+    return np.linalg.pinv(embedding / scale, rcond=0) / scale
 
 
 def compose_transforms(*transforms: Callable[[QuadrayCoordinate], QuadrayCoordinate]) -> Callable[[QuadrayCoordinate], QuadrayCoordinate]:

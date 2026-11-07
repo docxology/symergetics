@@ -362,12 +362,17 @@ def demonstrate_base_conversions():
     print(f"Converting {test_value} to special bases:")
     
     for base, description in special_bases:
-        if base <= test_value:  # Only convert if base makes sense
-            try:
-                converted = convert_between_bases(test_value, 10, base)
-                print(f"  Base {base:4d} ({description:15}): {converted}")
-            except:
-                print(f"  Base {base:4d} ({description:15}): [conversion error]")
+        if base <= 36:
+            converted = convert_between_bases(test_value, 10, base)
+        else:
+            # Above the symbolic API's base-36 limit, show decimal digit groups.
+            remaining = test_value
+            digits = []
+            while remaining:
+                remaining, digit = divmod(remaining, base)
+                digits.append(digit)
+            converted = f"{list(reversed(digits))} (most-significant digit first)"
+        print(f"  Base {base:4d} ({description:15}): {converted}")
                 
     print("\n3. Palindromic Numbers in Different Bases:")
     print("-" * 45)
@@ -380,12 +385,9 @@ def demonstrate_base_conversions():
         palindromic_bases = []
         
         for base in range(2, 17):  # Check bases 2-16
-            try:
-                converted = convert_between_bases(num, 10, base)
-                if converted == converted[::-1]:  # Check if palindromic
-                    palindromic_bases.append((base, converted))
-            except:
-                pass
+            converted = convert_between_bases(num, 10, base)
+            if converted == converted[::-1]:  # Check if palindromic
+                palindromic_bases.append((base, converted))
                 
         if palindromic_bases:
             print("  Palindromic in bases:")

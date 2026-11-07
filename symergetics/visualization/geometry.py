@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 
-from ..core.coordinates import QuadrayCoordinate, urner_embedding
+from ..core.coordinates import QuadrayCoordinate, enumerate_ivm_sites, urner_embedding
 from ..geometry.polyhedra import (
     Cube,
     Cuboctahedron,
@@ -464,7 +464,7 @@ def plot_quadray_coordinate(coord: QuadrayCoordinate,
     Args:
         coord: Quadray coordinate to visualize
         show_lattice: Whether to show the surrounding lattice
-        lattice_size: Size of the lattice to display
+        lattice_size: Nonnegative IVM graph-shell radius about the origin
         backend: Visualization backend
         **kwargs: Additional parameters
 
@@ -494,6 +494,9 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
+    lattice_points = (
+        [site.to_xyz() for site in enumerate_ivm_sites(lattice_size)] if show_lattice else []
+    )
     _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
@@ -534,17 +537,6 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
 
     # Show lattice points if requested
     if show_lattice:
-        lattice_points = []
-
-        # Generate nearby lattice points
-        for a in range(-lattice_size, lattice_size + 1):
-            for b in range(-lattice_size, lattice_size + 1):
-                for c in range(-lattice_size, lattice_size + 1):
-                    for d in range(-lattice_size, lattice_size + 1):
-                        if abs(a) + abs(b) + abs(c) + abs(d) <= lattice_size:
-                            lattice_coord = QuadrayCoordinate(a, b, c, d)
-                            lattice_points.append(lattice_coord.to_xyz())
-
         if lattice_points:
             lattice_array = np.array(lattice_points)
             ax.scatter(lattice_array[:, 0], lattice_array[:, 1], lattice_array[:, 2],
@@ -617,16 +609,10 @@ def _plot_quadray_ascii(coord: QuadrayCoordinate,
     lines.append("")
 
     if show_lattice:
-        lines.append(f"IVM Lattice (size ±{lattice_size}):")
-        lines.append("Nearby coordinates:")
+        lines.append(f"IVM Lattice (graph-shell radius {lattice_size}):")
+        lines.append("Lattice coordinates about the origin:")
 
-        nearby_coords = []
-        for a in range(coord.a - lattice_size, coord.a + lattice_size + 1):
-            for b in range(coord.b - lattice_size, coord.b + lattice_size + 1):
-                for c in range(coord.c - lattice_size, coord.c + lattice_size + 1):
-                    for d in range(coord.d - lattice_size, coord.d + lattice_size + 1):
-                        if abs(a) + abs(b) + abs(c) + abs(d) <= lattice_size * 2:
-                            nearby_coords.append((a, b, c, d))
+        nearby_coords = [site.as_tuple() for site in enumerate_ivm_sites(lattice_size)]
 
         for quad in nearby_coords[:20]:  # Limit output
             marker = " <-- CURRENT" if quad == (coord.a, coord.b, coord.c, coord.d) else ""
@@ -662,7 +648,7 @@ def plot_ivm_lattice(size: int = 5,
     Visualize the Isotropic Vector Matrix (IVM) lattice.
 
     Args:
-        size: Size of the lattice to generate (affects computation time)
+        size: Nonnegative graph-shell radius about the origin (12-neighbor moves)
         highlight_coordinates: Specific coordinates to highlight
         backend: Visualization backend
         **kwargs: Additional parameters
@@ -692,19 +678,11 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
+    lattice_points = [site.to_xyz() for site in enumerate_ivm_sites(size)]
+
     _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
     ax = fig.add_subplot(111, projection='3d')
-
-    # Generate lattice points
-    lattice_points = []
-    for a in range(-size, size + 1):
-        for b in range(-size, size + 1):
-            for c in range(-size, size + 1):
-                for d in range(-size, size + 1):
-                    if abs(a) + abs(b) + abs(c) + abs(d) <= size:
-                        coord = QuadrayCoordinate(a, b, c, d, normalize=False)
-                        lattice_points.append(coord.to_xyz())
 
     if lattice_points:
         lattice_array = np.array(lattice_points)
@@ -726,7 +704,7 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_title(f'Isotropic Vector Matrix (IVM) Lattice - Size ±{size}')
+    ax.set_title(f'Isotropic Vector Matrix (IVM) Lattice - Graph-shell radius {size}')
 
     # Set equal aspect ratio
     if lattice_points:
@@ -764,18 +742,11 @@ def _plot_ivm_lattice_ascii(size: int = 5,
                            **kwargs) -> Dict[str, Any]:
     """Create ASCII representation of IVM lattice."""
     lines = []
-    lines.append(f"Isotropic Vector Matrix (IVM) Lattice - Size ±{size}")
+    lines.append(f"Isotropic Vector Matrix (IVM) Lattice - Graph-shell radius {size}")
     lines.append("=" * 50)
     lines.append("")
 
-    # Count lattice points
-    point_count = 0
-    for a in range(-size, size + 1):
-        for b in range(-size, size + 1):
-            for c in range(-size, size + 1):
-                for d in range(-size, size + 1):
-                    if abs(a) + abs(b) + abs(c) + abs(d) <= size:
-                        point_count += 1
+    point_count = len(enumerate_ivm_sites(size))
 
     lines.append(f"Total lattice points: {point_count}")
     lines.append("")
@@ -830,12 +801,12 @@ def plot_coordinate_transformation(coord: QuadrayCoordinate,
     Returns:
         Dict: Visualization metadata and file paths
     """
-    backend = backend or get_config()["backend"]
+    backend = get_config()["backend"] if backend is None else backend
 
     if backend == "matplotlib":
         return _plot_transformation_matplotlib(coord, transform_func, steps, **kwargs)
-    else:
-        # For other backends, just show start and end positions
+    elif backend in ("ascii", "plotly"):
+        # These backends report start and end positions without a saved artifact.
         end_coord = transform_func(coord)
         return {
             'files': [],
@@ -846,6 +817,8 @@ def plot_coordinate_transformation(coord: QuadrayCoordinate,
                 'backend': backend
             }
         }
+    else:
+        raise ValueError(f"Unsupported backend for coordinate transformation: {backend}")
 
 
 def plot_polyhedron_3d(polyhedron: Union[str, SymergeticsPolyhedron],
@@ -1094,6 +1067,7 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
     vertices = np.array(vertices_xyz)
 
     # Subplot 1: 3D View
+    ax1.remove()
     ax1 = fig.add_subplot(221, projection='3d')
     ax1.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
                color=get_config()["colors"]["primary"], s=50, alpha=0.8)
@@ -1141,7 +1115,10 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
         if show_coordinates and len(vertices) <= 8:  # Only show if reasonable number
             coord_text += "Vertex Coordinates:\n"
             for i, vertex in enumerate(vertices):
-                coord_text += ".2f"
+                coord_text += (
+                    f"V{i + 1}: ({float(vertex[0]):.2f}, {float(vertex[1]):.2f}, "
+                    f"{float(vertex[2]):.2f})\n"
+                )
 
         ax4.text(0.1, 0.5, coord_text, transform=ax4.transAxes,
                 fontsize=10, verticalalignment='center',
@@ -1153,9 +1130,9 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
 
     # Overall title
     fig.suptitle(f'{type(polyhedron).__name__} - Graphical Abstract',
-                fontsize=16, fontweight='bold', y=0.95)
+                fontsize=16, fontweight='bold', y=0.98)
 
-    plt.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
 
     # Save the graphical abstract
     base_filename = f"{type(polyhedron).__name__.lower()}_graphical_abstract"
@@ -1331,61 +1308,46 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
                                    transform_func,
                                    steps: int = 20,
                                    **kwargs) -> Dict[str, Any]:
-    """Plot coordinate transformation using matplotlib."""
+    """Plot a complete transformation path, propagating callback failures."""
     try:
-        import matplotlib.animation as animation
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
     except ImportError:
         raise ImportError("matplotlib is required for transformation animation")
 
-    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
-    fig = plt.figure(figsize=get_config()["figure_size"])
-    ax = fig.add_subplot(111, projection='3d')
-
-    # Generate transformation path
+    # Complete the real transformation before creating a figure or output path.
     path_coords = [coord]
     current = coord
-
     for _ in range(steps):
-        try:
-            current = transform_func(current)
-            path_coords.append(current)
-        except (ValueError, TypeError, ZeroDivisionError):
-            break  # Stop if transformation fails
+        current = transform_func(current)
+        path_coords.append(current)
+    path_array = np.array([c.to_xyz() for c in path_coords])
 
-    # Convert to XYZ coordinates
-    path_xyz = [c.to_xyz() for c in path_coords]
-    path_array = np.array(path_xyz)
+    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
+    fig = plt.figure(figsize=get_config()["figure_size"])
+    try:
+        ax = fig.add_subplot(111, projection='3d')
+        if len(path_array) > 1:
+            ax.plot(path_array[:, 0], path_array[:, 1], path_array[:, 2],
+                    color=get_config()["colors"]["primary"], linewidth=3,
+                    label='Transformation Path')
+            ax.scatter([path_array[0, 0]], [path_array[0, 1]], [path_array[0, 2]],
+                       color=get_config()["colors"]["secondary"], s=150, alpha=1.0,
+                       label='Start')
+            ax.scatter([path_array[-1, 0]], [path_array[-1, 1]], [path_array[-1, 2]],
+                       color=get_config()["colors"]["accent"], s=150, alpha=1.0,
+                       label='End')
+            ax.legend()
 
-    # Plot transformation path
-    if len(path_array) > 1:
-        ax.plot(path_array[:, 0], path_array[:, 1], path_array[:, 2],
-               color=get_config()["colors"]["primary"], linewidth=3,
-               label='Transformation Path')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.set_title(f'Coordinate Transformation ({len(path_coords)} steps)')
 
-        # Plot start and end points
-        ax.scatter([path_array[0, 0]], [path_array[0, 1]], [path_array[0, 2]],
-                  color=get_config()["colors"]["secondary"], s=150, alpha=1.0,
-                  label='Start')
-
-        ax.scatter([path_array[-1, 0]], [path_array[-1, 1]], [path_array[-1, 2]],
-                  color=get_config()["colors"]["accent"], s=150, alpha=1.0,
-                  label='End')
-
-    # Set labels and title
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.set_title(f'Coordinate Transformation ({len(path_coords)} steps)')
-
-    ax.legend()
-
-    # Save plot using organized structure
-    filename = f"coordinate_transformation_{len(path_coords)}_steps.png"
-    filepath = get_organized_output_path('geometric', 'transformations', filename)
-    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close(fig)
+        filename = f"coordinate_transformation_{len(path_coords)}_steps.png"
+        filepath = get_organized_output_path('geometric', 'transformations', filename)
+        fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -1421,14 +1383,7 @@ def _plot_quadray_plotly(coord: QuadrayCoordinate, show_lattice: bool = True,
 
     fig = go.Figure()
     if show_lattice:
-        lattice_points = []
-        for a in range(-lattice_size, lattice_size + 1):
-            for b in range(-lattice_size, lattice_size + 1):
-                for c in range(-lattice_size, lattice_size + 1):
-                    for d in range(-lattice_size, lattice_size + 1):
-                        if abs(a) + abs(b) + abs(c) + abs(d) <= lattice_size:
-                            lattice_points.append(
-                                QuadrayCoordinate(a, b, c, d, normalize=False).to_xyz())
+        lattice_points = [site.to_xyz() for site in enumerate_ivm_sites(lattice_size)]
         if lattice_points:
             arr = np.array(lattice_points)
             fig.add_trace(go.Scatter3d(
@@ -1476,14 +1431,7 @@ def _plot_ivm_lattice_plotly(size: int = 5,
     go, width, height = _plotly_grid()
     colors_cfg = get_config()["colors"]
 
-    lattice_points = []
-    for a in range(-size, size + 1):
-        for b in range(-size, size + 1):
-            for c in range(-size, size + 1):
-                for d in range(-size, size + 1):
-                    if abs(a) + abs(b) + abs(c) + abs(d) <= size:
-                        lattice_points.append(
-                            QuadrayCoordinate(a, b, c, d, normalize=False).to_xyz())
+    lattice_points = [site.to_xyz() for site in enumerate_ivm_sites(size)]
 
     fig = go.Figure()
     if lattice_points:
@@ -1500,7 +1448,7 @@ def _plot_ivm_lattice_plotly(size: int = 5,
             mode='markers', marker=dict(size=8, color=colors_cfg["accent"]),
             name='Highlighted'))
 
-    fig.update_layout(title=f'IVM Lattice (size {size})', width=width, height=height)
+    fig.update_layout(title=f'IVM Lattice (graph-shell radius {size})', width=width, height=height)
 
     filepath = get_organized_output_path('geometric', 'lattice',
                                          f"ivm_lattice_plotly_size_{size}.html")
@@ -1511,6 +1459,8 @@ def _plot_ivm_lattice_plotly(size: int = 5,
         'metadata': {
             'type': 'ivm_lattice',
             'size': size,
+            'lattice_size': size,
+            'total_points': len(lattice_points),
             'lattice_points': len(lattice_points),
             'highlighted': len(highlight_coordinates or []),
             'backend': 'plotly'
