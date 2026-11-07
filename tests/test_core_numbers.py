@@ -7,6 +7,7 @@ Tests exact rational arithmetic, palindrome detection, and mnemonic encoding.
 import math
 from fractions import Fraction
 
+import numpy as np
 import pytest
 
 from symergetics.core.constants import SymergeticsConstants
@@ -750,6 +751,45 @@ class TestSymergeticsNumberIntegration:
         copied += 1
         assert copied != num
         assert num == SymergeticsNumber(5, 7)  # Original unchanged
+
+
+@pytest.mark.parametrize("value, expected", [
+    (np.int64(4_000_000_000), 16_000_000_000_000_000_000),
+    (np.uint64(2**63), 2**126),
+])
+def test_fixed_width_integer_and_fraction_powers_are_unbounded(value, expected):
+    exponent = Fraction(np.int64(2), 1)
+    assert (SymergeticsNumber(value) ** exponent).value == expected
+    assert (SymergeticsNumber(Fraction(value, 1)) ** 2).value == expected
+
+
+def test_raw_numpy_operands_preserve_exact_arithmetic():
+    assert (SymergeticsNumber(4_000_000_000) * np.int64(4_000_000_000)).value == 16_000_000_000_000_000_000
+    assert (SymergeticsNumber(2**62) + np.int64(2**62)).value == 2**63
+    assert (SymergeticsNumber(-2**62) - np.int64(2**62 + 1)).value == -2**63 - 1
+    assert (SymergeticsNumber(2**63 + 1) / np.uint64(2**63)).value == Fraction(2**63 + 1, 2**63)
+
+
+def test_numpy_fraction_denominators_remain_exact_through_roots_and_powers():
+    value = Fraction(1, np.int64(2**62))
+    assert SymergeticsNumber.sqrt(value).value == Fraction(1, 2**31)
+    assert (SymergeticsNumber(value) ** 3).value == Fraction(1, 2**186)
+
+
+def test_numpy_minimum_denominator_is_promoted_before_sign_normalization():
+    minimum = np.int64(-(2**63))
+    assert SymergeticsNumber(1, minimum).value == Fraction(-1, 2**63)
+    assert SymergeticsNumber(minimum, -1).value == 2**63
+
+
+def test_numpy_integer_comparisons_preserve_adjacent_large_values():
+    value = SymergeticsNumber(2**64)
+    other = np.uint64(2**64 - 1)
+    assert value > other
+    assert value >= other
+    assert not value < other
+    assert not value <= other
+    assert value != other
 
 if __name__ == "__main__":
     pytest.main([__file__])

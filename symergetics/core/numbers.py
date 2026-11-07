@@ -20,12 +20,31 @@ import math
 import operator
 from decimal import Decimal, localcontext
 from fractions import Fraction
+from numbers import Integral, Rational
 from typing import List, Optional, Tuple, Union
 
 # math.gcd exists on every supported Python (>=3.8); fractions.gcd was removed
 # in Python 3.9. Re-exported for backwards compatibility (see
 # tests/test_core_comprehensive.py).
 from math import gcd  # noqa: F401
+
+
+def _native_fraction(value: Union[int, float, str, Rational],
+                     denominator: Optional[Rational] = None) -> Fraction:
+    """Promote rational fields before Fraction can perform fixed-width arithmetic."""
+    if isinstance(value, Integral):
+        value = int(value)
+    elif isinstance(value, Rational) and (
+        type(value.numerator) is not int or type(value.denominator) is not int
+    ):
+        value = Fraction(int(value.numerator), int(value.denominator))
+    if denominator is None:
+        return value if isinstance(value, Fraction) else Fraction(value)
+    if isinstance(denominator, Integral):
+        denominator = int(denominator)
+    elif isinstance(denominator, Rational):
+        denominator = _native_fraction(denominator)
+    return Fraction(value, denominator)
 
 
 def _integer_nth_root(value: int, degree: int) -> int:
@@ -112,16 +131,10 @@ class SymergeticsNumber:
             >>> n2 = SymergeticsNumber(1.5)   # 3/2
             >>> n3 = SymergeticsNumber(Fraction(5, 7))
         """
-        if isinstance(numerator, str):
-            # Handle string representations like "3/4", "42", or "1.5" exactly
-            # (Fraction parses decimal strings without float round-trip loss)
-            self.value = Fraction(numerator)
-        elif isinstance(numerator, Fraction):
-            self.value = numerator
-        elif denominator is not None:
-            self.value = Fraction(numerator, denominator)
+        if isinstance(numerator, (str, Fraction)):
+            self.value = _native_fraction(numerator)
         else:
-            self.value = Fraction(numerator)
+            self.value = _native_fraction(numerator, denominator)
 
     def __repr__(self) -> str:
         """String representation showing both fraction and decimal forms."""
@@ -136,7 +149,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             return self.value == other.value
         try:
-            return self.value == Fraction(other)
+            return self.value == _native_fraction(other)
         except (ValueError, TypeError):
             return False
 
@@ -149,7 +162,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             result = self.value + other.value
         else:
-            result = self.value + Fraction(other)
+            result = self.value + _native_fraction(other)
         return SymergeticsNumber(result)
 
     def __sub__(self, other: Union['SymergeticsNumber', int, float, Fraction]) -> 'SymergeticsNumber':
@@ -157,7 +170,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             result = self.value - other.value
         else:
-            result = self.value - Fraction(other)
+            result = self.value - _native_fraction(other)
         return SymergeticsNumber(result)
 
     def __mul__(self, other: Union['SymergeticsNumber', int, float, Fraction]) -> 'SymergeticsNumber':
@@ -165,7 +178,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             result = self.value * other.value
         else:
-            result = self.value * Fraction(other)
+            result = self.value * _native_fraction(other)
         return SymergeticsNumber(result)
 
     def __truediv__(self, other: Union['SymergeticsNumber', int, float, Fraction]) -> 'SymergeticsNumber':
@@ -175,7 +188,7 @@ class SymergeticsNumber:
                 raise ZeroDivisionError("Division by zero")
             result = self.value / other.value
         else:
-            other_frac = Fraction(other)
+            other_frac = _native_fraction(other)
             if other_frac == 0:
                 raise ZeroDivisionError("Division by zero")
             result = self.value / other_frac
@@ -188,7 +201,7 @@ class SymergeticsNumber:
         ``Fraction(1, 3)``, not ``1 / 3``, to request a real cube root of a
         negative number. Irrational results have denominator at most 1,000,000.
         """
-        rational_exponent = exponent.value if isinstance(exponent, SymergeticsNumber) else Fraction(exponent)
+        rational_exponent = exponent.value if isinstance(exponent, SymergeticsNumber) else _native_fraction(exponent)
         return SymergeticsNumber(_rational_power(self.value, rational_exponent, 1000000))
 
     def __neg__(self) -> 'SymergeticsNumber':
@@ -208,7 +221,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             return self.value < other.value
         try:
-            return self.value < Fraction(other)
+            return self.value < _native_fraction(other)
         except (ValueError, TypeError):
             return NotImplemented
 
@@ -217,7 +230,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             return self.value <= other.value
         try:
-            return self.value <= Fraction(other)
+            return self.value <= _native_fraction(other)
         except (ValueError, TypeError):
             return NotImplemented
 
@@ -226,7 +239,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             return self.value > other.value
         try:
-            return self.value > Fraction(other)
+            return self.value > _native_fraction(other)
         except (ValueError, TypeError):
             return NotImplemented
 
@@ -235,7 +248,7 @@ class SymergeticsNumber:
         if isinstance(other, SymergeticsNumber):
             return self.value >= other.value
         try:
-            return self.value >= Fraction(other)
+            return self.value >= _native_fraction(other)
         except (ValueError, TypeError):
             return NotImplemented
 
@@ -374,7 +387,7 @@ class SymergeticsNumber:
         Returns:
             SymergeticsNumber: Rational approximation of the float
         """
-        return cls(Fraction(value).limit_denominator(max_denominator))
+        return cls(_native_fraction(value).limit_denominator(max_denominator))
 
     @classmethod
     def nth_root(cls, value: Union['SymergeticsNumber', int, float, Fraction],
@@ -395,7 +408,7 @@ class SymergeticsNumber:
             raise ValueError("degree must be a positive integer")
         if max_denominator < 1:
             raise ValueError("max_denominator must be a positive integer")
-        rational_value = value.value if isinstance(value, SymergeticsNumber) else Fraction(value)
+        rational_value = value.value if isinstance(value, SymergeticsNumber) else _native_fraction(value)
         return cls(_rational_power(rational_value, Fraction(1, degree), max_denominator))
 
     @classmethod

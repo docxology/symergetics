@@ -108,6 +108,8 @@ def main() -> None:
             parser.error(f"missing checkout file: {root / required}")
     sys.path[:0] = [str(here), str(math_root / "src"), str(craft_root)]
 
+    import numpy as np
+
     from quadmath.core.quadray import (
         DEFAULT_EMBEDDING, Quadray, ace_tetravolume_5x5, centroid_exact, distance,
         integer_tetra_volume, magnitude, quadray_from_xyz, to_xyz,
@@ -115,6 +117,7 @@ def main() -> None:
     from quadmath.lattice.conversions import xyz_to_quadray_canonical
     from quadmath.lattice.omni_numbering import cumulative_count, site_at_index
     from symergetics.core.coordinates import QuadrayCoordinate, enumerate_ivm_sites
+    from symergetics.core.numbers import SymergeticsNumber
     from symergetics.geometry.polyhedra import (
         SymergeticsPolyhedron, ace_tetra_volume_5x5, integer_tetra_volume as symer_volume,
     )
@@ -225,12 +228,29 @@ def main() -> None:
                 raise AssertionError(
                     f"exact centroid case {index}: expected {expected}, got {actual}",
                 )
+
+    # Fraction can retain NumPy integer fields. Both libraries must promote
+    # these before accumulation, snapping or powers, not after overflow.
+    rational_ingress = [np.int64(2**62), np.uint64(2**63)]
+    for value in rational_ingress:
+        rational = Fraction(value, 1)
+        math_point = Quadray(rational, 0, 0, 0)
+        symer_point = QuadrayCoordinate(rational, 0, 0, 0)
+        expected = (Fraction(int(value)), Fraction(0), Fraction(0), Fraction(0))
+        centers = (
+            centroid_exact([math_point, math_point]),
+            SymergeticsPolyhedron([symer_point, symer_point]).centroid_exact(),
+        )
+        power = (SymergeticsNumber(value) ** Fraction(np.int64(2), 1)).value
+        if any(center != expected for center in centers) or power != int(value)**2:
+            raise AssertionError(f"fixed-width rational ingress failed for {value}")
     print(json.dumps({"status": "passed", "coordinate_cases_per_runtime": len(cases),
                       "runtimes": ["QuadMath", "symergetics", "QuadCraft Python",
                                    "QuadCraft JavaScript", "QuadCraft C++"],
                       "exact_volume_cases": len(tetrahedra),
                       "ivm_site_comparisons": ivm_site_comparisons,
                       "exact_centroid_cases": len(centroid_groups),
+                      "native_rational_ingress_cases": len(rational_ingress),
                       "exact_centroid_libraries": ["QuadMath", "symergetics"]}, indent=2))
 
 

@@ -55,6 +55,11 @@ including arbitrarily large integers and tiny fractions. Odd roots of negative
 values are real; even roots of negative values raise `ValueError`. A negative
 power of zero raises `ZeroDivisionError`.
 
+Integral inputs and `Fraction` numerator/denominator fields are promoted to
+unbounded Python integers before arithmetic, comparison, roots/powers and
+coordinate snapping. This includes NumPy-backed fractions, whose fields would
+otherwise retain fixed-width overflow behavior inside the standard class.
+
 ```python
 from fractions import Fraction
 from symergetics import SymergeticsNumber as N

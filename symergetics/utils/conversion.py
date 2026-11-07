@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from ..core.coordinates import QuadrayCoordinate
-from ..core.numbers import SymergeticsNumber
+from ..core.numbers import SymergeticsNumber, _native_fraction
 
 
 def rational_to_float(rational: Union[SymergeticsNumber, Fraction],
@@ -73,7 +73,7 @@ def float_to_exact_rational(value: float,
         >>> float_to_exact_rational(math.pi, max_denominator=100)
         SymergeticsNumber(311/99)  # closest rational with denominator <= 100
     """
-    frac = Fraction(value).limit_denominator(max_denominator)
+    frac = _native_fraction(value).limit_denominator(max_denominator)
     return SymergeticsNumber(frac)
 
 

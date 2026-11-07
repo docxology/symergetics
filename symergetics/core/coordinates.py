@@ -24,14 +24,14 @@ from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from .numbers import SymergeticsNumber
+from .numbers import SymergeticsNumber, _native_fraction
 
 
 def _as_fraction(value) -> Fraction:
     """Keep exact numeric inputs exact, including SymergeticsNumber values."""
     if isinstance(value, SymergeticsNumber):
         value = value.value
-    return Fraction(value)
+    return _native_fraction(value)
 
 
 def _snap_to_int(value) -> int:

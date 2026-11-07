@@ -195,7 +195,8 @@ small adapter against the actual native C++ header in a temporary directory.
 It checks signed/gauge-equivalent representatives, normalization, inversion,
 Cartesian norms, distinct-point distances, explicit unit mapping, independently
 enumerated FCC graph balls, agreement between exact volume formulations and
-continuous rational centroids beyond binary64's range and integer precision.
+continuous rational centroids beyond binary64's range and integer precision,
+plus NumPy-backed rational ingress before fixed-width arithmetic can wrap.
 Missing runtimes and mismatches fail the command; they are not silently skipped.
 It neither launches the OpenGL game nor proves browser rendering or the entire
 mathematical library.
@@ -230,7 +231,7 @@ contracts, not universal correctness.
 | Nearest-point projection | symergetics uses the regular BCC fast path or exact-rational LLL reduction and closest-first bounded enumeration, retaining canonical tie-breaking. Anisotropic, sheared and permuted-basis oracle regressions exercise the general path; continuous pseudoinverses are scale-normalized separately. |
 | Geometry versus labels | QuadCraft keeps physical distances separate from raw occupancy. Doom traverses raw four-index cell boundaries; Connect Four retains independent `(0,0,0,0)` and `(1,1,1,1)` slots through drop/undo. Physical boards enumerate canonical cells, and weighted pathfinding uses Dijkstra when no positive cost bound is supplied. |
 | Runtime integration | Seven renderers/controllers use the current shared projection/lifecycle APIs. Doom's ESM bridge resolves the canonical class. Tower Defense draws indexed twelve-neighbor IVM edges. The CLI discovers nested shared JS/Python suites and treats nonzero process exits as failures, even after a passing summary. |
-| Exact integer ingress | Integral scalar components are stored as Python integers before normalization/arithmetic. Bareiss elimination and boxed-object count inputs cannot wrap fixed-width products. Displacements are embedded before floating conversion; range-safe norms/angles and scaled huge-integer products retain finite geometry. |
+| Exact integer ingress | Integral scalars and `Fraction` fields, including NumPy-backed numerators/denominators, are promoted to Python integers before arithmetic and snapping. Bareiss elimination and boxed-object count inputs cannot wrap fixed-width products. Displacements are embedded before floating conversion; range-safe norms/angles and scaled huge-integer products retain finite geometry. |
 | Physical enumeration | symergetics enumerates canonical FCC graph balls and reuses them across actual rendering backends; the interoperability example checks them independently against QuadMath. |
 | Live Snake geometry | The perspective camera stays outside the raw board's Cartesian bounding sphere, preventing a negative Canvas radius that halted the first frame. The browser gate exercises actual movement, turning, rotated rendering and pause/resume. |
 | Execution ownership | Local orchestration retains failed stages, demos fail truthfully, tests own temporary output, HTTP requests cannot block server shutdown, and native test invocation cannot pass an empty cached-OFF inventory. |
@@ -247,12 +248,12 @@ Verified with Python 3.13.17, Node.js and the C++17 toolchain:
 
 | Check | Observed result |
 |---|---|
-| QuadMath pytest/coverage | 1,071 cases; final Python 3.11/3.13 CI passed with 100% statement/branch coverage |
-| symergetics full pytest/coverage | 1,406 passed, 12 skipped; 88.29% coverage, above the 85% floor |
+| QuadMath pytest/coverage | 1,077 cases; 100% statement/branch coverage on local Python 3.13 |
+| symergetics full pytest/coverage | 1,415 passed, 12 skipped; 88.28% coverage, above the 85% floor |
 | QuadCraft CLI, including nested shared suites | 2,395 reported checks passed; zero failures |
 | QuadCraft structural validation | All 30 games passed |
 | Graphics-free native build | Both CTest targets passed in Release |
-| Cross-repository example | 279 coordinate cases per implementation, five real implementations; 34 exact volumes, 37 exact-centroid cases and 216 FCC site comparisons |
+| Cross-repository example | 279 coordinate cases per implementation, five real implementations; 34 exact volumes, 37 exact-centroid cases, 216 FCC site comparisons and two fixed-width rational-ingress cases |
 | Full suite command | All 14 selected checks passed; no unexecuted checks; private interpreter/repository paths absent from the receipt |
 | Ordinary scientific demos | All 10 completed successfully through the actual examples-only orchestrator |
 | Locked Chromium gate | All 30 catalog games passed with actual rendering/input and initial/final screenshots; local mouse capture was denied and the keyboard-control notice was visible |
@@ -285,8 +286,8 @@ native gameplay was not exercised.
 The local manuscript PDF build did not complete: XeTeX could not load the required
 DejaVu Serif / DejaVu Sans Mono fonts. A process-local Fontconfig configuration
 found Matplotlib's bundled font files but did not make them available to
-XeTeX's font loader. The release's fresh PDF/TeX come from the
-[Linux manuscript run](https://github.com/docxology/QuadMath/actions/runs/42339499328), which
-successfully regenerated and validated the manuscript, producing the
-119-page combined PDF and TeX. The downloaded PDF text, metadata and rendered
-cover were inspected; its visible date uses the source commit's UTC date.
+XeTeX's font loader. Release PDF/TeX are built by the
+[Linux manuscript workflow](https://github.com/docxology/QuadMath/blob/main/.github/workflows/verify.yml)
+after regenerating and validating the canonical manuscript. Release notes link
+the source-specific successful run; published assets carry SHA256 checksums.
+The manuscript's visible date is derived from the source commit's UTC date.

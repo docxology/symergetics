@@ -6,6 +6,7 @@
 
 - Add `SymergeticsNumber.nth_root(value, degree, max_denominator=1000000)` and reuse it for `sqrt`.
 - Preserve integer `Fraction` exponents, perfect rational roots and powers without a binary-float conversion, including huge integers, tiny fractions and negative odd roots.
+- Promote integral scalars and NumPy-backed `Fraction` fields before arithmetic, comparison, powers/roots, sign normalization and coordinate snapping.
 - Bound only irrational approximations by `max_denominator`; exact roots may exceed that cap. Decimal approximation is finite precision, not certified symbolic algebra or rounding.
 - Add polyhedron `centroid_exact()` compatible with QuadMath's canonical rational centroid tuple, without integer coordinate snapping.
 - Remove stale volume caching: public vertex mutations immediately affect exact volume calculations. Existing floor-snapped centroids remain distinct.

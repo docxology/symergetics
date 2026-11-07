@@ -42,6 +42,7 @@ jobs:
           uv pip install --python /tmp/symergetics-wheel/bin/python dist/*.whl
           /tmp/symergetics-wheel/bin/python -I - <<'PY'
           from fractions import Fraction
+          import numpy as np
           from symergetics import SymergeticsNumber as N
           from symergetics.core.coordinates import QuadrayCoordinate as Q
           from symergetics.geometry.polyhedra import Tetrahedron
@@ -53,6 +54,9 @@ jobs:
           assert shape.volume() == Fraction(1,4)
           shape.vertices[1] = Q(2,0,0,0)
           assert shape.volume() == Fraction(1,2)
+          assert (N(np.uint64(2**63)) ** Fraction(np.int64(2),1)).value == 2**126
+          point = Q(Fraction(np.int64(2**62),1),0,0,0)
+          assert point.add(point).as_tuple() == (2**63,0,0,0)
           PY
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: matrix.python == '3.13'

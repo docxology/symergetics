@@ -804,5 +804,16 @@ class TestNearestIntegerQuadray:
             QuadrayCoordinate.from_xyz(1, 0, 0, embedding=matrix)
 
 
+@pytest.mark.parametrize("value", [np.int64(2**62), np.uint64(2**63)])
+def test_numpy_backed_fraction_coordinates_preserve_unbounded_arithmetic(value):
+    point = QuadrayCoordinate(Fraction(value, 1), 0, 0, 0)
+    assert point.add(point).as_tuple() == (2 * int(value), 0, 0, 0)
+
+
+def test_numpy_backed_fraction_rounding_uses_unbounded_remainders():
+    value = Fraction(np.int64(2**62 + 1), np.int64(2**62 + 2))
+    assert QuadrayCoordinate(value, 0, 0, 0).as_tuple() == (1, 0, 0, 0)
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
