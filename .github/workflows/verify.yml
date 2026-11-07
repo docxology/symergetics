@@ -32,6 +32,8 @@ jobs:
         run: uv sync --frozen --python '${{ matrix.python }}' --extra scientific --extra test
       - name: Tests and coverage gate
         run: uv run --frozen python -m pytest tests/ -q -o 'addopts=--strict-markers --strict-config --cov=symergetics --cov-report=term-missing --cov-fail-under=85'
+      - name: Exercise every standalone scientific demo
+        run: uv run --frozen --extra scientific --extra test python run.py --examples-only
       - name: Build source distribution and wheel
         run: uv build --python '${{ matrix.python }}'
       - name: Exercise minimally installed wheel outside the checkout

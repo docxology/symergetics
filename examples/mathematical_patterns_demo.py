@@ -164,7 +164,7 @@ def analyze_primorial_patterns():
             length_growth = current['length'] - previous['length']
             entropy_change = current['entropy'] - previous['entropy']
             
-            print(f"{previous['n']}# -> {current['n']}#: ratio={ratio:.1f}, +{length_growth} digits, Δentropy={entropy_change:+.3f}")
+            print(f"{previous['n']}# -> {current['n']}#: ratio={float(ratio):.1f}, +{length_growth} digits, Δentropy={entropy_change:+.3f}")
             
     print("\n3. Prime Factor Distribution:")
     print("-" * 30)

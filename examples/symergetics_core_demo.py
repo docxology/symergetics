@@ -104,9 +104,9 @@ def demonstrate_ratio_based_geometry():
     cubocta_vol = cuboctahedron.volume()
     
     print(f"Tetrahedron:     {tet_vol} (unit volume)")
-    print(f"Octahedron:      {oct_vol} ({oct_vol/tet_vol:.0f}:1 ratio)")
-    print(f"Cube:            {cube_vol} ({cube_vol/tet_vol:.0f}:1 ratio)")
-    print(f"Cuboctahedron:   {cubocta_vol} ({cubocta_vol/tet_vol:.0f}:1 ratio)")
+    print(f"Octahedron:      {oct_vol} ({oct_vol/tet_vol}:1 ratio)")
+    print(f"Cube:            {cube_vol} ({cube_vol/tet_vol}:1 ratio)")
+    print(f"Cuboctahedron:   {cubocta_vol} ({cubocta_vol/tet_vol}:1 ratio)")
     
     print(f"\n2. Exact Volume Relationships:")
     print("-" * 30)

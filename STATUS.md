@@ -19,6 +19,9 @@ verifies it. Re-run instead of trusting this file.
   is required rather than hidden in the scientific extra.
 - The patched lockfile excludes all 98 captured open Dependabot affected ranges.
   The full coverage gate and all demos also passed with Pillow 13 and pytest 9.
+- Python 3.11.18 also passed 59 targeted analysis/integration/orchestration
+  regressions and all 10 demos after removing unsupported Fraction-method/format
+  assumptions. Both scientific CI matrix jobs now execute the real demo orchestrator.
 - [Suite contracts and evidence](docs/synergetics-suite.md) document the exact
   integer/rational boundaries, nearest-point algorithms, embedding units and
   actual browser/native verification limits. Python pins were not changed.
