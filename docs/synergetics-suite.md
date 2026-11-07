@@ -195,6 +195,7 @@ claims and exercised behavior were checked separately.
 | Runtime integration | Seven renderers/controllers use the current shared projection/lifecycle APIs. Doom's ESM bridge resolves the canonical class. Tower Defense draws indexed twelve-neighbor IVM edges. The CLI discovers nested shared JS/Python suites and treats nonzero process exits as failures, even after a passing summary. |
 | Exact integer ingress | Integral scalar components are stored as Python integers before normalization/arithmetic. Bareiss elimination and boxed-object count inputs cannot wrap fixed-width products. Displacements are embedded before floating conversion; range-safe norms/angles and scaled huge-integer products retain finite geometry. |
 | Physical enumeration | symergetics enumerates canonical FCC graph balls and reuses them across actual rendering backends; the interoperability example checks them independently against QuadMath. |
+| Live Snake geometry | The perspective camera stays outside the raw board's Cartesian bounding sphere, preventing a negative Canvas radius that halted the first frame. The browser gate exercises actual movement, turning, rotated rendering and pause/resume. |
 | Execution ownership | Local orchestration retains failed stages, demos fail truthfully, tests own temporary output, HTTP requests cannot block server shutdown, and native test invocation cannot pass an empty cached-OFF inventory. |
 
 Exact rational enumeration has no heuristic candidate cap. Its cost still
@@ -213,14 +214,14 @@ Verified with Python 3.13.17, Node.js and the C++17 toolchain:
 | Cross-repository example | 279 coordinate cases per implementation, five real implementations; 34 exact-volume cases; 216 FCC site comparisons |
 | Complete suite command | All 13 checks executed successfully; no unexecuted checks |
 | Ordinary scientific demos | All 10 completed successfully through the actual examples-only orchestrator |
-| Locked Chromium gate | All 12 selected surfaces passed with actual rendering/input; native mouse capture was denied locally and the keyboard-control notice was visible |
+| Locked Chromium gate | All 13 selected surfaces passed with actual rendering/input; native mouse capture was denied locally and the keyboard-control notice was visible |
 | Installed distributions | Both wheels exercised outside the checkouts; QuadMath generated data/PNG output in a path containing spaces, and symergetics imported/inverted/enumerated FCC sites without plotting dependencies |
 | Dependency advisory snapshot | All 98 open symergetics lockfile alert ranges excluded every newly resolved affected package version |
 
 The separate numerical smoke exercised 196 scaled inverse roundtrips, 21
 volume/radius scale-covariance checks and 120 nearest queries against a finite
 exhaustive oracle. Actual HTTP browser checks exercised Go, Hex, Lights Out,
-Memory, Rogue, Sokoban, Sudoku, Doom, Minesweeper, Connect Four, Tower Defense
+Memory, Rogue, Sokoban, Snake, Sudoku, Doom, Minesweeper, Connect Four, Tower Defense
 and Minecraft: picking, keyboard actions, rotation/zoom, raw-slot drop/undo,
 and displayed mathematical verification where applicable. This is not a claim
 that every gameplay path or every browser was tested.
