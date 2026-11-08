@@ -1,301 +1,134 @@
-# Synergetics Visualization Module
+# Visualization modules: live geometry, computed patterns and output contracts
 
-The visualization module provides comprehensive visualization capabilities for geometric objects, mathematical patterns, and symbolic computations in the Synergetics framework.
+Renderers consume the actual coordinate, number and polyhedron APIs. Exact
+integer/rational measurements, irrational approximations and floating display
+coordinates are different quantities; **not all visualization calculations
+are rational or exact**.
 
-## Features
+## Install the checkout's optional scientific dependencies
 
-- **Modular Design**: Separate modules for geometry, numbers, and mathematical visualizations
-- **Multiple Backends**: Support for matplotlib, plotly, and ASCII art
-- **Configurable Output**: Customizable colors, sizes, formats, and output directories
-- **Batch Processing**: Execute multiple visualizations simultaneously
-- **Export Capabilities**: Save results in JSON, text, and other formats
-
-## Installation
-
-The visualization module requires matplotlib for 3D plotting:
+From the repository root:
 
 ```bash
-pip install matplotlib numpy
+uv sync --python 3.13 --extra scientific
 ```
 
-For enhanced 3D plotting with plotly:
+The package is not on PyPI. Use the checkout or a versioned GitHub wheel for its
+own interface. Main-only features below are not retroactive additions to the
+immutable 1.3.0 release. See the [installation and API guide](../../docs/api/index.md).
 
-```bash
-pip install plotly
-```
+## Choose a renderer by its actual mathematical input
 
-## Quick Start
+| Module | Implemented purpose | Canonical contract |
+|---|---|---|
+| [`geometry.py`](geometry.py) | Coordinates, physical FCC shells, live indexed polyhedra, projections and solid abstracts | [Geometry API](../../docs/api/index.md#geometry-module) |
+| [`numbers.py`](numbers.py) | Finite palindrome, Scheherazade and prime-bound primorial displays | [Number APIs](../../docs/api/index.md) |
+| [`mathematical.py`](mathematical.py) | Continued fractions, base/digit analysis and related finite diagnostics | [Examples and cookbook](../../docs/api-cookbook-recipes.md) |
+| [`advanced.py`](advanced.py) | Comparative/dashboard plots and computed scientific posters | [Poster selections](../../docs/api/index.md#scientific-poster-sections-unreleased-main) |
+| [`__init__.py`](__init__.py) | Process-global configuration, organized paths, serial batch dispatch and reporting | [Visualization API](../../docs/api/index.md#visualization-module) |
+
+Backend support is function-specific. A shared `backend` parameter does not
+mean every renderer implements Matplotlib, Plotly and ASCII. Solid and mega
+graphical abstracts require Matplotlib; unsupported choices raise.
+
+## Render a live solid without overwriting project output
 
 ```python
 from symergetics.visualization import plot_polyhedron, set_config
 
-# Configure output
-set_config({'backend': 'matplotlib', 'output_dir': 'my_visualizations'})
-
-# Create a 3D visualization of a tetrahedron
-result = plot_polyhedron('tetrahedron')
-print(f"Files created: {result['files']}")
-```
-
-## Modules Overview
-
-### Geometry Visualizations (`geometry.py`)
-
-Visualize geometric objects and coordinate systems from Synergetics.
-
-#### Polyhedron Visualization
-
-```python
-from symergetics.visualization import plot_polyhedron
-
-# Visualize regular polyhedra
-plot_polyhedron('tetrahedron')      # Unit volume = 1
-plot_polyhedron('octahedron')       # Unit volume = 4
-plot_polyhedron('cube')            # Unit volume = 3
-plot_polyhedron('cuboctahedron')   # Unit volume = 20
-```
-
-#### Quadray Coordinate System
-
-```python
-from symergetics.visualization import plot_quadray_coordinate
-from symergetics.core.coordinates import QuadrayCoordinate
-
-# Visualize a Quadray coordinate
-coord = QuadrayCoordinate(1, 2, 0, 1)
-plot_quadray_coordinate(coord, show_lattice=True, lattice_size=3)
-```
-
-#### IVM Lattice
-
-```python
-from symergetics.visualization import plot_ivm_lattice
-
-# Visualize the Isotropic Vector Matrix lattice
-plot_ivm_lattice(size=5)
-```
-
-### Number Pattern Visualizations (`numbers.py`)
-
-Analyze and visualize patterns in numbers, especially those from Fuller's work.
-
-#### Palindromic Patterns
-
-```python
-from symergetics.visualization import plot_palindromic_pattern
-
-# Analyze palindromic patterns in numbers
-plot_palindromic_pattern(12321)      # Palindrome
-plot_palindromic_pattern(1001)       # Scheherazade base
-```
-
-#### Scheherazade Number Patterns
-
-```python
-from symergetics.visualization import plot_scheherazade_pattern
-
-# Visualize powers of 1001 (Scheherazade numbers)
-plot_scheherazade_pattern(6)  # Contains Pascal's triangle row
-```
-
-#### Primorial Distribution
-
-```python
-from symergetics.visualization import plot_primorial_distribution
-
-# Show primorial growth patterns
-plot_primorial_distribution(max_n=20)
-```
-
-### Mathematical Visualizations (`mathematical.py`)
-
-Visualize mathematical concepts and algorithms.
-
-#### Continued Fractions
-
-```python
-from symergetics.visualization import plot_continued_fraction
-import math
-
-# Analyze continued fraction expansions
-plot_continued_fraction(math.pi, max_terms=10)
-plot_continued_fraction(math.e, max_terms=8)
-```
-
-#### Base Conversions
-
-```python
-from symergetics.visualization import plot_base_conversion
-
-# Visualize number base conversions
-plot_base_conversion(42, 10, 2)     # Decimal to binary
-plot_base_conversion(1001, 10, 7)   # Decimal to base 7
-```
-
-#### Pattern Analysis
-
-```python
-from symergetics.visualization import plot_pattern_analysis
-
-# Analyze digit patterns
-plot_pattern_analysis(12321, 'palindrome')
-plot_pattern_analysis(112233, 'repeated')
-```
-
-## Configuration
-
-Customize visualization behavior with the configuration system:
-
-```python
-from symergetics.visualization import set_config, get_config
-
-# Set configuration
 set_config({
-    'backend': 'matplotlib',        # 'matplotlib', 'plotly', 'ascii'
-    'output_dir': 'output',         # Output directory
-    'figure_size': (10, 8),         # Figure dimensions
-    'dpi': 150,                     # Resolution
-    'colors': {
-        'primary': '#1f77b4',
-        'secondary': '#ff7f0e',
-        'accent': '#2ca02c'
-    }
+    "backend": "matplotlib",
+    "output_dir": "/tmp/symergetics-visualizations",
+    "formats": ["png", "svg"],
+    "include_timestamps": False,
 })
-
-# Get current configuration
-config = get_config()
+result = plot_polyhedron("tetrahedron")
+print(result["files"])
 ```
 
-## Batch Processing
+Configuration takes one dictionary, not keyword arguments. It is global to the
+process; use isolated processes for independent render configurations.
+`get_config()` returns a shallow copy, not a deeply isolated nested snapshot.
+Most renderers return file paths plus metadata; exact Python measurements can
+include `Fraction` objects and are not a promise of universal JSON serialization.
 
-Execute multiple visualizations efficiently:
+## Interpret solid topology, units and centroids correctly
+
+`plot_polyhedron_graphical_abstract` uses current vertices, declared indexed
+edges and the surface's declared triangle fans. Its axes are anchor-relative,
+scale-one XYZ with equal metric scale. The XY panel is an orthographic edge
+projection, retaining coincident/hidden edges; it is not a projected convex hull.
+
+Native IVM volume differs from XYZ cubic volume:
+$V_{\mathrm{XYZ}}=(8/3)V_{\mathrm{IVM}}$ at this scale. Surface area uses XYZ
+squared units. A canonical volume ratio is not a measured volume of a deformed
+or translated display.
+
+Vertex means and uniform-solid mass centroids are separate measurements.
+The latter requires nonzero enclosed volume and the documented valid embedded
+surface preconditions. Closure alone does not detect all self/intersections.
+Nonplanar faces mean their declared triangle fan, not an unspecified surface.
+
+`show_edges`, `show_faces` and `show_vertices` control geometry layers; the XY
+view has no face fill. `show_volume_ratios` and `show_coordinates` remove their
+optional panels when disabled. Solid `metadata.panels` is the actual panel ID
+list. Full exact vertices, topology, anchor and measurements remain in metadata
+even when enormous display annotations are explicitly omitted.
+
+## Select a readable scientific-poster topic on unreleased main
 
 ```python
-from symergetics.visualization import batch_visualize
+from symergetics.visualization.advanced import create_mega_graphical_abstract
 
-# Define visualization tasks
-tasks = [
-    {'function': 'plot_polyhedron', 'args': ['tetrahedron']},
-    {'function': 'plot_scheherazade_pattern', 'args': [6]},
-    {'function': 'plot_continued_fraction', 'args': [3.14159], 'kwargs': {'max_terms': 8}}
-]
-
-# Execute batch
-results = batch_visualize(tasks, backend='ascii')
-
-# Create summary report
-from symergetics.visualization import create_visualization_report
-report_path = create_visualization_report(results, "Batch Visualization Report")
+overview = create_mega_graphical_abstract(
+    section="overview", output_path="/tmp/symergetics-overview.svg"
+)
+geometry = create_mega_graphical_abstract(
+    section="geometry", output_path="/tmp/symergetics-geometry.svg"
+)
 ```
 
-## Export and Reporting
+Use `overview`, `geometry`, `arithmetic`, `patterns` or `all`. The default
+overview is readable at ordinary width; `all` retains seventeen topics at
+poster scale. An explicit title is preserved. Different selections otherwise
+share the default primary filename, so use distinct explicit paths.
 
-Export visualization results and create reports:
+Mega results contain actual ordered panel IDs, titles and computed side data,
+including exact integer/rational strings and units. Its `metadata.panels` is
+an integer count, unlike the solid abstract's panel list. It writes its one
+explicit/default primary path rather than automatically exporting every
+configured format. The
+[comprehensive demo](../../examples/comprehensive_visualizations_demo.py)
+renders separate groups with JSON sidecars.
 
-```python
-from symergetics.visualization import export_visualization
+## Use actual paths and batch outcomes rather than assumed capabilities
 
-# Export results to different formats
-export_visualization(results, format='json', filename='my_results')
-export_visualization(results, format='txt', filename='summary')
-```
+- Organized filenames follow `output_dir`, `organize_by_type` and timestamp
+  settings unless an API documents an explicit path override.
+- `formats` are consumed by applicable exporters; an HTML entry does not turn
+  a static Matplotlib renderer into an interactive one.
+- `batch_visualize` dispatches supported task names **serially**. Inspect each
+  result for errors; batch completion is not proof every task succeeded.
+- Reporting/export helpers consume their documented data shapes. Do not
+  treat arbitrary analysis/report dictionaries as interchangeable.
+- Irrational coordinates, trigonometry, floating plots and finite sampled
+  patterns do not prove a universal rationality, frequency or physical law.
 
-## Backend Options
+## Verification and cross-project references
 
-### Matplotlib Backend
-- High-quality 2D and 3D plots
-- Publication-ready output
-- Requires: `pip install matplotlib`
+Run the relevant behavior tests through the [test guide](../../docs/testing-guide.md).
+Numerical geometry/topology, optional-panel behavior and figure ownership are
+different from a wording or nonempty-file assertion. Inspect actual rendered
+PNG/SVG output as well as numerical metadata.
 
-### Plotly Backend
-- Interactive 3D visualizations
-- Web-based output
-- Requires: `pip install plotly`
-
-### ASCII Backend
-- Text-based visualizations
-- No dependencies required
-- Great for terminals and documentation
-
-## File Organization
-
-All visualizations are saved to the configured output directory:
-
-```
-output/
-├── geometric_demo/
-│   ├── tetrahedron_3d.png
-│   ├── octahedron_3d.png
-│   └── ivm_lattice_size_3.png
-├── number_demo/
-│   ├── palindrome_pattern_121.png
-│   └── scheherazade_pattern_1001_power_6.png
-├── math_demo/
-│   ├── continued_fraction_3.1416_terms_10.png
-│   └── base_conversion_42_base_10_to_2.png
-└── visualization_config.json
-```
-
-## Synergetics Context
-
-The visualizations are designed to support Fuller's Synergetics principles:
-
-- **Exact Arithmetic**: All calculations use rational numbers for precision
-- **Geometric Relationships**: Visualizations show volume ratios and coordinate transformations
-- **Pattern Recognition**: Analysis of palindromic and symmetrical patterns
-- **Scale Relationships**: Support for cosmic hierarchy scaling
-
-## Examples
-
-See `examples/visualization_demo.py` for comprehensive usage examples covering:
-
-- All visualization types
-- Configuration management
-- Batch processing
-- Export capabilities
-- Error handling
-
-## Dependencies
-
-Core dependencies:
-- `numpy`: Numerical operations
-- `matplotlib`: Plotting (optional, for matplotlib backend)
-- `plotly`: Interactive plotting (optional, for plotly backend)
-
-## API Reference
-
-### Configuration Functions
-- `set_config(config)`: Update configuration
-- `get_config()`: Get current configuration
-- `reset_config()`: Reset to defaults
-
-### Visualization Functions
-- `plot_polyhedron(polyhedron, **kwargs)`: Visualize polyhedra
-- `plot_quadray_coordinate(coord, **kwargs)`: Visualize Quadray coordinates
-- `plot_ivm_lattice(size, **kwargs)`: Visualize IVM lattice
-- `plot_palindromic_pattern(number, **kwargs)`: Analyze palindromes
-- `plot_scheherazade_pattern(power, **kwargs)`: Visualize Scheherazade numbers
-- `plot_continued_fraction(value, **kwargs)`: Analyze continued fractions
-- `plot_base_conversion(number, from_base, to_base, **kwargs)`: Show base conversions
-
-### Utility Functions
-- `batch_visualize(tasks, **kwargs)`: Execute multiple visualizations
-- `export_visualization(data, **kwargs)`: Export results
-- `create_visualization_report(results, **kwargs)`: Create summary reports
-
-## Contributing
-
-When adding new visualizations:
-
-1. Follow the modular structure (geometry, numbers, mathematical)
-2. Support all backend types (matplotlib, plotly, ascii)
-3. Include comprehensive error handling
-4. Add tests in `tests/test_visualization.py`
-5. Update this documentation
+- [Suite coordinate, unit and visualization boundaries](../../docs/synergetics-suite.md)
+- [Package-level guide](../README.md)
+- [Source-backed tutorials](../../docs/tutorials/index.md)
+- [Module agent guidance](AGENTS.md)
 
 ## License
 
-This visualization module is part of the Synergetics package and follows the same MIT license.
+This module follows the repository's [Apache 2.0 license](../../LICENSE).
 
 ## Render resource boundary
 

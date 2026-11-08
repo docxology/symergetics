@@ -158,8 +158,8 @@ SimAnt's raw terrain graph is that FCC graph.
 
 ### Formal scope and graphical evidence
 
-QuadMath's dependency-free Lean development proves the common-offset physical
-quotient and canonical uniqueness, exact distance positivity/congruence,
+For integer coordinates, QuadMath's dependency-free Lean development proves the
+common-offset physical quotient and canonical uniqueness, exact distance positivity/congruence,
 independent-gauge determinant invariance, the signed XYZ/native volume bridge,
 and universal shell lower bounds. `lake build` and `leanchecker` are separate
 CI gates. A universal shell-count formula and BFS equivalence remain outside
@@ -172,13 +172,66 @@ test counts or universal rationality claim. Irrational quantities remain
 approximations. Sparse lattice planes preserve exact native indices while
 displaying local-origin cells, rather than allocating a dense huge-span image.
 
+## Graphical abstracts: readable views and auditable quantities
+
+The following visualization changes are **main/Unreleased**, not additions to
+the immutable versions in the release table below.
+
+| Surface | Appropriate use | Important boundary |
+|---|---|---|
+| QuadMath `quadmath.viz.abstracts.render_quadray_abstract` | Vector/raster explanation of the rank-three quotient, native basis and all twelve central FCC contacts | Scale-one XYZ: basis rays have length $\sqrt3$, contact centers are $2\sqrt2$ apart and sphere radius is $\sqrt2$ |
+| symergetics `create_mega_graphical_abstract` | Readable computed overview or a focused geometry/arithmetic/patterns view | `all` retains seventeen topics and needs poster-scale viewing; ordinary reading should use a focused selection |
+| symergetics `plot_polyhedron_graphical_abstract` | Live solid topology, XY edge projection, units and vertex-versus-mass centroids | Exact metadata survives bounded display annotations; embedded, non-self-intersecting surfaces remain an input precondition |
+| QuadCraft browser portfolio | Actual input/state/rendering evidence | Static scientific figures do not establish gameplay behavior; use the live Chromium gate |
+
+From a current symergetics checkout environment with scientific extras:
+
+```python
+from symergetics.visualization.advanced import create_mega_graphical_abstract
+
+overview = create_mega_graphical_abstract(
+    section="overview", output_path="overview.svg"
+)
+geometry = create_mega_graphical_abstract(
+    section="geometry", output_path="geometry.svg"
+)
+poster = create_mega_graphical_abstract(
+    section="all", output_path="complete_poster.svg"
+)
+```
+
+Selections are `overview`, `geometry`, `arithmetic`, `patterns` and `all`.
+An omitted title follows the section; an explicit custom title is retained.
+Returned metadata names the actual selected panels; returned data contains
+their computed quantities and units. The
+[comprehensive demo](../examples/comprehensive_visualizations_demo.py) writes
+separate group outputs and JSON sidecars. These APIs are not available by
+installing an imagined PyPI release; use the current checkout, or the explicitly
+versioned wheel only for its own documented interface.
+
+Solid abstracts honor `show_edges`, `show_faces`, `show_vertices`,
+`show_volume_ratios` and `show_coordinates`. XY projection preserves declared
+edges, including overlaps, rather than inventing a projected convex hull.
+Disabling optional sections removes their panels; it does not leave empty
+axes. Exact Python metadata and display strings have different contracts:
+bounded annotations do not truncate exact measurements or vertex/edge data.
+Serialize rational metadata with an explicit transport policy, not a blind
+float conversion.
+
+QuadMath's regression diagnostics are separate mathematical models, not four
+biological states or a physical Quadray trajectory. They distinguish sample
+gradient products from likelihood-score Fisher information, report recorded
+states and stopping reasons, and mask infeasible categorical probabilities.
+A sampled minimum, ideal entropy-Hessian trace and numerically evaluated
+variational objective are different quantities and are labeled accordingly.
+
 ## Coordinated software releases
 
 | Project | Version | Release notes |
 |---|---|---|
-| QuadMath | 0.6.0 | [Exact methods, conservative simulation and formal quotient proofs](https://github.com/docxology/QuadMath/blob/main/CHANGELOG.md) |
-| symergetics | 1.3.0 | [Live solid moments, indexed geometry and computed scientific figures](../CHANGELOG.md) |
-| QuadCraft | v0.5.0 | [Time-owned simulation, continuous collisions and conservative gameplay transport](https://github.com/docxology/QuadCraft/blob/main/CHANGELOG.md) |
+| QuadMath | 0.6.0 | [Exact methods, conservative simulation and formal quotient proofs](https://github.com/docxology/QuadMath/releases/tag/0.6.0) |
+| symergetics | 1.3.0 | [Live solid moments, indexed geometry and computed scientific figures](https://github.com/docxology/symergetics/releases/tag/1.3.0) |
+| QuadCraft | v0.5.0 | [Time-owned simulation, continuous collisions and conservative gameplay transport](https://github.com/docxology/QuadCraft/releases/tag/v0.5.0) |
 
 ## Complete suite verification
 
@@ -216,6 +269,20 @@ clean-source enforcement and uploads the receipt plus browser diagnostics.
 Manual dispatch accepts `quadmath_ref`, `symergetics_ref` and `quadcraft_ref`
 branches, tags or commit hashes, so a release can verify a fixed three-repository
 combination instead of moving `main` branches.
+
+The documentation stage scans authored Markdown across all three repositories,
+including internal module/game guides and manuscript sources. Dependency,
+build and generated-output directories are pruned from discovery; linked
+targets there still resolve on demand. Missing/empty roots fail, as do dangling
+same-page or cross-file fragments. This is not an external-URL crawler or
+proof of mathematical claims.
+
+Separate suite stages validate symergetics manuscript structure, source-relative
+figure assets and captions. Its package CI also exercises real-image renderer
+regressions and produces a current PDF artifact. Those gates preserve raster
+aspect, authored captions and exact file identity; they do not establish
+empirical validity or replace visual inspection.
+
 
 Ordinary scientific demonstrations remain independent:
 
@@ -301,7 +368,7 @@ contracts, not universal correctness.
 | Live Snake geometry | The perspective camera stays outside the raw board's Cartesian bounding sphere, preventing a negative Canvas radius that halted the first frame. The browser gate exercises actual movement, turning, rotated rendering and pause/resume. |
 | Execution ownership | Local orchestration retains failed stages, demos fail truthfully, tests own temporary output, HTTP requests cannot block server shutdown, and native test invocation cannot pass an empty cached-OFF inventory. |
 | Exact roots and centers | Perfect rational roots/powers stay exact; canonical `Fraction` centroids agree across both Python projects, including huge integers and independent gauges. Mutable vertex updates immediately affect volume. |
-| Information geometry | Integral/large/mixed-scale Fisher scores retain finite curvature; log-domain probability arithmetic preserves positive support and recoverable rare-state contributions. |
+| Information geometry | Integral/large/mixed-scale sample gradients retain finite second moments; statistical Fisher interpretation requires likelihood scores. Log-domain probability arithmetic preserves positive support and recoverable rare-state contributions. |
 | Complete browser inventory | All 30 actual games exercise real input/state/rendering, including 2048 pause/merge/reset, Life paused redraw/full-domain fitting, Reversi reset history and Mahjong tile fitting. |
 | Release provenance | Versioned full/core receipts identify three Git revisions/versions, distinguish generated/source changes and redact host/interpreter paths. CI accepts fixed refs and enforces clean source. |
 

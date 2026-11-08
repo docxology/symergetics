@@ -1,419 +1,112 @@
-# Symergetics Paper Style Guide
-
-A comprehensive guide for writing, formatting, and integrating content in the Symergetics research paper system.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Markdown Formatting Standards](#markdown-formatting-standards)
-3. [Image Integration Guidelines](#image-integration-guidelines)
-4. [Figure Caption Standards](#figure-caption-standards)
-5. [Link and Reference Standards](#link-and-reference-standards)
-6. [Mathematical Notation](#mathematical-notation)
-7. [Code Block Standards](#code-block-standards)
-8. [Section Structure](#section-structure)
-9. [Quality Assurance](#quality-assurance)
-10. [Common Mistakes to Avoid](#common-mistakes-to-avoid)
+# Manuscript Style: Informative Structure and Source-Bound Claims
 
 ## Overview
 
-This style guide ensures consistent, professional formatting across all paper sections and proper integration of visualizations from the `output/` directory. Follow these guidelines to maintain the high standards expected for scientific publication.
+Write an inspectable mathematical/software exposition. Distinguish derivations,
+implemented behavior, historical receipts, proposed applications and empirical
+results. A precise sentence with a source is preferable to “comprehensive,”
+“revolutionary,” “universal,” “perfect” or “research-grade” without evidence.
 
 ## Markdown Formatting Standards
 
-### Headers
-
-Use proper header hierarchy with clear, descriptive titles:
-
-```markdown
-# Main Title (only in 00_title.md)
-## Section Header (H2)
-### Subsection Header (H3)
-#### Sub-subsection Header (H4)
-```
-
-**Guidelines:**
-- Use sentence case for headers (capitalize first word and proper nouns only)
-- Keep headers concise but descriptive
-- Avoid headers longer than 60 characters
-- Use parallel structure in lists of headers
-
-### Text Formatting
-
-**Bold text** for emphasis:
-```markdown
-**Rational number arithmetic with automatic simplification**
-```
-
-*Italic text* for technical terms and foreign words:
-```markdown
-*Synergetics* framework
-```
-
-`Inline code` for technical terms, functions, and variables:
-```markdown
-The `quadray_coordinate_0_0_0_0.png` file contains...
-```
-
-### Lists
-
-Use consistent list formatting:
-
-**Bullet lists:**
-```markdown
-- **Rational number arithmetic**: Ensures exact mathematical precision
-- **Quadray coordinate system**: Handles tetrahedral geometry
-- **Volume calculations**: Computes IVM unit volumes
-```
-
-**Numbered lists:**
-```markdown
-1. Check requirements and dependencies
-2. Generate visualizations in output/ directory
-3. Process markdown sections with integrated images
-4. Render final PDF with scientific formatting
-```
+Use one H1 title in `00_title.md`, an H2 for each numbered section and descriptive
+H3/H4 subsections. Preserve explicit anchors and update incoming heading links
+when renaming. Use inline code for actual identifiers, not as a substitute for
+mathematical definitions. Use descriptive link text without requiring decorative
+symbols. Tables must identify units and comparison conventions.
 
 ## Image Integration Guidelines
 
-### Correct Image Reference Format
-
-**✅ CORRECT:**
-```markdown
-![Figure X: Descriptive Title](output/category/subcategory/filename.png)
-
-**Figure X**: Detailed description explaining the visualization's significance and technical details.
-```
-
-**❌ INCORRECT:**
-```markdown
-![image](output/file.png)
-![Figure](output/file.png)
-![Figure X](output/file.png)
-```
-
-### Image Path Standards
-
-**Required path structure:**
-```
-output/
-├── geometric/
-│   ├── polyhedra/
-│   ├── coordinates/
-│   └── lattice/
-├── mathematical/
-│   ├── pattern_discovery/
-│   ├── continued_fractions/
-│   └── base_conversions/
-└── numbers/
-    ├── palindromes/
-    └── primorials/
-```
-
-**Path naming conventions:**
-- Use lowercase with underscores: `quadray_coordinate_0_0_0_0.png`
-- Include descriptive terms: `tetrahedron_3d_enhanced.png`
-- Add resolution indicators when relevant: `high_res_`, `300dpi_`
-- Use consistent file extensions: `.png`, `.svg`, `.pdf`
-
-### Supported Image Formats
-
-| Format | Use Case | Size Guidelines |
-|--------|----------|-----------------|
-| PNG | Raster images, plots, diagrams | 5×3.5 inches max |
-| SVG | Vector graphics, mathematical diagrams | 4×3 inches max |
-| PDF | Embedded vector content | 5×3.5 inches max |
-| JPEG | Photographic content (rare) | 5×3.5 inches max |
+Use source-relative image paths, concrete figure numbers and detailed captions.
+For files in `paper/markdown/`, repository assets begin `../../output/`.
+The [integration guide](INTEGRATION_GUIDE.md) defines exact resolution, caption
+handling and aspect-preserving raster fitting. Missing/unsupported inputs fail;
+SVG/PDF filename discovery does not provide a conversion stage.
 
 ## Figure Caption Standards
 
-### Caption Structure
+A caption states what the actual figure shows, input/scale where relevant,
+quantity/units and interpretation limits. It must not assert that appearance
+validates the mathematics or a real-world benefit. Example using an existing
+source reference:
 
-Every figure must have a two-part caption:
-
-1. **Image reference with title:**
-   ```markdown
-   ![Figure X: Descriptive Title](output/path/filename.png)
-   ```
-
-2. **Detailed caption paragraph:**
-   ```markdown
-   **Figure X**: Detailed description that explains the visualization's significance, technical details, and relevance to the research. This should be 2-3 sentences providing context and interpretation.
-   ```
-
-### Caption Content Guidelines
-
-**Required elements:**
-- Figure number (auto-generated by system)
-- Descriptive title in image reference
-- Technical explanation of what the visualization shows
-- Context about why this visualization is important
-- Connection to the research findings
-
-**Example of proper caption:**
 ```markdown
-![Figure 7: Quadray Coordinate System Origin](output/geometric/coordinates/quadray_coordinate_0_0_0_0.png)
+![Figure 2: Quadray Representative (2,1,1,0)](../../output/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
 
-**Figure 7**: Quadray Coordinate System Origin - This visualization shows the origin point (0,0,0,0) in the four-dimensional Quadray coordinate system. The Quadray system extends traditional 3D Cartesian coordinates with an additional tetrahedral dimension, enabling precise representation of complex geometric relationships that cannot be adequately captured in standard coordinate systems.
+**Figure 2**: Coordinate example in the scale-1 rank-three embedding. The tuple (2,1,1,0) maps to XYZ (0,2,2); a common offset in all four slots leaves the position unchanged.
 ```
 
-### Caption Writing Tips
-
-- Start with what the figure shows
-- Explain the technical significance
-- Connect to the broader research context
-- Use present tense
-- Keep descriptions concise but informative
-- Avoid redundant information from the main text
+The source image may predate a source correction; do not claim fresh rendering
+without a receipt. Keep long exact values in metadata when necessary rather
+than overflowing a figure label. Label vertex means and mass centroids separately.
 
 ## Link and Reference Standards
 
-### Internal Links
-
-**Repository links (use 🔗 emoji):**
-```markdown
-[🔗 core module](https://github.com/docxology/symergetics/tree/main/symergetics/core)
-[🔗 examples directory](https://github.com/docxology/symergetics/tree/main/examples)
-[🔗 repository docs](https://github.com/docxology/symergetics/tree/main/docs)
-```
-
-**Link text guidelines:**
-- Use descriptive text, not "click here" or "this link"
-- Include the 🔗 emoji for repository links
-- Keep link text concise but informative
-- Use consistent terminology across all links
-
-### External References
-
-**Academic citations:**
-```markdown
-Buckminster Fuller's Synergetics framework (Fuller, 1975)
-```
-
-**Web references:**
-```markdown
-[Active Inference Institute](https://activeinference.institute)
-```
+Link actual `.py` implementations or canonical API docs instead of stale
+extensionless GitHub paths and duplicated signatures. Citation metadata must
+come from a real identifiable source; do not invent journal/arXiv status or
+placeholder study names. Historical quotations need a locatable passage and
+must be labeled as context, not empirical evidence. A DOI deposit and a current
+development checkout have different revision boundaries.
 
 ## Mathematical Notation
 
-### Inline Mathematics
+- **Exact rational** means exact relative to specified rational input/algebra,
+  not exact measurement, π, e or φ. A rational approximation is still approximate
+  relative to its irrational target.
+- **Quadray** means rank-three common-offset equivalence with four slots, not
+  four independent Euclidean axes. Minimum-zero is not zero-sum normalization.
+- **Lattice** distinguishes the full BCC integer image from the selected FCC/IVM
+  neighbor graph. State the embedding scale and snapping policy.
+- **Volume** distinguishes native `abs(det)/4` units from Cartesian cubic units;
+  native volume can be fractional. Default solid ratios require declared sizes.
+- **Centers** distinguish exact vertex mean from uniform-solid mass centroid.
+- **Primorial** states the convention: implemented n# multiplies primes ≤ n;
+  13# = 30,030, while the product of the first six primes uses a different index.
+- **Digit patterns** state base, search interval and the no-carry condition for
+  binomial coefficients read as base-1000 blocks.
 
-**Simple expressions:**
-```markdown
-The ratio 3/4 + 1/6 = 11/12 maintains exact precision.
-```
-
-**Variables and functions:**
-```markdown
-The `quadray_coordinate(a,b,c,d)` function returns...
-```
-
-**Mathematical terms:**
-```markdown
-The *isotropic vector matrix* (IVM) coordinate system...
-```
-
-### Code Blocks for Mathematics
-
-**Mathematical algorithms:**
-```python
-def calculate_ivm_volume(vertices):
-    """
-    Calculate volume in IVM units using exact rational arithmetic.
-    
-    Args:
-        vertices: List of coordinate tuples
-        
-    Returns:
-        Rational number representing volume
-    """
-    # Implementation details...
-    return volume
-```
-
-### Mathematical Constants
-
-**Define constants clearly:**
-```markdown
-The fundamental geometric ratios in Synergetics are:
-- **Tetrahedron**: 1 IVM unit volume
-- **Octahedron**: 4 IVM units  
-- **Cube**: 3 IVM units
-- **Cuboctahedron**: 20 IVM units
-```
+[Foundations](markdown/03_mathematical_foundations.md) is the canonical manuscript
+mathematical account; [research boundaries](../docs/research/index.md) gives
+source/model limits.
 
 ## Code Block Standards
 
-### Python Code Blocks
-
-```python
-def example_function():
-    """Docstring explaining the function's purpose."""
-    # Implementation with clear comments
-    return result
-```
-
-**Guidelines:**
-- Include docstrings for all functions
-- Use clear, descriptive variable names
-- Add comments for complex logic
-- Keep code blocks under 15 lines in the paper
-- Use proper Python syntax highlighting
-
-### Mermaid Diagrams
-
-```mermaid
-graph TD
-    A[Input Data] --> B[Process]
-    B --> C[Output]
-    C --> D[Validation]
-```
-
-**Guidelines:**
-- Use descriptive node labels
-- Keep diagrams simple and clear
-- Use consistent arrow styles
-- Include legend or explanation if needed
-
-### Other Code Blocks
-
-```yaml
-# Configuration example
-metadata:
-  title: "Paper Title"
-  author: "Author Name"
-```
+Runnable snippets use real APIs with complete imports, supported inputs and no
+omitted implementation. Do not include `pass`, fake defaults, undefined helper
+calls or a speculative domain class as software documentation. Prefer links to
+[API contracts](../docs/api/index.md) and actual examples to another drifting API
+copy. If discussing a proposed algorithm, use clearly labeled prose with its
+inputs, assumptions and acceptance evidence instead of a runnable-looking stub.
+Keep displayed snippets short; the renderer truncates long code blocks.
 
 ## Section Structure
 
-### Standard Section Template
-
-```markdown
-## Section Title
-
-Brief introduction paragraph explaining the section's purpose and scope.
-
-### Subsection Title
-
-Detailed content with proper formatting:
-
-- **Key point 1**: Explanation with supporting details
-- **Key point 2**: Additional information
-- **Key point 3**: Further elaboration
-
-![Figure X: Relevant Visualization](output/path/filename.png)
-
-**Figure X**: Caption explaining the visualization's significance and technical details.
-
-Concluding paragraph that ties the section together and transitions to the next topic.
-```
-
-### Content Organization
-
-**Each section should:**
-1. Start with a clear introduction
-2. Present information in logical order
-3. Include relevant visualizations
-4. Provide detailed figure captions
-5. End with a conclusion or transition
+Use the twelve numbered modules linked from [paper structure](README.md#paper-structure).
+A section should state its question, assumptions, method/source, result/status
+and limitations. “Results” must not silently mix known identities, source review,
+test execution and empirical efficacy. Cross-link prerequisites rather than
+repeating incompatible mathematical tables across sections.
 
 ## Quality Assurance
 
-### Pre-Submission Checklist
-
-- [ ] All images have proper references and captions
-- [ ] Figure numbers are consistent
-- [ ] Links are working and properly formatted
-- [ ] Mathematical notation is clear and consistent
-- [ ] Code blocks are properly formatted
-- [ ] Headers follow the hierarchy guidelines
-- [ ] Text formatting is consistent throughout
-- [ ] All output/ references point to existing files
-
-### Validation Commands
-
-```bash
-# Check for broken image references
-grep -r "!\[.*\](" paper/markdown/ | grep -v "output/"
-
-# Validate figure numbering
-grep -r "Figure [0-9]" paper/markdown/ | sort
-
-# Check link formatting
-grep -r "\[.*\](" paper/markdown/ | grep -v "https://"
-```
+Before publication, the integration owner should check structural validation,
+actual reference targets and a freshly rendered PDF in isolation. Review
+legibility, aspect, units, caption numbering and supported image formats.
+These checks do not validate scientific claims. Historical coverage/test counts
+remain dated, revision-bound receipts; see [test evidence](TEST_EVIDENCE.md).
+No visual or documentation edit alone proves current green tests.
 
 ## Common Mistakes to Avoid
 
-### Image Integration Mistakes
-
-**❌ DON'T:**
-```markdown
-![image](output/file.png)
-![Figure](output/file.png)
-![Figure X](output/file.png)
-```
-
-**✅ DO:**
-```markdown
-![Figure X: Descriptive Title](output/category/subcategory/filename.png)
-
-**Figure X**: Detailed caption explaining the visualization.
-```
-
-### Link Formatting Mistakes
-
-**❌ DON'T:**
-```markdown
-[click here](https://github.com/docxology/symergetics)
-[this link](https://github.com/docxology/symergetics)
-```
-
-**✅ DO:**
-```markdown
-[🔗 Symergetics repository](https://github.com/docxology/symergetics)
-[🔗 core module](https://github.com/docxology/symergetics/tree/main/symergetics/core)
-```
-
-### Caption Mistakes
-
-**❌ DON'T:**
-```markdown
-![Figure 1](output/file.png)
-**Figure 1**: This shows a graph.
-```
-
-**✅ DO:**
-```markdown
-![Figure 1: Quadray Coordinate System Analysis](output/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
-
-**Figure 1**: Advanced Quadray Coordinate Visualization - This figure demonstrates the coordinate (2,1,1,0) in the Quadray system, showing how the four-dimensional tetrahedral coordinates capture spatial relationships that reveal underlying geometric symmetries and structural patterns in three-dimensional space.
-```
-
-### Mathematical Notation Mistakes
-
-**❌ DON'T:**
-```markdown
-The ratio 3/4 + 1/6 = 11/12 (this is wrong)
-```
-
-**✅ DO:**
-```markdown
-The ratio 3/4 + 1/6 = 11/12 maintains exact precision.
-```
+Do not claim all operations are exact, all solids are implemented, general XYZ
+inversion is lossless, exact arithmetic implies physical accuracy, or named
+geometric constants are independent measurements. Remove unsupported percentages
+and success stories rather than giving them invented sources. Do not describe
+`generate_paper.py` as PDF-only; use the [direct-render workflow](QUICK_START.md).
 
 ## Style Guide Updates
 
-This style guide is maintained alongside the paper system. When making updates:
-
-1. Update this document first
-2. Update affected markdown sections
-3. Test the changes with the PDF renderer
-4. Update the validation scripts if needed
-
----
-
-**Last Updated:** January 2025  
-**Version:** 1.0.0  
-**Maintainer:** Daniel Ari Friedman (daniel@activeinference.institute)
+When terminology or headings change, update affected source modules and backlinks
+without rewriting immutable publications or generated artifacts. Match evidence
+to the reviewed revision and state what was actually exercised.

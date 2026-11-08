@@ -8,6 +8,8 @@ showcasing geometric, mathematical, and numerical pattern analysis capabilities.
 Features demonstrated:
 - Enhanced 3D polyhedron visualizations with wireframe and surface rendering
 - Graphical abstracts combining multiple visualization perspectives
+- Focused mega overview plus geometry, arithmetic, patterns and full-topic posters
+- JSON sidecars preserving exact results and the panels actually rendered
 - Palindromic heatmaps showing number pattern analysis
 - Scheherazade network visualizations
 - Primorial spectrum analysis
@@ -35,6 +37,7 @@ from symergetics.geometry.polyhedra import Tetrahedron, Octahedron, Cube, Cuboct
 from symergetics.visualization import (
     # Mega graphical abstract
     create_mega_graphical_abstract,
+    get_organized_output_path,
 
     # Enhanced geometry visualizations
     plot_polyhedron_3d,
@@ -435,6 +438,36 @@ def demonstrate_batch_processing() -> List[Dict[str, Any]]:
     return batch_results
 
 
+def demonstrate_mega_graphical_abstracts(output_directory=None) -> List[Dict[str, Any]]:
+    """Render each topic group separately, preserving the canonical overview name.
+
+    An optional output directory supports isolated consumer/render runs without
+    writing repository output. Each PNG has a JSON sidecar containing its actual
+    panel identities, declared units and full exact computed results.
+    """
+    results = []
+    for section in ('overview', 'geometry', 'arithmetic', 'patterns', 'all'):
+        filename = ('mega_graphical_abstract.png' if section == 'overview'
+                    else f'mega_graphical_abstract_{section}.png')
+        destination = (Path(output_directory) / filename if output_directory is not None
+                       else Path(get_organized_output_path(
+                           'mathematical', 'mega_graphical_abstract', filename)))
+        try:
+            result = create_mega_graphical_abstract(
+                output_path=destination, backend='matplotlib', section=section,
+            )
+            sidecar = destination.with_suffix('.json')
+            result['files'].append(str(sidecar))
+            sidecar.write_text(json.dumps(result, indent=2, allow_nan=False), encoding='utf-8')
+            results.append(result)
+            log(f"Mega {section}: {result['metadata']['panels']} panels; {destination}")
+        except Exception as error:
+            log(f"Mega {section} failed: {error}", "ERROR")
+            results.append({'type': 'mega_graphical_abstract', 'section': section,
+                            'error': str(error)})
+    return results
+
+
 def main():
     """Main demonstration function."""
     print("🎨 COMPREHENSIVE VISUALIZATIONS DEMO")
@@ -491,20 +524,9 @@ def main():
         all_results.extend(batch_results)
         log(f"Batch processing phase completed: {len(batch_results)} operations")
 
-        # Phase 7: Mega Graphical Abstract
-        log("Phase 7: Mega Graphical Abstract Creation", "INFO")
-        try:
-            mega_result = create_mega_graphical_abstract(
-                title="Symergetics Package - Comprehensive Visual Overview",
-                backend="matplotlib"
-            )
-            all_results.append(mega_result)
-            log(f"✅ Mega graphical abstract created: {mega_result['files'][0]}")
-            log(f"   Panels: {mega_result['metadata']['panels']}")
-            log(f"   Dimensions: {mega_result['metadata']['dimensions']}")
-        except Exception as e:
-            log(f"⚠️ Mega graphical abstract creation failed: {e}", "WARNING")
-            all_results.append({'type': 'mega_graphical_abstract', 'error': str(e)})
+        # Phase 7: Focused overview, modular topic groups and complete poster
+        log("Phase 7: Modular Graphical Abstracts", "INFO")
+        all_results.extend(demonstrate_mega_graphical_abstracts())
 
         # Generate comprehensive report
         log("Generating visualization report", "DATA")

@@ -1,288 +1,128 @@
-#!/usr/bin/env python3
-"""
-Test Suite for Synergetics Paper PDF Renderer
-
-This module provides comprehensive testing for the PDF generation system,
-ensuring proper formatting, image integration, and content accuracy.
-
-Author: Daniel Ari Friedman
-"""
-
-import os
-import sys
+"""Real-image regressions for scientific figure identity, geometry and captions."""
+import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-import tempfile
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+from PIL import Image as RasterImage
+from pypdf import PdfReader
+from reportlab.platypus import Image, Paragraph
 
-from pdf_renderer import ScientificPaperRenderer, PaperSection
+from pdf_renderer import ScientificPaperRenderer
 
 
 class TestScientificPaperRenderer(unittest.TestCase):
-    """Test cases for the PDF renderer"""
-
     def setUp(self):
-        """Set up test fixtures"""
-        self.test_dir = Path(tempfile.mkdtemp())
-        self.markdown_dir = self.test_dir / "markdown"
-        self.output_dir = self.test_dir / "output"
-        self.markdown_dir.mkdir()
-        self.output_dir.mkdir()
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.paper = self.root / "paper"
+        (self.paper / "markdown").mkdir(parents=True)
+        self.assets = self.root / "output" / "figures"
+        self.assets.mkdir(parents=True)
+        self.renderer = ScientificPaperRenderer(str(self.paper), str(self.root / "pdf"))
 
-        # Create mock markdown files
-        self._create_mock_markdown_files()
+    def raster(self, name, size, color):
+        path = self.assets / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        RasterImage.new("RGB", size, color).save(path)
+        return path
 
-        # Initialize renderer
-        self.renderer = ScientificPaperRenderer(
-            paper_dir=str(self.test_dir),
-            output_dir=str(self.output_dir)
+    def render_source(self, filename, content):
+        (self.paper / "markdown" / filename).write_text(content, encoding="utf-8")
+        return PdfReader(self.renderer.generate_pdf("preview.pdf"))
+
+    def test_pdf_preserves_coordinate_operators_and_volume_units(self):
+        document = self.render_source(
+            "03_mathematical_foundations.md",
+            "# Exact coordinate and unit conventions\n\n"
+            "XYZ = **a−b−c+d**; displacement a−d; scale |s|³.\n\n"
+            "Volume |det|/4.\nScale |s|³.\n\n"
+            "Edge 2√2; primes p ≤ n; Cartesian volume (8/3) × native.\n",
         )
+        text = "\n".join(page.extract_text() for page in document.pages)
+        for expression in ("a−b−c+d", "a−d", "|s|³", "2√2", "p ≤ n", "(8/3) × native",
+                           "Volume |det|/4."):
+            self.assertIn(expression, text)
 
-    def tearDown(self):
-        """Clean up test fixtures"""
-        import shutil
-        shutil.rmtree(self.test_dir)
+    def test_pdf_table_keeps_empty_columns_and_stays_on_page(self):
+        document = self.render_source(
+            "04_system_architecture.md",
+            "# Source responsibilities\n\n"
+            "| Source | Optional | Responsibility |\n"
+            "| --- | --- | --- |\n"
+            "| [core/numbers.py](../../symergetics/core/numbers.py) | | "
+            "Rational-role " + "exact rational arithmetic and root boundaries " * 8 + "|\n",
+        )
+        anchors = []
 
-    def _create_mock_markdown_files(self):
-        """Create mock markdown files for testing"""
-        # Title section
-        (self.markdown_dir / "00_title.md").write_text("""
-# Test Paper Title
+        def record_text(text, transform, text_matrix, font, size):
+            if text.strip():
+                x = (text_matrix[4] * transform[0]
+                     + text_matrix[5] * transform[2] + transform[4])
+                anchors.append((text.strip(), x))
 
-## Front Matter
+        page = document.pages[0]
+        text = page.extract_text(visitor_text=record_text)
+        heading_x = next(x for value, x in anchors if value == "Responsibility")
+        role_x = next(x for value, x in anchors if value.startswith("Rational-role"))
+        self.assertAlmostEqual(role_x, heading_x, places=3)
+        self.assertTrue(all(0 <= x < float(page.mediabox.width) for _, x in anchors))
+        self.assertNotIn("](../../", text)
+        self.assertNotIn("---", text)
 
-**Authors:** Test Author
-**Email:** test@example.com
-**Abstract:** This is a test abstract.
-""")
+    def test_exact_directory_wins_over_duplicate_basename(self):
+        selected = self.raster("selected/same.png", (800, 200), "navy")
+        self.raster("other/same.png", (100, 400), "orange")
+        found = self.renderer._find_image_path("../../output/figures/selected/same.png")
+        self.assertTrue(found.samefile(selected))
+        self.assertIsNone(
+            self.renderer._find_image_path("../../output/figures/missing/same.png")
+        )
+        with self.assertRaises(ValueError):
+            self.renderer._find_image_path(str(selected))
 
-        # Abstract section
-        (self.markdown_dir / "01_abstract.md").write_text("""
-## Abstract
-
-This is a test abstract for the paper. It contains multiple paragraphs
-and demonstrates the rendering capabilities.
-
-### Key Points
-
-- Point 1
-- Point 2
-- Point 3
-""")
-
-        # Content section
-        (self.markdown_dir / "02_content.md").write_text("""
-## Test Section
-
-This is regular paragraph content.
-
-### Subsection
-
-More content here.
-
-```python
-def test_function():
-    return "test"
-```
-
-#### Sub-subsection
-
-Even more content.
-""")
-
-    def test_initialization(self):
-        """Test renderer initialization"""
-        self.assertIsInstance(self.renderer, ScientificPaperRenderer)
-        self.assertEqual(self.renderer.paper_dir, self.test_dir)
-        self.assertEqual(self.renderer.markdown_dir, self.markdown_dir)
-        self.assertEqual(self.renderer.output_dir, self.output_dir)
-
-    def test_load_sections(self):
-        """Test loading and ordering sections"""
-        sections = self.renderer.load_sections()
-
-        self.assertEqual(len(sections), 3)
-
-        # Check ordering
-        self.assertEqual(sections[0].order, 0)
-        self.assertEqual(sections[1].order, 1)
-        self.assertEqual(sections[2].order, 2)
-
-        # Check titles
-        self.assertIn("Test Paper Title", sections[0].title)
-        self.assertEqual(sections[1].title, "Abstract")
-        self.assertEqual(sections[2].title, "Test Section")
-
-    def test_process_markdown_content(self):
-        """Test markdown content processing"""
-        test_content = """
-## Test Header
-
-This is a paragraph.
-
-### Subsection
-
-Another paragraph.
-
-```python
-code block
-```
-
-- List item 1
-- List item 2
-"""
-
-        flowables = self.renderer.process_markdown_content(test_content)
-
-        # Should have multiple flowables (headers, paragraphs, code, lists)
-        self.assertGreater(len(flowables), 3)
-
-    def test_find_image_path(self):
-        """Test image path resolution"""
-        # Create a mock image file
-        img_file = self.output_dir / "test_image.png"
-        img_file.write_text("mock image content")
-
-        # Test finding existing image
-        found_path = self.renderer._find_image_path("test_image.png")
-        self.assertEqual(found_path, img_file)
-
-        # Test finding non-existent image
-        not_found = self.renderer._find_image_path("nonexistent.png")
-        self.assertIsNone(not_found)
-
-    @patch('pdf_renderer.SimpleDocTemplate')
-    def test_generate_pdf(self, mock_doc):
-        """Test PDF generation"""
-        mock_doc_instance = Mock()
-        mock_doc.return_value = mock_doc_instance
-
-        # Generate PDF
-        output_path = self.renderer.generate_pdf("test_output.pdf")
-
-        # Verify document was created and built
-        mock_doc.assert_called_once()
-        mock_doc_instance.build.assert_called_once()
-
-        # Check output path
-        expected_path = self.output_dir / "test_output.pdf"
-        self.assertEqual(output_path, str(expected_path))
-
-    def test_metadata_handling(self):
-        """Test metadata handling"""
-        metadata = self.renderer.metadata
-
-        self.assertIn('title', metadata)
-        self.assertIn('author', metadata)
-        self.assertIn('email', metadata)
-        self.assertIn('orcid', metadata)
-        self.assertIn('date', metadata)
-
-    def test_styles_setup(self):
-        """Test ReportLab styles setup"""
-        styles = self.renderer.styles
-
-        # Check that custom styles are defined
-        required_styles = [
-            'PaperTitle', 'AuthorInfo', 'Abstract',
-            'SectionHeader', 'SubsectionHeader', 'CodeBlock', 'FigureCaption'
+    def test_portrait_and_landscape_keep_intrinsic_aspect(self):
+        self.raster("wide.png", (800, 200), "navy")
+        self.raster("tall.png", (100, 400), "orange")
+        content = (
+            "![Figure 1: Wide](../../output/figures/wide.png)\n\n"
+            "**Figure 1**: Wide source.\n\n"
+            "![Figure 2: Tall](../../output/figures/tall.png)\n"
+            "**Figure 2:** Tall source.\n"
+        )
+        figures = [
+            item for item in self.renderer.process_markdown_content(content)
+            if isinstance(item, Image)
         ]
+        self.assertEqual(len(figures), 2)
+        self.assertAlmostEqual(figures[0].drawWidth / figures[0].drawHeight, 4.0)
+        self.assertAlmostEqual(figures[1].drawWidth / figures[1].drawHeight, 0.25)
 
-        for style_name in required_styles:
-            self.assertIn(style_name, styles)
-
-
-class TestPaperSection(unittest.TestCase):
-    """Test cases for PaperSection dataclass"""
-
-    def test_paper_section_creation(self):
-        """Test PaperSection creation and attributes"""
-        section = PaperSection(
-            filename="test.md",
-            title="Test Section",
-            content="# Test Content",
-            order=1,
-            images=["fig1.png", "fig2.png"]
+    def test_repeated_asset_keeps_both_authored_caption_occurrences(self):
+        self.raster("same.png", (300, 200), "navy")
+        first = self.renderer.process_markdown_content(
+            "![Figure 5: First](../../output/figures/same.png)\n\n"
+            "**Figure 5**: First context.\n"
         )
-
-        self.assertEqual(section.filename, "test.md")
-        self.assertEqual(section.title, "Test Section")
-        self.assertEqual(section.content, "# Test Content")
-        self.assertEqual(section.order, 1)
-        self.assertEqual(section.images, ["fig1.png", "fig2.png"])
-
-    def test_paper_section_defaults(self):
-        """Test PaperSection default values"""
-        section = PaperSection(
-            filename="test.md",
-            title="Test Section",
-            content="# Test Content",
-            order=1
+        second = self.renderer.process_markdown_content(
+            "![Figure 8: Second](../../output/figures/same.png)\n\n"
+            "**Figure 8:** Second context.\n"
         )
+        combined = first + second
+        self.assertEqual(sum(isinstance(item, Image) for item in combined), 2)
+        captions = [
+            item.getPlainText() for item in combined
+            if isinstance(item, Paragraph) and item.style.name == "FigureCaption"
+        ]
+        self.assertEqual(captions, ["Figure 5: First context.", "Figure 8: Second context."])
 
-        self.assertEqual(section.images, [])
-
-
-class TestIntegration(unittest.TestCase):
-    """Integration tests for the complete system"""
-
-    def setUp(self):
-        """Set up integration test environment"""
-        self.test_dir = Path(tempfile.mkdtemp())
-        self.markdown_dir = self.test_dir / "markdown"
-        self.output_dir = self.test_dir / "output"
-        self.markdown_dir.mkdir(parents=True)
-        self.output_dir.mkdir(parents=True)
-
-    def tearDown(self):
-        """Clean up integration test environment"""
-        import shutil
-        shutil.rmtree(self.test_dir)
-
-    def test_full_pipeline(self):
-        """Test the complete PDF generation pipeline"""
-        # Create comprehensive test content
-        (self.markdown_dir / "00_title.md").write_text("""
-# Integration Test Paper
-
-## Front Matter
-
-**Authors:** Integration Test Author
-**Abstract:** Full pipeline test.
-""")
-
-        (self.markdown_dir / "01_abstract.md").write_text("""
-## Abstract
-
-This tests the full PDF generation pipeline.
-""")
-
-        # Create renderer and generate PDF
-        renderer = ScientificPaperRenderer(str(self.test_dir), str(self.output_dir))
-
-        with patch('pdf_renderer.SimpleDocTemplate') as mock_doc:
-            mock_doc_instance = Mock()
-            mock_doc.return_value = mock_doc_instance
-
-            output_path = renderer.generate_pdf("integration_test.pdf")
-
-            # Verify the pipeline executed
-            mock_doc.assert_called_once()
-            mock_doc_instance.build.assert_called_once()
-
-            # Check output file would be created
-            expected_path = self.output_dir / "integration_test.pdf"
-            self.assertEqual(output_path, str(expected_path))
+    def test_missing_reference_is_not_replaced_by_another_same_named_image(self):
+        self.raster("elsewhere/same.png", (300, 200), "navy")
+        with self.assertRaises(FileNotFoundError):
+            self.renderer.process_markdown_content(
+                "![Figure 1: Missing](../../output/figures/missing/same.png)\n"
+            )
 
 
-def run_tests():
-    """Run the test suite"""
-    unittest.main(verbosity=2)
-
-
-if __name__ == '__main__':
-    run_tests()
-
+if __name__ == "__main__":
+    unittest.main()

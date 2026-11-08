@@ -93,9 +93,8 @@ class ImageChecker:
             for i, line in enumerate(lines, 1):
                 matches = re.findall(image_pattern, line)
                 for alt_text, img_path in matches:
-                    # Check if image exists
-                    full_path = self.output_dir / img_path
-                    if not full_path.exists():
+                    full_path = (md_file.parent / img_path).resolve()
+                    if not full_path.is_file():
                         missing_images.append({
                             'file': str(md_file),
                             'line': i,
@@ -114,38 +113,24 @@ class ImageChecker:
             })
     
     def _check_figure_captions(self):
-        """Check figure caption format and presence"""
+        """Check a nonempty caption after optional separating blank lines."""
         print("📝 Checking figure captions...")
-        
         for md_file in self.markdown_dir.glob("*.md"):
-            content = md_file.read_text(encoding='utf-8')
-            lines = content.split('\n')
-            
-            for i, line in enumerate(lines, 1):
-                if line.startswith('!['):
-                    # Check if next line has detailed caption
-                    if i < len(lines):
-                        next_line = lines[i].strip()
-                        if next_line.startswith('**Figure'):
-                            # Validate caption format
-                            if not re.match(r'\*\*Figure \d+:\*\* .+', next_line):
-                                self.issues.append({
-                                    'type': 'caption_format',
-                                    'severity': 'error',
-                                    'file': str(md_file),
-                                    'line': i + 1,
-                                    'message': f"Invalid caption format: '{next_line}'",
-                                    'suggestion': "Use format: '**Figure X**: Description'"
-                                })
-                        else:
-                            self.issues.append({
-                                'type': 'caption_missing',
-                                'severity': 'error',
-                                'file': str(md_file),
-                                'line': i,
-                                'message': "Missing detailed caption after image reference",
-                                'suggestion': "Add caption in format: '**Figure X**: Description'"
-                            })
+            lines = md_file.read_text(encoding="utf-8").splitlines()
+            for index, line in enumerate(lines):
+                if not line.startswith("!["):
+                    continue
+                caption_index = index + 1
+                while caption_index < len(lines) and not lines[caption_index].strip():
+                    caption_index += 1
+                caption = lines[caption_index].strip() if caption_index < len(lines) else ""
+                if not re.match(r"\*\*Figure \d+(?:\*\*:|:\*\*) .+", caption):
+                    self.issues.append({
+                        "type": "caption_format" if caption.startswith("**Figure") else "caption_missing",
+                        "severity": "error", "file": str(md_file), "line": index + 1,
+                        "message": "Missing or malformed detailed figure caption",
+                        "suggestion": "Use '**Figure N**: Description' after optional blank lines",
+                    })
     
     def _check_image_formatting(self):
         """Check image formatting and styling"""
@@ -160,15 +145,16 @@ class ImageChecker:
             for i, line in enumerate(lines, 1):
                 matches = re.findall(image_pattern, line)
                 for alt_text, img_path in matches:
-                    # Check path format
-                    if not img_path.startswith('output/'):
+                    try:
+                        if Path(img_path).is_absolute():
+                            raise ValueError("absolute image path")
+                        (md_file.parent / img_path).resolve().relative_to(self.output_dir.resolve())
+                    except ValueError:
                         self.issues.append({
-                            'type': 'path_format',
-                            'severity': 'error',
-                            'file': str(md_file),
-                            'line': i,
-                            'message': f"Image path should start with 'output/': '{img_path}'",
-                            'suggestion': f"Change to: 'output/{img_path}'"
+                            "type": "path_format", "severity": "error",
+                            "file": str(md_file), "line": i,
+                            "message": f"Image path must resolve from Markdown into project output/: {img_path}",
+                            "suggestion": "Use a source-relative path such as ../../output/category/subcategory/figure.png",
                         })
                     
                     # Check file extension
@@ -207,34 +193,22 @@ class ImageChecker:
                         image_refs[line] = (str(md_file), i)
     
     def _check_path_consistency(self):
-        """Check path consistency across references"""
+        """Check category/subcategory organization after source-path resolution."""
         print("📁 Checking path consistency...")
-        
-        paths_used = set()
-        
         for md_file in self.markdown_dir.glob("*.md"):
-            content = md_file.read_text(encoding='utf-8')
-            lines = content.split('\n')
-            
-            for i, line in enumerate(lines, 1):
-                if line.startswith('!['):
-                    # Extract path from image reference
-                    match = re.search(r'!\[.*\]\((.*?)\)', line)
-                    if match:
-                        img_path = match.group(1)
-                        paths_used.add(img_path)
-        
-        # Check if all paths follow consistent structure
-        for path in paths_used:
-            if not re.match(r'output/[^/]+/[^/]+/.+', path):
-                self.issues.append({
-                    'type': 'path_structure',
-                    'severity': 'warning',
-                    'file': 'multiple',
-                    'line': 0,
-                    'message': f"Path doesn't follow standard structure: '{path}'",
-                    'suggestion': "Use format: 'output/category/subcategory/filename.ext'"
-                })
+            content = md_file.read_text(encoding="utf-8")
+            for path in re.findall(r"!\[[^\]]*\]\(([^)]+)\)", content):
+                try:
+                    relative = (md_file.parent / path).resolve().relative_to(self.output_dir.resolve())
+                except ValueError:
+                    continue  # Already reported as an invalid source/output path.
+                if len(relative.parts) < 3:
+                    self.issues.append({
+                        "type": "path_structure", "severity": "warning",
+                        "file": str(md_file), "line": 0,
+                        "message": f"Image is not organized by category/subcategory: {path}",
+                        "suggestion": "Keep generated images under output/category/subcategory/",
+                    })
     
     def generate_report(self) -> str:
         """Generate image check report"""
@@ -330,7 +304,6 @@ def main():
     print("\n" + "=" * 40)
     print("IMAGE CHECK SUMMARY")
     print("=" * 40)
-    print(f"✅ Passed: {len(issues) - errors - warnings}")
     print(f"⚠️  Warnings: {warnings}")
     print(f"❌ Errors: {errors}")
     

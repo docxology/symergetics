@@ -1,518 +1,135 @@
-# Architecture Documentation
+# Package architecture: arithmetic, indexed surfaces and file-producing views
+
+[Documentation map](../index.md) · [API contracts](../api/index.md) · [Contributor guide](../contributor-development-guide.md)
 
 ## System Overview
 
-The Symergetics package separates exact rational/integer arithmetic from floating-point XYZ geometry and discrete lattice projection.
-
-```mermaid
-graph TD
-  U[User] -->|API| P[symergetics]
-  subgraph P[symergetics/]
-    A[core\n numbers, coordinates, constants]
-    B[geometry\n polyhedra, transformations]
-    C[computation\n primorials, palindromes]
-    D[utils\n conversion, mnemonics]
-    E[visualization\n geometry, numbers, mathematical]
-  end
-  D --> A
-  A --> B
-  A --> C
-  B --> E
-  C --> E
-  D --> E
-```
-
 ```text
 symergetics/
-├── core/           # Fundamental mathematical classes
-│   ├── numbers.py          # SymergeticsNumber with exact fractions
-│   ├── coordinates.py      # Quadray coordinate system (IVM)
-│   └── constants.py        # Mathematical constants & Synergetics values
-├── geometry/       # Geometric objects and transformations
-│   ├── polyhedra.py        # Tetrahedron, Octahedron, Cube, Cuboctahedron
-│   └── transformations.py  # Coordinate transformations
-├── computation/    # Advanced mathematical calculations
-│   ├── primorials.py       # Primorials & Scheherazade numbers
-│   └── palindromes.py      # Pattern analysis & SSRCD
-├── utils/          # Utilities and helper functions
-│   ├── conversion.py       # Number system conversions
-│   └── mnemonics.py        # Memory aids for large numbers
-├── visualization/  # Visualizations and reporting
-│   ├── geometry.py         # Polyhedra, coordinates, IVM lattice
-│   ├── numbers.py          # Palindromes, primorials, Scheherazade
-│   └── mathematical.py     # Continued fractions, base conversions, patterns
-└── tests/          # Comprehensive test suite (100% coverage)
-    ├── test_core_*.py      # Core module tests
-    ├── test_geometry_*.py  # Geometry tests
-    ├── test_computation_*.py # Computation tests
-    └── test_utils_*.py     # Utility tests
+  core/           rational scalars, quadray coordinates, reference constants
+  geometry/       indexed polyhedra, solid measurements, quantized transforms
+  computation/    primorials, decimal patterns, finite analysis, mnemonics
+  utils/          conversion, number formatting, reports
+  visualization/  configuration, geometry/number/math/advanced rendering
 ```
 
-## Design Principles
-
-### 1. Exact Arithmetic Foundation
-
-**Core Principle**: Preserve exact rational scalars and integer coordinates until an explicitly documented numerical or quantization boundary.
-
-```python
-# Design: Use fractions.Fraction for unlimited precision
-class SymergeticsNumber:
-    def __init__(self, numerator, denominator=1):
-        self.value = Fraction(numerator, denominator)
-
-    def __add__(self, other):
-        if isinstance(other, SymergeticsNumber):
-            return SymergeticsNumber(self.value + other.value)
-        return SymergeticsNumber(self.value + Fraction(other))
-```
-
-**Benefits:**
-
-- No floating-point accumulation in rational scalar arithmetic
-- Exact integer determinant volumes
-- Explicit floating-point and lattice-quantization boundaries
-- Compatible with symbolic computation
-
-### 2. Modular Architecture
-
-**Separation of Concerns:**
-
-- **Core**: Fundamental mathematical objects
-- **Geometry**: Spatial relationships and transformations
-- **Computation**: Advanced mathematical calculations
-- **Utils**: Helper functions and conversions
-
-**Dependency Flow:**
-
-```mermaid
-flowchart LR
-  utils --> core
-  core --> geometry
-  core --> computation
-  geometry --> visualization
-  computation --> visualization
-  tests -.-> core & geometry & computation & utils & visualization
-```
-
-### 3. Test-Driven Development
-
-The package-wide coverage floor is **85%** (`pyproject.toml`), exercised through:
-
-- Unit tests for all classes and functions
-- Integration tests for module interactions
-- Property-based testing for mathematical correctness
-- Performance regression tests
-
-```python
-# Example test structure
-def test_exact_arithmetic():
-    """Test that arithmetic operations are exact."""
-    a = SymergeticsNumber(1, 3)
-    b = SymergeticsNumber(1, 6)
-    result = a + b
-
-    # Should be exactly 1/2
-    assert result.value == Fraction(1, 2)
-
-def test_coordinate_normalization():
-    """Test IVM coordinate normalization."""
-    coord = QuadrayCoordinate(3, 2, 2, 1)
-    # Should normalize by subtracting min(3,2,2,1) = 1
-    assert coord.a == 2
-    assert coord.b == 1
-    assert coord.c == 1
-    assert coord.d == 0
-```
+The package root re-exports a selected API in
+[`symergetics/__init__.py`](../../symergetics/__init__.py), not every helper.
+NumPy is a core dependency. Scientific backends are optional extras declared in
+[`pyproject.toml`](../../pyproject.toml). There is no runtime import of sibling
+QuadMath or QuadCraft packages; cross-project checks belong to the examples and
+suite verifier.
 
 ## Core Module Architecture
 
 ### SymergeticsNumber Class
 
-**Internal Structure:**
-```python
-@dataclass
-class SymergeticsNumber:
-    value: Fraction
-
-    # Arithmetic operations
-    def __add__(self, other) -> 'SymergeticsNumber'
-    def __mul__(self, other) -> 'SymergeticsNumber'
-    def __truediv__(self, other) -> 'SymergeticsNumber'
-
-    # Special methods
-    def to_float(self, precision=None) -> float
-    def to_mnemonic(self) -> str
-    def is_palindromic() -> bool
-```
-
-**Memory Management:**
-
-- Lazy evaluation of expensive operations
-- Efficient fraction reduction
-- Minimal object creation in loops
+[`core/numbers.py`](../../symergetics/core/numbers.py) wraps `Fraction` and
+promotes integral fields before native arithmetic. Rational operations and
+perfect rational roots stay exact; irrational powers use finite-precision
+approximation. Display and float conversion are separate boundaries. There is
+no general symbolic-expression engine or custom arithmetic exception hierarchy.
 
 ### Quadray Coordinate System
 
-**Integer-coordinate boundary:**
-
-```python
-from fractions import Fraction
-from symergetics.core.coordinates import QuadrayCoordinate
-
-large = QuadrayCoordinate(2**53 + 1, 0, 0, 0)
-assert large.a == 2**53 + 1
-half = QuadrayCoordinate(Fraction(7, 2), 0, 0, 0)
-assert half.a == 4
-```
-
-Normalization subtracts the minimum component. Integral/rational inputs do not
-detour through binary64; `as_array` and XYZ conversion are float boundaries.
-
-**Coordinate Conversions:**
-- **Urner embedding**: finite rank-three 3×4 matrix with the all-ones gauge in its kernel
-- **Discrete inverse**: nearest integer-quadray projection with canonical tuple tie-breaking
-- **Continuous inverse**: `xyz_to_quadray_matrix` returns the actual 4×3 pseudoinverse
-
-```mermaid
-graph LR
-  Q[(Quadray a,b,c,d)] -- urner_embedding() --> X[(XYZ x,y,z)]
-  X -- nearest lattice projection --> Q2[(Integer Quadray)]
-  Q2 -- minimum-zero normalization --> Q0[(Canonical Quadray)]
-```
+[`core/coordinates.py`](../../symergetics/core/coordinates.py) stores integer
+labels for a rank-three quotient. Constructor snapping is distinct from the
+XYZ nearest-lattice inverse. Minimum-zero normalization chooses a gauge;
+`add`/`sub` retain raw labels. Equality/hash use stored labels, so mutable
+coordinates need care in hashed containers. The embedding, exact metrics,
+nearest projection and IVM shell enumeration share this module. See the
+[canonical coordinate contract](../api/index.md#quadraycoordinate).
 
 ## Geometry Module Architecture
 
 ### Polyhedral Classes
 
-**Base Class Design:**
-```python
-class SymergeticsPolyhedron:
-    def __init__(self, vertices: List[QuadrayCoordinate]):
-        self.vertices = vertices
-        self._volume_cache: Optional[int] = None
+[`geometry/polyhedra.py`](../../symergetics/geometry/polyhedra.py) declares
+face cycles over mutable vertex lists. Edges are deduplicated by index;
+faces become triangle fans. Volume, area, diagnostics and both exact centroids
+are recomputed from current vertices rather than cached reference constants.
 
-    def volume(self) -> int:
-        """Calculate volume with caching."""
-        if self._volume_cache is None:
-            self._volume_cache = self._calculate_volume()
-        return self._volume_cache
-
-    def _calculate_volume(self) -> int:
-        """Override in subclasses for specific calculations."""
-        raise NotImplementedError
-```
-
-**Volume Calculation Methods:**
-1. **Integer Tetrahedron Volume**: Using Bareiss determinant
-2. **Ace 5×5 Method**: Alternative determinant calculation
-3. **Decomposition Methods**: Breaking complex polyhedra into tetrahedra
+Closed orientable nonintersecting shells are a precondition for solid measures.
+Multiple shells use even-odd enclosure to model cavities. Face nonplanarity,
+rank, closure and convexity diagnostics are not an intersection certificate.
+Vertex mean, floor-snapped centroid and solid mass center are separate APIs;
+see [solid analysis](../api/index.md#indexed-surfaces-and-live-solid-analysis).
 
 ### Transformation System
 
-Transforms operate on spatial points modulo the common-offset gauge, not on an
-arbitrarily chosen four-component representative. Integer scaling and origin
-inversion remain exact. Fractional scaling and named plane reflections operate
-in XYZ, then use the core nearest-point projection once.
-
-```python
-from symergetics.core.coordinates import QuadrayCoordinate
-from symergetics.geometry.transformations import scale, reflect
-
-point = QuadrayCoordinate(1, 0, 0, 0)
-alias = QuadrayCoordinate(8, 7, 7, 7, normalize=False)
-assert scale(point, 0.75) == scale(alias, 0.75)
-assert reflect(point, "a") == reflect(alias, "a")
-```
-
-A 4×4 coordinate transform is valid on the quotient only when it maps the
-all-ones vector to a multiple of itself. Quantization means that fractional
-transforms need not preserve lengths or admit an inverse.
+[`geometry/transformations.py`](../../symergetics/geometry/transformations.py)
+implements translation, scale, reflection, coordinate matrices, XYZ rotations
+and plane projection. Operations leaving the lattice project back; they are
+not generally invertible or metric preserving. Gauge-compatible 4 by 4 maps
+and continuous 4 by 3 pseudoinverses have different contracts from discrete
+nearest conversion.
 
 ## Computation Module Architecture
 
-### Primorial Calculations
+Primorials use a prime upper bound, Scheherazade values are powers of 1001,
+and palindrome analysis concerns finite decimal strings. Analysis metrics and
+geometric mnemonic matches describe their selected inputs; they are not
+automatically scientific evidence for a natural system. Functions return
+scalars, lists or dictionaries as declared in the source. See
+[computation reference](../api/index.md#computation-module).
 
-**Efficient Implementation:**
-```python
-def primorial(n: int) -> SymergeticsNumber:
-    """Calculate n# using cached primes."""
-    if n < 2:
-        return SymergeticsNumber(1)
+## Visualization and output lifecycle
 
-    primes = _get_primes_up_to(n)
-    result = SymergeticsNumber(1)
+[`visualization/__init__.py`](../../symergetics/visualization/__init__.py)
+owns process-global configuration, organized path creation, export/batch and
+animation helpers. `set_config` merges a dictionary and validates dimensions
+before replacing configuration. It is not a thread-local context manager.
 
-    for prime in primes:
-        result = result * SymergeticsNumber(prime)
+Plot functions produce files plus metadata; they do not expose live figures as
+the public return contract. Geometry displays anchor-relative scale-one XYZ
+coordinates and records exact origins and live analysis. The same declared
+fans underpin measurement and rendering. Backend support and output format
+handling are function-specific, not universal promises attached to global
+`formats`. See [plotting contracts](../api/index.md#visualization-module).
 
-    return result
-
-@lru_cache(maxsize=128)
-def _get_primes_up_to(n: int) -> List[int]:
-    """Cached prime generation using Sieve of Eratosthenes."""
-    # Implementation with caching for performance
-```
-
-### Palindrome Analysis
-
-**Pattern Recognition:**
-```python
-def is_palindromic(number) -> bool:
-    """Efficient palindrome detection."""
-    num_str = str(abs(number))
-    return num_str == num_str[::-1]
-
-def extract_palindromic_patterns(number, min_length=3):
-    """Find all palindromic substrings."""
-    num_str = str(abs(number))
-    patterns = set()
-
-    for i in range(len(num_str)):
-        for j in range(i + min_length, len(num_str) + 1):
-            substring = num_str[i:j]
-            if substring == substring[::-1]:
-                patterns.add(substring)
-
-    return sorted(list(patterns), key=len, reverse=True)
-```
-
-## Performance Considerations
-
-### Memory Optimization
-
-1. **Lazy Evaluation**: Expensive calculations cached
-2. **Efficient Representations**: Integer coordinates where possible
-3. **Minimal Object Creation**: Reuse objects in tight loops
-
-### Computational Efficiency
-
-1. **Cached Calculations**: Primes, embeddings, common values
-2. **Integer Arithmetic**: Where precision allows
-3. **Vectorized Operations**: NumPy integration for bulk operations
-
-### Scaling Characteristics
-
-- **Small Numbers**: Constant time for basic operations
-- **Large Numbers**: Linear time for string operations
-- **Bulk Operations**: Optimized for vectorized calculations
-
-```mermaid
-graph TD
-  A[Small n] -->|O-1| B[Core ops]
-  C[Large integers] -->|O-k| D[String scanning]
-  E[Batch coords] -->|vectorized| F[NumPy paths]
-```
-
-## Testing Architecture
-
-### Test Organization
-
-```text
-tests/
-├── conftest.py              # Shared fixtures and configuration
-├── test_core_numbers.py     # SymergeticsNumber tests
-├── test_core_coordinates.py # Quadray coordinate tests
-├── test_core_constants.py   # Constants and Synergetics values
-├── test_geometry_polyhedra.py    # Polyhedral geometry tests
-├── test_geometry_transformations.py # Transformation tests
-├── test_computation_primorials.py # Primorial tests
-├── test_computation_palindromes.py # Palindrome analysis tests
-├── test_utils_conversion.py       # Conversion utility tests
-└── test_utils_mnemonics.py        # Mnemonic encoding tests
-```
-
-### Test Coverage Metrics
-
-**Target: 100% Coverage**
-
-**Coverage Areas:**
-
-- **Statement Coverage**: Every line of code executed
-- **Branch Coverage**: All conditional branches tested
-- **Function Coverage**: All functions called
-- **Class Coverage**: All classes instantiated
-
-### Test Types
-
-1. **Unit Tests**: Individual functions and methods
-2. **Integration Tests**: Module interactions
-3. **Property Tests**: Mathematical invariants
-4. **Performance Tests**: Regression detection
-
-```python
-# Example comprehensive test
-def test_symergetics_number_arithmetic():
-    """Test arithmetic operations maintain exactness."""
-    # Given
-    a = SymergeticsNumber(3, 4)
-    b = SymergeticsNumber(1, 2)
-
-    # When
-    result = a + b
-
-    # Then
-    assert result.value == Fraction(5, 4)
-    assert str(result) == "5/4 (1.25000000)"
-```
+The unreleased main mega API retains its original three positional parameters
+and adds keyword-only topic selection. Its focused default, all-topic option,
+computed payload and overwrite behavior are documented in
+[poster sections](../api/index.md#scientific-poster-sections-unreleased-main).
 
 ## Error Handling Architecture
 
-### Exception Hierarchy
+Public methods use standard exceptions such as `ValueError`, `TypeError`,
+`ZeroDivisionError` and optional-backend `ImportError`. Source validation is
+specific to each function. No `SynergeticsError`, `GeometryError` or
+`ConversionError` class tree ships here. A validation failure must not be
+silently reclassified as a successful plot or a different computation.
 
-```python
-class SymergeticsError(Exception):
-    """Base exception for Symergetics package."""
-    pass
+## Orchestration (run.py)
 
-class ArithmeticError(SymergeticsError):
-    """Arithmetic operation errors."""
-    pass
-
-class GeometryError(SymergeticsError):
-    """Geometric calculation errors."""
-    pass
-
-class ConversionError(SymergeticsError):
-    """Coordinate conversion errors."""
-    pass
-```
-
-### Error Recovery
-
-1. **Graceful Degradation**: Fall back to approximations when exact calculation fails
-2. **Input Validation**: Comprehensive parameter checking
-3. **Meaningful Messages**: Clear error descriptions with suggestions
-
-## Integration Architecture
-
-### External Library Integration
-
-**NumPy Integration:**
-```python
-# Efficient bulk coordinate conversions
-def to_xyz_array(coords: List[QuadrayCoordinate]) -> np.ndarray:
-    """Convert multiple coordinates to XYZ array."""
-    return np.array([coord.to_xyz() for coord in coords])
-```
-
-**SymPy Integration:**
-```python
-# Symbolic mathematics support
-def to_sympy_fraction(symergetics_num: SymergeticsNumber):
-    """Convert to SymPy rational for symbolic computation."""
-    return sympy.Rational(symergetics_num.numerator, symergetics_num.denominator)
-```
-
-### API Design
-
-**Consistent Interface:**
-- All classes support `as_tuple()`, `as_array()`, `to_dict()`
-- Functions follow `input -> output` functional pattern
-- Comprehensive docstrings with examples
-
-**Extensibility:**
-- Abstract base classes for custom implementations
-- Plugin architecture for additional calculations
-- Hook system for custom transformations
+[`run.py`](../../run.py) selects the running interpreter unless `--python`
+is supplied. Default setup installs scientific/test extras into that selected
+environment; tests and examples are real subprocess stages. `--examples-only`
+skips setup and tests. Requested stages continue after failures and the final
+exit status records failure. Reports under `output/orchestration_results.json`
+include commands, outcomes and an existing-file inventory; an existing output
+is not proof that this run produced it. The orchestrator writes `logs/` and
+`output/`, so do not run it against user artifacts casually.
 
 ## Deployment Architecture
 
-### Package Distribution
+Use a checkout or GitHub release wheel, not PyPI. See
+[installation](../../README.md#install-and-run). The scientific workflow uses
+Python 3.13 explicitly without changing the repository pin. Main documentation
+can describe unreleased changes while package metadata still says 1.3.0;
+pin the source revision when reproducing them.
 
-**Setup Configuration:**
-```python
-# pyproject.toml
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+## Testing Architecture
 
-[project]
-name = "symergetics"
-version = "0.1.0"
-dependencies = []
-```
+[Test responsibilities](../test-architecture-summary.md) map behavior to
+current modules. [Test commands](../testing-guide.md) explain package-wide
+coverage, focused diagnostics and receipts. Do not infer readiness or test
+inventory from saved category counts or an unexecuted command.
 
-**Installation Options:**
-- **Basic**: `pip install -e .` from a checkout (`symergetics` is not on PyPI)
-- **Development**: `pip install -e .[dev]`
-- **Scientific**: `pip install -e .[scientific]` from a checkout
+## Performance Considerations
 
-### Environment Compatibility
-
-**Python Versions:** 3.8+
-**Operating Systems:** Linux, macOS, Windows
-**Dependencies:** Minimal core dependencies
-
-### Continuous Integration
-
-**GitHub Actions Workflow:**
-```yaml
-name: CI
-on: [push, pull-request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .[test]
-    - name: Run tests
-      run: |
-        pytest --cov=symergetics --cov-report=xml
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-```
-
-### Orchestration (run.py)
-
-`run.py` provides end-to-end setup, test, and demo execution using `uv`.
-
-```mermaid
-sequenceDiagram
-  autonumber
-  participant U as User
-  participant R as run.py
-  participant V as uv
-  participant T as pytest
-  participant EX as examples/
-  U->>R: python3 run.py [flags]
-  R->>V: uv sync; install -e .[scientific,test]
-  R->>T: pytest optional
-  R->>EX: run demo scripts
-  EX->>R: artifacts under output/
-  R->>U: summary + JSON report
-```
-
-## Future Architecture Extensions
-
-### Planned Enhancements
-
-1. **GPU Acceleration**: CUDA support for bulk calculations
-2. **Distributed Computing**: Multi-node volume calculations
-3. **Database Integration**: Persistent storage for large computations
-4. **Web API**: RESTful interface for remote calculations
-
-### Research Integrations
-
-1. **Active Inference Framework**: Integration with existing AI libraries
-2. **Geometric Deep Learning**: Neural networks on polyhedral structures
-3. **Quantum Computing**: Quantum algorithms for volume calculations
-
-### Performance Optimizations
-
-1. **JIT Compilation**: Numba integration for critical paths
-2. **Memory Pooling**: Object reuse for frequent calculations
-3. **Parallel Processing**: Multi-core volume computations
-
-This architecture ensures the Symergetics package remains maintainable, extensible, and performant while providing exact mathematical precision for advanced research applications.
+Exact integer/rational cost depends on operand bit length. Multi-shell geometry
+and general nearest-point search depend on input shape; rendering depends on
+canvas size and primitives. No package GPU/distributed acceleration, general
+read-thread-safety guarantee or automatic geometry cache is promised. See
+[measurement guidance](../performance-optimization-guide.md).

@@ -2,12 +2,18 @@
 
 ## Core Concept Integration
 
-The API is designed around the core concept of **symbolic operations on all-integer accounting based upon ratios (geometrically based upon high frequency shapes) of the Synergetics geometry and Quadray/4D coordinates**. Each component contributes to this unified approach:
+This reference describes the development checkout. Rational scalars, integer
+quadray geometry, finite digit-pattern analysis and file-producing plots are
+implemented; general cognitive, biological, quantum and cosmological models
+are not installed APIs. See the [concept guide](../core-concept-guide.md)
+and [checkout/release installation](../../README.md#install-and-run).
 
-- **SymergeticsNumber**: Enables symbolic operations and all-integer accounting
-- **QuadrayCoordinate**: Provides geometric ratios through high-frequency shapes
-- **Synergetics Geometry**: Implements the comprehensive geometric framework
-- **Computation Modules**: Apply exact ratios to advanced mathematical patterns
+The keyword-only scientific-poster section selector below is **unreleased
+main functionality**, not an addition to the immutable 1.3.0 wheel.
+
+Declaration blocks describe signatures; they are not standalone executable
+class definitions. Complete runnable consumer examples live in the
+[cookbook](../api-cookbook-recipes.md).
 
 ```mermaid
 graph TD
@@ -30,7 +36,7 @@ graph TD
 class SymergeticsNumber:
     """Exact rational arithmetic for Synergetics."""
 
-    def __init__(self, numerator, denominator=1)
+    def __init__(self, numerator, denominator=None)
     def __add__(self, other) -> SymergeticsNumber
     def __mul__(self, other) -> SymergeticsNumber
     def to_float(self, precision=None) -> float
@@ -38,8 +44,8 @@ class SymergeticsNumber:
     def nth_root(cls, value, degree, max_denominator=1000000) -> SymergeticsNumber
     @classmethod
     def sqrt(cls, value, max_denominator=1000000) -> SymergeticsNumber
-    def to_mnemonic(self) -> str
-    def is_palindromic() -> bool
+    def to_mnemonic(self, max_digits=50) -> str
+    def is_palindromic(self) -> bool
 ```
 
 **Key Methods:**
@@ -125,6 +131,18 @@ by canonical tuple order. Custom embeddings must be finite, rank-three 3×4
 matrices with the common-offset gauge in their kernel. `to_xyz` and `as_array`
 are floating-point boundaries; they do not promise arbitrary-precision XYZ.
 
+The default scale-one map is
+`XYZ=(a-b-c+d, a+b-c-d, a-b+c-d)`. Its basis columns have length `sqrt(3)`,
+not one. Common-offset aliases share a physical point, but equality and hashing
+compare stored components. `add` and `sub` retain raw labels; normalize explicitly
+when constructing canonical tuple identities. Do not mutate a coordinate while
+it is a dictionary key or set member.
+
+The full integer image is BCC; nearest projection is not restricted to FCC.
+Exact-distance ties choose the lexicographically smallest minimum-zero tuple.
+It differs from QuadMath's half-up inverse. A continuous pseudoinverse returned
+by `geometry.transformations.xyz_to_quadray_matrix` is a different operation.
+
 Exact metrics evaluate native integer combinations and rational embedding
 coefficients before any floating boundary. Finite floats mean their exact
 stored binary values. Floating dot products round completed expressions once;
@@ -188,7 +206,7 @@ rather than returning a stale cached value after a vertex replacement.
 | `surface_area(embedding=None)` | Floating area in the supplied XYZ metric; scaled accumulation retains recoverable subnormal totals |
 | `volume_centroid_exact()` | Exact uniform-solid mass centroid as a canonical rational tuple; undefined for zero volume |
 | `analyze_geometry()` | Live affine rank, physical vertex count, closure, nonplanar face indices, triangle-surface convexity, area, both volume units and both centroids |
-| `to_xyz_vertices(embedding=None, relative_to=None)` | Optional displacement-first coordinates, avoiding large absolute-position cancellation |
+| `to_xyz_vertices(embedding=None, *, relative_to=None)` | Optional displacement-first coordinates, avoiding large absolute-position cancellation |
 
 Volume and solid moments require closed, orientable, non-self-intersecting
 triangle surfaces. Nonintersecting disconnected shells add their masses;
@@ -216,6 +234,11 @@ assert cube.volume_centroid_exact() == (Fraction(1, 4), 0, 0, 0)
 
 At default scale one, XYZ volume is `8/3` times native IVM volume.
 See the [suite units and interoperability contract](../synergetics-suite.md).
+
+At uniform embedding scale `s`, XYZ volume gains a factor `abs(s)**3` and area
+a factor `s**2`; native IVM volume is unchanged. The default regular tetrahedron
+has edge `2*sqrt(2)` whereas the default cube has edge `2`. Reference volume
+ratios are not equal-edge claims. See the [derivation](../mathematical-foundations-synergetics.md).
 
 #### Tetrahedron
 
@@ -293,6 +316,14 @@ def scheherazade_power(n: int) -> SymergeticsNumber
 def cosmic_abundance_factors() -> Dict
 ```
 
+`primorial(n)` multiplies primes at most `n`, not the first `n` primes.
+`scheherazade_power(n)` computes `1001**n`. Both return `SymergeticsNumber`.
+Import the additional helpers from
+[`computation.primorials`](../../symergetics/computation/primorials.py), not the
+package root. `scheherazade_pascal_coefficients(power)` returns a coefficient
+list only when its three-digit blocks match without carries; an empty result
+is not a missing proof to be filled with assumed coefficients.
+
 ### Palindrome Analysis
 
 ```python
@@ -315,10 +346,15 @@ def decimal_to_fraction(decimal_str: str) -> SymergeticsNumber
 def best_rational_approximation(value: float, max_denominator=1000000) -> SymergeticsNumber
 ```
 
+`decimal_to_fraction` preserves the supplied decimal string. Bounded rational
+approximation functions approximate the supplied float, not an unknown intended
+real value. Neither their names nor their rational return types certify an
+original real constant as exact.
+
 ### Mnemonic Encoding
 
 ```python
-def mnemonic_encode(number, style='grouped') -> str
+def mnemonic_encode(number, style='raw') -> str
 def format_large_number(number, grouping=3) -> str
 def create_memory_aid(number) -> Dict[str, str]
 def mnemonic_decode(mnemonic) -> Union[int, str]
@@ -328,57 +364,61 @@ def ungroup_number(grouped: str) -> int
 Note on number formatting:
 
 - Default representations across the project are ungrouped for symbolic workflows; use `format_large_number()` and `ungroup_number()` to transform as needed.
+- Mnemonics are human-facing formatting, not numeric compression or a way to
+  remove the memory/computation cost of a large integer.
 
 ## Constants
 
 ### Mathematical Constants
 
 ```python
-# Volume ratios
-TETRAHEDRON_VOLUME = 1
-OCTAHEDRON_VOLUME = 4
-CUBE_VOLUME = 3
-CUBOCTAHEDRON_VOLUME = 20
+from symergetics import SymergeticsConstants
 
-# Scheherazade numbers
-SCHEHERAZADE_BASE = 1001
-SCH_1 = 1001
-SCH_2 = 1002001
-SCH_6 = 1006015020015006001  # Contains Pascal's triangle
-
-# Cosmic scaling
-ATOMIC_DIAMETERS_PER_INCH = 25_000_000_000
-EARTH_CIRCUMFERENCE_SECONDS = 1_296_000
-EARTH_CIRCUMFERENCE_DEGREES = 360
+assert SymergeticsConstants.VOLUME_RATIOS["tetrahedron"].value == 1
+assert SymergeticsConstants.VOLUME_RATIOS["cube"].value == 3
+assert SymergeticsConstants.SCHEHERAZADE_POWERS[2].value == 1002001
 ```
+
+Reference ratios are stored in `VOLUME_RATIOS`; they are not module-level
+`TETRAHEDRON_VOLUME`/`CUBE_VOLUME` aliases or replacements for live `volume()`.
+The class also contains `SCHEHERAZADE_POWERS`, `PRIMORIALS`, `COSMIC_SCALING`,
+`DIAMETER_TO_EDGE_RATIOS` and `IRRATIONAL_APPROXIMATIONS`.
+Cosmic/reference numbers encode declared values, not independently validated
+physical measurements or a cosmological simulation.
 
 ### Convenience Constants
 
 ```python
-PHI = (1 + √5) / 2  # Golden ratio
-PI = π              # π
-E = e               # Euler's number
-SQRT2 = √2          # Square root of 2
-SQRT3 = √3          # Square root of 3
+from symergetics.core.constants import PHI, PI, E, SQRT2, SQRT3, SCHEHERAZADE_BASE, COSMIC_ABUNDANCE
 ```
+
+`PHI`, `PI`, `E`, `SQRT2` and `SQRT3` are rational **approximations** wrapped
+as `SymergeticsNumber`, not exact symbolic irrationals. The other aliases are
+declared integer/rational reference values. Inspect `.value` when exact
+represented data, rather than rounded display, is required.
 
 ## Coordinate System Constants
 
 ### Predefined Coordinates
 
 ```python
-ORIGIN = QuadrayCoordinate(0, 0, 0, 0)
-IVM_NEIGHBORS = [QuadrayCoordinate(2,1,1,0), ...]  # 12-around-one
-TETRAHEDRON_VERTICES = [...]  # Unit tetrahedron vertices
-OCTAHEDRON_VERTICES = [...]   # Regular octahedron vertices
-CUBE_VERTICES = [...]         # Cube vertices
+from symergetics.core.coordinates import (
+    ORIGIN, IVM_NEIGHBORS, TETRAHEDRON_VERTICES,
+    OCTAHEDRON_VERTICES, CUBE_VERTICES,
+)
 ```
+
+These coordinate objects are mutable; copy before changing a reference model.
+`IVM_NEIGHBORS` contains twelve permutations of `(2,1,1,0)` at scale-one
+distance `2*sqrt(2)` from the origin.
 
 ## Visualization Module
 
 High-level plotting API for geometry, numbers, and mathematical constructs.
-Configured outputs use `output/{category}/{subcategory}/`. The mega abstract
-has its own fixed poster layout rather than inheriting the ordinary figure size.
+Configured organized paths normally use `output/{category}/{subcategory}/`,
+but backend/format support and fixed-layout behavior vary by function. Read
+the returned `files` list instead of guessing names. Plot returns are
+dictionaries, not live Matplotlib figures.
 
 ### Configuration
 
@@ -390,6 +430,21 @@ from symergetics.visualization import (
     save_config, load_config,
 )
 ```
+
+Call `set_config({"output_dir": "/tmp/my-figures", "formats": ["png", "svg"],
+"dpi": 120})` with one dictionary, not keyword arguments. `get_config()` is a
+shallow copy; change nested settings through `set_config`, not by mutating
+returned nested dictionaries. Configuration is process-global, not a
+thread-local or request-local context.
+
+Dimensions and DPI must be finite and positive. The 100,000,000 nominal-pixel
+guard limits the requested canvas, not exact peak memory or final tight-bbox
+dimensions. `formats` is not a promise that every plot emits every format:
+polyhedron Matplotlib renderers save each configured non-HTML format through
+Matplotlib (PNG/SVG are common); Plotly writes HTML and ASCII writes text.
+Other geometry helpers may save a single primary file. Advanced poster output
+is its explicit primary file. Restore prior configuration after application-owned
+rendering.
 
 ### Geometry Visualizations
 
@@ -405,20 +460,88 @@ from symergetics.visualization.geometry import (
 )
 ```
 
-`plot_polyhedron_3d` applies elevation/azimuth and surface/wireframe visibility
-to both actual backends. Polyhedron plots use an anchor-relative XYZ frame;
-metadata includes `coordinate_frame`, `origin_quadray_exact` and live
-`geometry_analysis`. Equal spans and unit box aspect preserve physical lengths.
-Graphical abstracts distinguish vertex and solid centroids and canonical
-reference volumes from the live shape. Animations consume the same indexed
-triangle fans and record exact frame origins.
+`plot_polyhedron` supports Matplotlib, Plotly and ASCII. Enhanced
+`plot_polyhedron_3d` supports Matplotlib and Plotly; the solid graphical abstract
+requires Matplotlib. Backend support is per function, not universal.
+`plot_polyhedron_3d` applies elevation/azimuth and surface/wireframe visibility.
+Polyhedron plots use an exact first-vertex-relative scale-one XYZ frame.
+Metadata includes `coordinate_frame`, `origin_quadray_exact`,
+`vertices_quadray_exact`, `declared_edges` and live `geometry_analysis`.
+Values can include `Fraction` and tuples; this metadata is not automatically
+JSON-serializable. Define an explicit exact-value serialization policy.
 
-The advanced `create_mega_graphical_abstract(title, output_path, backend)`
-renders computed rational arithmetic, actual finite sequences, scale-declared
-geometry and numerical-boundary examples. It does not embed test/coverage
-statistics or substitute synthetic curves for computed data. Irrational
-constants remain approximations. Only its declared arguments are accepted;
-previously ignored extra keywords are no longer silently swallowed.
+The solid abstract distinguishes vertex and uniform-solid centroids, canonical
+reference volumes and the current shape. Its XY view is an orthographic
+projection of declared edges, including hidden/overlapping ones, not a hull.
+Huge exact labels are bounded honestly in the drawing while complete exact
+values remain in metadata. `show_volume_ratios=False` and
+`show_coordinates=False` remove the respective optional sections.
+`show_edges`, `show_faces` and `show_vertices` control geometry layers; the XY
+view has no filled faces. Animations consume the same declared triangle fans.
+
+The solid abstract records `metadata.panels` as the enabled panel ID list:
+`structure` and `xy_projection`, plus `volume_comparison` and/or `properties`
+when enabled. It also records `projection`, `show_edges`, `show_faces`,
+`show_vertices` and `reference_volumes_ivm_exact` (name/`Fraction` pairs; empty
+when the reference-volume section is disabled). These are distinct from the
+mega abstract's integer `metadata.panels` count.
+
+![Deformed octahedron: topology, physical units and distinct vertex/mass centroids](../figures/octahedron_graphical_abstract.svg)
+
+This deliberately unequal-tip octahedron has native IVM volume 6, not the
+canonical reference's 4. Display axes are anchor-relative scale-one XYZ;
+full exact coordinates and both different centroid measurements remain in
+metadata. The reference-volume bars do not replace live measurements.
+
+### Scientific poster sections (unreleased main)
+
+Import from `symergetics.visualization.advanced`:
+
+```python
+from symergetics.visualization.advanced import create_mega_graphical_abstract
+
+result = create_mega_graphical_abstract(
+    output_path="/tmp/symergetics-geometry.png",
+    backend="matplotlib",
+    section="geometry",
+)
+```
+
+The existing three positional parameters remain `title`, `output_path` and
+`backend`. The new `section` argument is keyword-only. Omit `title` for a
+section-specific title; explicit caller titles are preserved.
+
+| `section` | Actual topic panels |
+|---|---:|
+| `"overview"` (default) | 6 |
+| `"geometry"` | 6 |
+| `"arithmetic"` | 6 |
+| `"patterns"` | 5 |
+| `"all"` | 17 |
+
+The focused default is not the former all-17-panel overview. All panels use
+computed arithmetic, scale-declared geometry or actual finite sequences;
+irrational constants remain approximations and no panel is test-count evidence.
+This API requires Matplotlib. Unsupported sections/backends raise `ValueError`;
+undeclared keywords are not silently ignored.
+
+With no explicit path, every section writes the same organized primary
+`mathematical/mega_graphical_abstract/mega_graphical_abstract.png` under the
+configured output root (subject to organization/timestamp settings). Different
+sections can overwrite it: pass separate paths to keep multiple views. This
+function does not batch-export all configured formats.
+
+The result retains `files: list[str]` and `metadata` with type/title,
+`panels` (integer count) and `dimensions`. Metadata also records `section`,
+`panel_ids`, `panel_titles`, `figure_size_inches` and `dpi`. Top-level `data`
+maps panel IDs to JSON-safe computed payloads; full exact rationals are strings.
+Use those fields to identify what was actually selected, not an assumed layout.
+The [real demo](../../examples/comprehensive_visualizations_demo.py) emits
+separate modular outputs; see the [cookbook](../api-cookbook-recipes.md#select-a-scientific-poster-topic-on-unreleased-main).
+
+The immutable **1.3.0 release wheel does not support this new selector**.
+Use an unreleased development checkout to call `section`; main documentation
+and an unchanged package version string do not extend a published artifact.
 
 ### Number Visualizations
 
@@ -482,4 +605,6 @@ The package uses standard Python exceptions:
 
 ## Thread Safety
 
-All classes and functions are thread-safe for read operations. Write operations to shared state are not recommended in multi-threaded environments.
+There is no package-wide thread-safety guarantee. Coordinates, vertex lists
+and visualization configuration are mutable; rendering has backend-specific
+global state. Isolate concurrent application work and avoid shared mutations.

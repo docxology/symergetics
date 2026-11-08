@@ -2,110 +2,65 @@
 
 ### Exact Arithmetic Performance Validation
 
-Exact rational arithmetic is checked for particular operations and expected values in the test suite. The suite count does not establish complete precision preservation across all operations or 100% accuracy relative to floating-point methods. See [Test evidence and count semantics](../TEST_EVIDENCE.md) for the source-bound inventory and the dated execution receipt.
+The mathematical examples below follow from stated definitions and source
+contracts; they are not a newly executed benchmark or empirical validation.
+[Test evidence and count semantics](../TEST_EVIDENCE.md) records historical,
+revision-bound inventories and execution receipts. Source definitions, collected
+cases, passes and coverage are different measurements. None establishes
+universal precision preservation or domain accuracy.
 
-**Arithmetic Precision Results:**
-- Basic operations (3/4 + 1/6) yield exactly 11/12 instead of 0.9166666666666666
-- Complex calculations maintain exact precision through multiple operations
-- No approximation errors detected in any test case
-
-**Coordinate Transformation Accuracy:**
-- Quadray to Cartesian conversions maintain exact geometric relationships
-- IVM lattice constraints (a + b + c + d = 0) preserved in all transformations
-- Bidirectional conversions show perfect round-trip accuracy
+| Example | Result | Scope |
+| --- | --- | --- |
+| Rational 3/4 + 1/6 | 11/12 | Exact rational input/algebra |
+| Common quadray offset | Same embedded point | Rank-three quotient, not a zero-sum constraint |
+| General XYZ inversion | Nearest integer quadray site | Quantizing operation, not universal exact round trip |
+| Irrational roots/constants | Rational approximations | Exact storage is not exact irrational value |
 
 ### Geometric Volume Calculations
 
-Exact volume calculations for Platonic solids using IVM units demonstrate precise mathematical relationships:
+[Default solid constructions](../../symergetics/geometry/polyhedra.py) have native
+volumes tetrahedron 1, cube 3, octahedron 4 and cuboctahedron 20 at their declared
+relative scales. These are not an equal-edge table, nor measurements of all
+Platonic solids. The primitive quotient-lattice corner tetrahedron has volume
+1/4. At default scale 1, Cartesian cubic volume is 8/3 times native volume.
 
-**Volume Relationships Verified:**
-- Tetrahedron: 1 IVM unit (fundamental unit)
-- Octahedron: 4 IVM units (exactly 4 × tetrahedron)
-- Cube: 3 IVM units (exactly 3 × tetrahedron)
-- Cuboctahedron: 20 IVM units (exactly 20 × tetrahedron)
-- Icosahedron: 5φ² IVM units (where φ = (1 + √5)/2)
-- Dodecahedron: 15φ IVM units
-
-**Mathematical Verification:**
-All volume relationships have been verified through independent mathematical analysis, confirming Fuller's original Synergetics calculations with exact precision.
+Mutable vertex changes affect geometric measurements. Declared indexed fans and
+valid closed nonintersecting shells determine solid semantics; named constants
+are not an independent check. No external mathematical replication is claimed.
 
 ### Pattern Discovery Capabilities
 
-The exact arithmetic implementation enables discovery of mathematical patterns invisible to floating-point methods:
-
-**Scheherazade Number Analysis (1001^n):**
-- Palindromic sequences identified in specific digit positions
-- Pascal triangle coefficients embedded naturally in mathematical structure
-- Prime factor relationships follow geometric progressions
-- Recursive structures repeat at different scales
-
-**Primorial Sequence Analysis:**
-- Exact computation of rapidly growing sequences (10# = 6,469,693,230)
-- Prime factor accumulation patterns identified
-- Growth rate analysis reveals exponential behavior with predictable mathematical structure
-- Connections to advanced mathematical functions (Riemann zeta function) established
-
-**Palindrome Detection:**
-- Multi-base palindrome analysis across number systems
-- Symmetry patterns identified in number representations
-- Complexity metrics reveal underlying mathematical structures
+The implemented prime-bounded convention gives 10# = 210 and 13# = 30,030.
+1001² = 1,002,001 and the binomial theorem explains the base-1000 coefficient
+pattern before carries. These are mathematical examples, not newly discovered
+connections to the Riemann zeta function or natural-system mechanisms.
+Palindrome properties depend on the selected base and representation.
 
 ### Performance Benchmarks
 
-**Computational Efficiency:**
-- 3.2× improvement in pattern recognition accuracy compared to floating-point methods
-- Memory-efficient algorithms handle large number sequences
-- Parallel processing support for distributed analysis
-
-**Test evidence:** The generated inventory counts source definitions; pytest
-collection counts cases, and a full run measures passes, skips and coverage.
-See [Test evidence and count semantics](../TEST_EVIDENCE.md). Older manuscript
-counts of 757/953 and category subtotals are not reproducible revision-bound
-measurements and should not be interpreted as current suite results.
+No reproducible comparative benchmark supports the earlier “3.2× improvement in
+pattern recognition accuracy” claim; it is withdrawn. No speedup, distributed
+processing result, memory-efficiency result or cross-platform reproducibility
+experiment is reported here. A performance study must supply inputs, comparator,
+environment, measurement protocol and uncertainty before claiming an advantage.
 
 ### Visualization and Output Quality
 
-**Geometric Visualizations:**
-- High-quality 3D representations of Platonic solids
-- Accurate coordinate system visualizations
-- Multiple output formats (PNG, SVG, PDF, ASCII)
-
-**Mathematical Pattern Visualizations:**
-- Comprehensive pattern discovery analysis charts
-- Enhanced palindrome pattern analysis
-- Detailed Scheherazade number analysis
-- Primorial sequence growth visualizations
+Plots illustrate selected calculations. Rendering is finite precision and
+format support is backend-specific. Figure presence, attractive layout and test
+counts do not independently validate the mathematics. Existing generated files
+may predate the editable source; no refreshed render is claimed in this section.
 
 ### Interdisciplinary Applications
 
-**Active Inference Modeling:**
-- Exact probabilistic calculations for cognitive modeling
-- Precise geometric frameworks for spatial cognition
-- Mathematical precision in decision-making processes
-
-**Materials Science:**
-- Exact lattice calculations for crystal structures
-- Precise unit cell volume calculations
-- Accurate symmetry operation analysis
-
-**Biological Pattern Recognition:**
-- Exact molecular structure analysis
-- Precise genetic pattern discovery
-- Accurate protein folding pattern analysis
+Active inference, materials, biology, climate and educational uses are
+[proposed applications](09_research_applications.md), not measured results.
+No domain dataset, controlled study or deployment is supplied by these examples.
 
 ### Reproducibility and Validation
 
-**Exact Reproducibility:**
-- All calculations produce identical results across different systems
-- No floating-point approximation errors
-- Complete mathematical precision maintained
-
-**Open Source Implementation:**
-- Complete source code available under Apache 2.0 license
-- Comprehensive documentation and examples
-- Modular architecture enables easy extension and modification
-
-**Scientific Validation:**
-- Results verified against Fuller's original Synergetics calculations
-- Independent mathematical analysis confirms accuracy
-- Peer review ready with complete implementation details
+A reproducible software study should bind source revision, environment, exact
+inputs, units, gauge, approximation policy, outputs and checks. Rational algebra
+can be deterministic while plotting, numerical conversion and domain models
+have other dependencies. The repository's [Apache 2.0 license](../../LICENSE)
+and accessible source support inspection, not a guarantee of correctness.

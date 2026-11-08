@@ -1,255 +1,104 @@
-# Symergetics Testing Guide
+# Testing exact geometry, plotting resources and integration boundaries
+
+[Contributor workflow](contributor-development-guide.md) · [Test responsibilities](test-architecture-summary.md)
 
 ## Overview
 
-The 2026-11-06 scientific-environment receipt is **1,344 passed, 12 skipped, 88.16% coverage**. The configured package-wide coverage floor is 85%. Use pytest collection for current case names; category lists below are explanatory rather than an exhaustive inventory. See [suite contracts and receipts](synergetics-suite.md).
-
-```bash
-export UV_PYTHON=3.13
-uv sync --frozen --extra scientific --extra test
-uv run --frozen python -m pytest tests/
-```
-
-## Test Architecture
-
-### Core Philosophy
-- **Consumer Behavior**: Prefer exact numerical oracles and actual renderers/artifacts; use failure injection only for explicit error paths.
-- **Mathematical Validation**: Tests verify mathematical correctness and implementation accuracy
-- **Coverage Gate**: 85% package-wide; execution coverage does not prove numerical or workflow correctness.
-- **Integration Focus**: Tests validate cross-module interactions and workflows
-
-### Test Categories
-
-#### 1. Core Module Tests
-- **`test_core_numbers.py`** - SymergeticsNumber class functionality
-- **`test_core_constants.py`** - SymergeticsConstants class and mathematical constants
-- **`test_core_coordinates.py`** - QuadrayCoordinate class and coordinate systems
-- **`test_core_comprehensive.py`** - Comprehensive core module testing
-- **`test_core_extended.py`** - Extended core functionality testing
-
-#### 2. Computation Module Tests
-- **`test_computation_analysis.py`** - Mathematical pattern analysis
-- **`test_computation_analysis_comprehensive.py`** - Comprehensive analysis testing
-- **`test_computation_palindromes.py`** - Palindromic pattern analysis
-- **`test_computation_primorials.py`** - Primorial and Scheherazade number calculations
-- **`test_computation_primorials_coverage.py`** - Primorial coverage improvements
-- **`test_computation_geometric_mnemonics.py`** - Geometric mnemonic analysis
-
-#### 3. Geometry Module Tests
-- **`test_geometry_polyhedra.py`** - Polyhedra volume calculations and classes
-- **`test_geometry_transformations.py`** - Coordinate transformations
-- **`test_geometry_transformations_coverage.py`** - Transformation coverage improvements
-
-#### 4. Visualization Module Tests
-- **`test_visualization.py`** - Core visualization functionality
-- **`test_visualization_comprehensive.py`** - Comprehensive visualization testing
-- **`test_visualization_advanced.py`** - Advanced visualization features
-- **`test_visualization_geometry_comprehensive.py`** - Geometric visualizations
-- **`test_visualization_geometry_coverage.py`** - Geometry visualization coverage
-- **`test_visualization_mathematical_comprehensive.py`** - Mathematical visualizations
-- **`test_visualization_mathematical_coverage.py`** - Math visualization coverage
-- **`test_visualization_numbers_comprehensive.py`** - Number pattern visualizations
-- **`test_visualization_numbers_coverage.py`** - Number visualization coverage
-- **`test_visualization_init_comprehensive.py`** - Visualization initialization
-- **`test_visualization_init_coverage.py`** - Init coverage improvements
-- **`test_visualization_methods.py`** - Visualization method testing
-- **`test_png_visualizations.py`** - PNG-specific visualization testing
-
-#### 5. Utils Module Tests
-- **`test_utils_conversion.py`** - Number and coordinate conversion utilities
-- **`test_utils_extended.py`** - Extended utility functionality
-- **`test_utils_mnemonics.py`** - Mnemonic encoding and memory aids
-- **`test_utils_reporting.py`** - Statistical reporting and analysis
-
-#### 6. Integration Tests
-- **`test_integration_comprehensive.py`** - Cross-module integration testing
-
-#### 7. Edge Case and Coverage Tests
-- **`test_edge_cases_comprehensive.py`** - Edge case and error handling
-- **`test_coverage_improvement.py`** - Coverage improvement tests
-
-#### 8. Specialized Tests
-- **`test_mega_graphical_abstract.py`** - Mega graphical abstract functionality
-
-## Test Patterns
-
-### 1. Real Method Validation
-All tests use actual Symergetics methods:
-
-```python
-# Example from test_computation_analysis.py
-def test_analyze_palindromic_number(self):
-    result = analyze_mathematical_patterns(121)  # Real method call
-    assert result['is_palindromic'] == True
-    assert 'pattern_complexity' in result
-```
-
-### 2. Mathematical Correctness
-Tests verify mathematical accuracy:
-
-```python
-# Example from test_core_numbers.py
-def test_arithmetic_operations(self):
-    a = SymergeticsNumber(3, 4)
-    b = SymergeticsNumber(1, 6)
-    result = a + b
-    assert result.numerator == 11
-    assert result.denominator == 12
-```
-
-### 3. Integration Testing
-Tests validate cross-module interactions:
-
-```python
-# Example from test_integration_comprehensive.py
-def test_complete_analysis_workflow(self):
-    # Step 1: Convert to SymergeticsNumber
-    symergetics_numbers = [SymergeticsNumber(num) for num in test_numbers]
-    
-    # Step 2: Analyze patterns
-    analyses = [analyze_mathematical_patterns(str(num.numerator)) for num in symergetics_numbers]
-    
-    # Step 3: Test reporting
-    summary = generate_statistical_summary(symergetics_numbers)
-```
-
-### 4. Edge Case Handling
-Tests cover boundary conditions and error cases:
-
-```python
-# Example from test_edge_cases_comprehensive.py
-def test_zero_handling(self):
-    zero_num = SymergeticsNumber(0)
-    assert zero_num.numerator == 0
-    assert zero_num.denominator == 1
-    assert zero_num.to_float() == 0.0
-```
+Tests live in [`tests/`](../tests/); the [test index](../tests/TEST_INDEX.md) is
+a navigation aid, not a live test-count receipt. Current collection and executed
+results depend on the source revision and environment. Historical outcomes
+belong in [STATUS.md](../STATUS.md), clearly dated, never advertised as current
+green status.
 
 ## Running Tests
 
-### Basic Test Execution
+Prepare the scientific Python 3.13 environment without changing repository pins:
+
 ```bash
-# Run all tests
-python -m pytest tests/
-
-# Run with verbose output
-python -m pytest tests/ -v
-
-# Run specific test file
-python -m pytest tests/test_core_numbers.py
-
-# Run specific test class
-python -m pytest tests/test_core_numbers.py::TestSymergeticsNumber
-
-# Run specific test function
-python -m pytest tests/test_core_numbers.py::TestSymergeticsNumber::test_arithmetic_operations
+uv sync --python 3.13 --extra scientific --extra test
 ```
+
+Full package gate:
+
+```bash
+MPLBACKEND=Agg uv run --python 3.13 --extra scientific --extra test python -m pytest tests/ -q
+```
+
+Targeted behavioral diagnostic:
+
+```bash
+MPLBACKEND=Agg uv run --python 3.13 --extra scientific --extra test python -m pytest tests/test_core_coordinates.py -q --no-cov
+```
+
+Discover current cases without claiming that collection executes them:
+
+```bash
+uv run --python 3.13 --extra scientific --extra test python -m pytest tests/ --collect-only -q --no-cov
+```
+
+Commands here are instructions, not receipts that they were run in this docs
+pass. Coordinated implementation assignments may explicitly defer all suites
+until integration; do not launch redundant gates during those assignments.
 
 ### Coverage Analysis
-```bash
-# Run with coverage
-python -m pytest tests/ --cov=symergetics --cov-report=html
 
-# Coverage with specific modules
-python -m pytest tests/ --cov=symergetics.core --cov-report=html
-```
+[`pyproject.toml`](../pyproject.toml) enables strict markers/configuration,
+package-wide coverage, terminal and HTML reports, an 85% floor and fail-fast.
+A single-file run can pass its tests yet fail the **package-wide** floor.
+`--no-cov` is appropriate for a focused diagnostic, not a substitute for the
+full gate. Read the full pytest result, including skips and the coverage exit
+reason. Default HTML output goes to `htmlcov/`.
 
-### Performance Testing
-```bash
-# Run with performance profiling
-python -m pytest tests/ --benchmark-only
+## Test Architecture
 
-# Run specific performance tests
-python -m pytest tests/ -k "performance" --benchmark-only
-```
+- Core: represented rational values, constructor snapping, gauge aliases,
+  exact metrics and nearest-lattice selection.
+- Geometry: indexed edges/fans, mutable vertices, rational volume, solid versus
+  vertex centers, degenerate geometry and shell semantics.
+- Computation/utilities: finite prime/digit inputs, exact results, conversion
+  boundaries and report/format behavior.
+- Visualization: actual files and metadata, physical geometry, supported
+  backends, optional sections, error paths and resource closure.
+- Integration/orchestration: real consumer processes, interpreter selection,
+  requested-stage outcomes and cross-project conventions.
 
-## Test Quality Assurance
+The [architecture summary](test-architecture-summary.md) links representative
+modules. It intentionally avoids saved category totals and invented case names.
 
-### Validation Criteria
-1. **Real Method Usage**: All tests use actual Symergetics functionality
-2. **Mathematical Accuracy**: Tests verify correct mathematical results
-3. **Error Handling**: Tests cover edge cases and error conditions
-4. **Integration**: Tests validate cross-module interactions
-5. **Performance**: Tests include performance validation where appropriate
+## Test Patterns
 
-### Test Documentation
-- **Docstrings**: All test functions have descriptive docstrings
-- **Comments**: Complex test logic is well-commented
-- **Examples**: Tests include clear examples of expected behavior
+Use real computations and temporary directories. For exact methods, compare
+against independent exact arithmetic or meaningful invariants; for floating
+results, declare the tolerance and physical scale. A useful regression
+separates the broken behavior from the corrected behavior, rather than testing
+only a source string, default word, export existence or the test's own copy of
+the implementation. Do not substitute mocked success for real scientific data.
+
+Plot tests should isolate output/configuration and restore it, inspect the
+consumer-visible resource/error behavior at issue and avoid writing into
+repository `output/`. A generated file's existence alone does not establish
+correct geometry, labels, units or readability. Rendering inspection complements,
+not replaces, numerical assertions.
+
+## Performance Testing
+
+Use bounded workloads and record input size, environment and repeat samples.
+No fixed timing threshold or speedup in this guide is a package guarantee.
+See [measurement methodology](performance-optimization-guide.md). The optional
+benchmark plugin does not imply every test is a benchmark or that
+`--benchmark-only` exercises correctness coverage.
 
 ## Continuous Integration
 
-### Automated Testing
-- **Pre-commit Hooks**: Tests run before commits
-- **CI Pipeline**: Full test suite runs on every push
-- **Coverage Reports**: Automated coverage reporting
-- **Performance Monitoring**: Performance regression detection
-
-### Test Maintenance
-- **Regular Updates**: Tests updated with new functionality
-- **Coverage Monitoring**: Coverage tracked and improved
-- **Performance Tracking**: Performance benchmarks maintained
-- **Documentation Updates**: Test documentation kept current
-
-## Contributing to Tests
-
-### Adding New Tests
-1. **Follow Naming Conventions**: Use descriptive test function names
-2. **Use Real Methods**: Never mock Symergetics functionality
-3. **Validate Mathematics**: Ensure mathematical correctness
-4. **Document Thoroughly**: Include clear docstrings and comments
-5. **Test Edge Cases**: Include boundary condition testing
-
-### Test Structure
-```python
-class TestNewFeature:
-    """Test new feature functionality."""
-    
-    def test_basic_functionality(self):
-        """Test basic feature functionality."""
-        # Arrange
-        input_data = create_test_data()
-        
-        # Act
-        result = new_feature_function(input_data)
-        
-        # Assert
-        assert result.expected_property == expected_value
-        assert 'expected_key' in result
-```
+Consult actual [package](../.github/workflows/verify.yml) and
+[suite](../.github/workflows/suite.yml) workflows for interpreter matrices,
+extras and commands. A local targeted pass does not establish all CI profiles.
+The [suite guide](synergetics-suite.md) documents sibling/tool prerequisites.
 
 ## Troubleshooting
 
-### Common Issues
-1. **Import Errors**: Ensure all Symergetics modules are properly installed
-2. **Test Failures**: Check that test data matches expected Symergetics behavior
-3. **Coverage Issues**: Add tests for uncovered code paths
-4. **Performance Issues**: Optimize test data size for performance tests
-
-### Debugging Tests
-```bash
-# Run with detailed output
-python -m pytest tests/ -v -s
-
-# Run with debugging
-python -m pytest tests/ --pdb
-
-# Run specific failing test
-python -m pytest tests/test_specific.py::test_failing_function -v -s
-```
-
-## References
-
-### Related Documentation
-- **API Documentation**: [API Reference](api/index.md)
-- **Core Concepts**: [Core Concept Guide](core-concept-guide.md)
-- **Mathematical Foundations**: [Mathematical Foundations](mathematical-foundations-synergetics.md)
-
-### Test Files
-- **Test Index**: [tests/README.md](../tests/README.md)
-- **Test Configuration**: `pyproject.toml`
-- **Coverage Configuration**: `.coveragerc`
-
----
-
-*This testing guide ensures the reliability and correctness of the Symergetics package through comprehensive testing of real functionality and mathematical validation.*
+For a failure, preserve its traceback and the selected interpreter, revision,
+backend and dependency versions. Do not rerun a reported failure merely to
+confirm it; investigate the source contract and failing input. Distinguish a
+coverage-floor failure, optional dependency skip, environmental failure and
+mathematical assertion failure. No saved count proves that a new tree is green.

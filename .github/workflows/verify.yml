@@ -32,6 +32,25 @@ jobs:
         run: uv sync --frozen --python '${{ matrix.python }}' --extra scientific --extra test
       - name: Tests and coverage gate
         run: uv run --frozen python -m pytest tests/ -q -o 'addopts=--strict-markers --strict-config --cov=symergetics --cov-report=term-missing --cov-fail-under=85'
+      - name: Paper source-path and caption controls
+        run: uv run --frozen python -m unittest discover -s paper/validation -p test_validate_paper.py
+      - name: Real-image renderer regressions
+        run: uv run --frozen --with 'reportlab>=4.0.0' --with 'markdown>=3.4.0' --with 'pyyaml>=6.0.0' --with 'matplotlib>=3.5.0' --with 'pypdf>=5.0.0' python -m unittest discover -s paper/render -p test_renderer.py
+      - name: Verify actual manuscript assets
+        run: |
+          uv run --frozen python paper/validation/validate_paper.py --paper-dir paper --output "$RUNNER_TEMP/symergetics-paper-validation.md"
+          uv run --frozen python paper/validation/check_images.py --paper-dir paper --output "$RUNNER_TEMP/symergetics-paper-images.md"
+      - name: Render the actual paper
+        run: uv run --frozen --with 'reportlab>=4.0.0' --with 'markdown>=3.4.0' --with 'pyyaml>=6.0.0' --with 'matplotlib>=3.5.0' python paper/render/run_render.py --paper-dir paper --output-dir "$RUNNER_TEMP/symergetics-paper" --output symergetics-main.pdf
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: matrix.python == '3.13'
+        with:
+          name: symergetics-current-manuscript
+          path: |
+            ${{ runner.temp }}/symergetics-paper/symergetics-main.pdf
+            ${{ runner.temp }}/symergetics-paper-validation.md
+            ${{ runner.temp }}/symergetics-paper-images.md
+          if-no-files-found: error
       - name: Exercise every standalone scientific demo
         run: uv run --frozen --extra scientific --extra test python run.py --examples-only
       - name: Build source distribution and wheel

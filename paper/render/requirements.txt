@@ -3,16 +3,20 @@
 # Core PDF generation
 reportlab>=4.0.0
 
+# Portable Unicode fonts bundled by Matplotlib
+matplotlib>=3.5.0
+
 # Markdown processing
 markdown>=3.4.0
 pyyaml>=6.0.0
 
-# Image processing (optional, for advanced image handling)
-pillow>=9.0.0
+# Raster image processing
+pillow>=13.0.0
 
 # Testing
 pytest>=7.0.0
 pytest-cov>=4.0.0
+pypdf>=5.0.0
 
 # Development
 black>=22.0.0

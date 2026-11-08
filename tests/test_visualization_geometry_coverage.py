@@ -3,6 +3,7 @@
 import base64
 import json
 import math
+from fractions import Fraction
 from pathlib import Path
 
 import numpy as np
@@ -232,14 +233,11 @@ def test_quadray_panel_draws_actual_basis_and_gauge_origin():
         np.testing.assert_array_equal(np.sum(endpoints, axis=0), [0, 0, 0])
         example_points = np.vstack([np.column_stack(c._offsets3d) for c in view.collections])
         assert any(np.array_equal(point, [0, 0, 0]) for point in example_points)
-        equations = '\n'.join(text.get_text() for text in ax.texts)
-        assert 'x = a − b − c + d' in equations
-        assert 'No sum-to-one constraint' in equations
     finally:
         plt.close(fig)
 
 
-def test_graphical_properties_present_live_area_and_distinct_exact_centroids():
+def test_graphical_metadata_retains_live_area_and_distinct_exact_centroids():
     plt = pytest.importorskip('matplotlib.pyplot')
     set_config({'formats': ['svg']})
     # Unequal x tips: vertex mean x=1/3, uniform solid centroid x=1/2.
@@ -252,10 +250,11 @@ def test_graphical_properties_present_live_area_and_distinct_exact_centroids():
     assert analysis['vertex_centroid_exact'] != analysis['volume_centroid_exact']
     assert analysis['affine_rank'] == 3
     assert analysis['closed'] is True
-    assert analysis['surface_area'] == pytest.approx(model.surface_area())
-    import xml.etree.ElementTree as ET
-    text = '\n'.join(ET.parse(result['files'][0]).getroot().itertext())
-    assert 'Exact vertex centroid (quadray)' in text
-    assert 'Exact solid centroid (quadray)' in text
-    assert 'Surface area:' in text
-    assert 'closed topology: True' in text
+    assert analysis['surface_area'] == pytest.approx(24 + 8 * math.sqrt(3))
+    for key, expected_x in (
+        ('vertex_centroid_exact', Fraction(1, 3)),
+        ('volume_centroid_exact', Fraction(1, 2)),
+    ):
+        # Project the rational quotient directly; Q would snap each slot to an integer.
+        a, b, c, d = analysis[key]
+        assert (a - b - c + d, a + b - c - d, a - b + c - d) == (expected_x, 0, 0)

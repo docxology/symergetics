@@ -12,9 +12,16 @@ Paper pipeline under `paper/`; demo outputs under `output/`.
 
 ## Install and run
 
+`symergetics` is not on PyPI. Choose a development checkout or a wheel
+downloaded from [GitHub Releases](https://github.com/docxology/symergetics/releases).
+Scientific work explicitly selects Python 3.13; do not change the repository's
+`.python-version` pin just to run these commands.
+
+From a checkout:
+
 ```bash
-uv sync --python 3.13
-uv run --python 3.13 python -c "from symergetics import QuadrayCoordinate; print(QuadrayCoordinate(1, 0, 0, 0).to_xyz())"
+uv sync --python 3.13 --extra scientific
+uv run --python 3.13 --extra scientific python -c "from symergetics import QuadrayCoordinate; print(QuadrayCoordinate(1, 0, 0, 0).to_xyz())"
 ```
 
 NumPy is a required dependency of the core coordinate API. Scientific and test
@@ -23,6 +30,42 @@ tools remain available through their extras:
 ```bash
 uv run --python 3.13 --extra scientific --extra test pytest tests/test_core_coordinates.py -q --no-cov
 ```
+
+For the published [1.3.0 wheel](https://github.com/docxology/symergetics/releases/tag/1.3.0),
+run in a separate directory/environment:
+
+```bash
+uv venv --python 3.13 .venv
+uv pip install --python .venv/bin/python "symergetics[scientific] @ https://github.com/docxology/symergetics/releases/download/1.3.0/symergetics-1.3.0-py3-none-any.whl"
+.venv/bin/python -I -c "import symergetics; print(symergetics.__version__)"
+```
+
+The same release page supplies the wheel and `SHA256SUMS` for a local-download
+installation/provenance workflow. Do not run wheel consumer checks inside a
+checkout where source imports could shadow the installed artifact. A release
+wheel's API is fixed by that release; main docs can describe unreleased
+features while metadata still reports version 1.3.0.
+
+Start with the [tutorial](docs/tutorials/index.md) or [cookbook](docs/api-cookbook-recipes.md).
+
+## Focused graphical abstracts on unreleased main
+
+The existing `create_mega_graphical_abstract` API now has keyword-only
+`section="overview"`: six readable default topics rather than all seventeen.
+Use `geometry`, `arithmetic`, `patterns` or `all` for focused/full views.
+The original three positional parameters remain supported; explicit titles
+are preserved. Every section otherwise shares the primary output filename,
+so pass separate paths to retain multiple views. This selector is **not
+supported by the immutable 1.3.0 wheel**. See
+[sections, output paths and metadata](docs/api/index.md#scientific-poster-sections-unreleased-main).
+
+![Computed Synergetics overview on current main](docs/figures/scientific_overview.svg)
+
+Solid graphical abstracts show declared indexed topology and distinguish exact
+vertex means from uniform-solid mass centers. Native IVM volume, XYZ cubic
+volume and floating surface area have different units; four quadray labels
+represent rank-three geometry. See [the geometry contracts](docs/api/index.md#geometry-module),
+not conceptual application prose, for implemented behavior.
 
 ## Synergetics suite
 

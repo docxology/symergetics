@@ -1,16 +1,19 @@
-# Glossary and Terminology Reference
+# Glossary: implemented geometry and conceptual research vocabulary
 
 ## Introduction
 
-This comprehensive glossary provides definitions, explanations, and context for terms, concepts, and mathematical objects used throughout the Synergetics package. Understanding these terms is essential for effectively using the package and comprehending synergetic mathematics.
+Terms below include both package contracts and wider research vocabulary.
+Unless an entry names an implemented API, it is context, not a claim of an
+installed model or a validated application. See the [API reference](api/index.md)
+for executable contracts and [research](research/index.md) for conceptual uses.
 
 ## A
 
 ### Active Inference
-A theoretical framework in cognitive science that explains perception, learning, and decision-making as processes that minimize prediction errors. In synergetics, active inference benefits from exact arithmetic to avoid computational artifacts that can distort inference processes.
+A family of probabilistic models of perception and action using generative models and variational objectives. The package does not implement an active-inference engine; rational arithmetic alone does not validate such a model.
 
 ### All-Integer Accounting
-Fuller's principle that nature operates using exact rational relationships that can be expressed as integer ratios. This concept underlies the preference for exact arithmetic over floating-point approximations.
+Fuller's geometric accounting terminology. Here it motivates integer labels and rational calculations; it is not a demonstrated law that all natural quantities are rational or that all lattice volumes are integers.
 
 ### ASCII Art
 Text-based visual representations used for geometric objects when graphical backends are unavailable. The package supports ASCII visualization of polyhedra, coordinates, and mathematical patterns.
@@ -24,13 +27,13 @@ In dynamical systems theory, a state toward which a system tends to evolve. In l
 An exact method for calculating determinants of matrices, used in the computation of tetrahedral volumes. This algorithm maintains integer precision throughout calculations.
 
 ### Belief Propagation
-An algorithm for computing marginal probabilities in graphical models. In synergetic applications, belief propagation uses exact probability calculations to avoid numerical instabilities.
+An algorithm for marginal inference on graphical models. It is research context here, not a package inference API or a guarantee that rational arithmetic prevents all instability.
 
 ### Bifurcation
 A qualitative change in system behavior that occurs at a critical parameter value. In learning theory, bifurcations represent choice points leading to different learning trajectories.
 
 ### Biomimicry
-The practice of learning from and emulating natural designs and processes. Synergetics provides geometric analysis tools for studying biological patterns like honeycomb structures and viral capsids.
+Design informed by biological systems. Package geometry can support exploratory calculations; it does not provide a validated biological model.
 
 ## C
 
@@ -38,16 +41,16 @@ The practice of learning from and emulating natural designs and processes. Syner
 The traditional (x, y, z) coordinate system in three-dimensional Euclidean space. The package provides conversion functions between Cartesian and Quadray coordinate systems.
 
 ### Closest Packing
-The most efficient arrangement of spheres in space. The IVM lattice represents nature's closest packing, discovered by Buckminster Fuller.
+Maximum-density packing of congruent spheres in Euclidean space. FCC and HCP are familiar close-packed arrangements. This package enumerates an FCC/IVM subset; a rendered local cluster is not a packing-optimality proof.
 
 ### Cognitive Security
-The protection of cognitive processes from manipulation or distortion. Synergetic mathematics provides exact pattern recognition tools for detecting anomalous patterns in data streams.
+Protection against manipulation of information and reasoning. The package's finite digit-pattern metrics do not constitute a validated anomaly detector or cognitive-security system.
 
 ### Collaborative Intelligence
-The enhanced problem-solving capacity that emerges from collective human cognition. Synergetics provides frameworks for amplifying collaborative intelligence through exact mathematical coordination.
+Collective problem-solving by people or systems. This is conceptual application vocabulary, not an implemented collaboration framework.
 
 ### Complex Adaptive System
-A system composed of many interacting parts that adapts to changing conditions. Educational environments and biological systems are examples of complex adaptive systems that benefit from synergetic analysis.
+A system of interacting parts whose behavior adapts. Applying geometry to one requires a separate model and evidence; no general benefit follows from the coordinate choice.
 
 ### Computational Geometry
 The study of algorithms for solving geometric problems. The package implements computational geometry algorithms for exact volume calculations and coordinate transformations.
@@ -59,7 +62,7 @@ An expression of a number as a sequence of fractions. Used for finding optimal r
 A system for specifying positions in space. Synergetics introduces the Quadray coordinate system as an alternative to traditional Cartesian coordinates.
 
 ### Cuboctahedron
-A polyhedron with 8 triangular faces and 6 square faces, also known as the vector equilibrium. It represents perfect balance of forces in three-dimensional space.
+A polyhedron with twelve vertices, twenty-four edges, eight triangular faces and six square faces. The default `Cuboctahedron()` has IVM volume twenty. “Vector equilibrium” is geometric terminology, not a simulated force-balance result.
 
 ### Curvilinear Perspective
 Fuller's term for the natural coordinate system that follows the curvature of spherical surfaces, as opposed to the straight-line perspective of traditional geometry.
@@ -70,7 +73,7 @@ Fuller's term for the natural coordinate system that follows the curvature of sp
 A scalar value that can be computed from the elements of a square matrix. Used in volume calculations to determine the signed volume of tetrahedra.
 
 ### Dodecahedron
-A polyhedron with 12 pentagonal faces. One of the Platonic solids, with exact volume relationships expressible in tetrahedral units.
+A regular dodecahedron has twelve regular pentagonal faces. It is a Platonic solid, but no dodecahedron geometry class is exported by this package; its volume depends on the chosen size.
 
 ### Dynamical System
 A mathematical system that changes over time according to fixed rules. Learning processes and biological systems can be modeled as dynamical systems.
@@ -87,7 +90,7 @@ A measure of disorder or randomness in a system. Shannon entropy quantifies info
 The theory of knowledge and understanding. Synergetic epistemology emphasizes holistic understanding and interconnected knowledge domains.
 
 ### Exact Arithmetic
-Mathematical operations that maintain perfect precision, avoiding the rounding errors inherent in floating-point calculations. Essential for geometric and pattern analysis.
+Operations preserving the represented integer or rational values. This does not make irrational quantities rational, remove input/model error or make floating XYZ/display exact. See [numeric contracts](api/index.md#symergeticsnumber).
 
 ### Exponential Growth
 Growth that increases at a rate proportional to its current value. Seen in phenomena like population growth, compound interest, and algorithmic complexity.
@@ -107,7 +110,7 @@ A computer representation of real numbers using a fixed number of significant di
 A complex geometric shape that can be subdivided into parts similar to the whole. Characterized by self-similarity and non-integer dimension.
 
 ### Free Energy Principle
-A unifying theory in neuroscience that explains self-organizing behavior as the minimization of variational free energy. Benefits from exact arithmetic implementations.
+A theoretical framework relating self-organizing systems to variational objectives. It is conceptual context here; the package does not establish that exact rational arithmetic improves inference or implement a free-energy engine.
 
 ## G
 
@@ -115,18 +118,18 @@ A unifying theory in neuroscience that explains self-organizing behavior as the 
 The shortest path between two points on a curved surface. In architecture, geodesic domes use this principle for structural efficiency.
 
 ### Geodesic Dome
-A spherical structure composed of interconnected triangles. Famous examples include Buckminster Fuller's designs, which optimize material usage and structural strength.
+A dome-like triangulated structure. Structural efficiency depends on geometry, materials, loading and constraints; constructing a polyhedron is not a validated dome-design analysis.
 
 ### Geometric Algebra
 A mathematical system that extends vector algebra to include geometric operations like rotations and reflections. Related to Clifford algebra and Grassmann algebra.
 
 ### Golden Ratio (φ)
-An irrational number approximately equal to 1.618, often found in nature and art. Expressible as (1 + √5)/2, with exact rational approximations through continued fractions.
+The irrational number `(1 + sqrt(5))/2`. Continued fractions supply rational approximations, not an exact rational representation of the golden ratio.
 
 ## H
 
 ### Hexagonal Close Packing
-One of the two closest packing arrangements of spheres in three dimensions, along with cubic close packing. The IVM lattice represents a more fundamental structure.
+A close-packed sphere arrangement with ABAB layer stacking, distinct from FCC's ABCABC stacking. This package's IVM enumeration is FCC, not a general HCP generator.
 
 ### Holistic Understanding
 Comprehension that considers the whole system rather than isolated parts. A key principle of synergetic epistemology and education.
@@ -137,7 +140,7 @@ The mathematical problem of finding the most efficient way to divide a plane int
 ## I
 
 ### Icosahedron
-A polyhedron with 20 triangular faces. One of the Platonic solids, with exact volume relationships in tetrahedral units.
+A regular polyhedron with twenty triangular faces. It is a Platonic solid, but no icosahedron geometry class is exported here; its volume depends on its scale.
 
 ### Information Geometry
 The study of statistical manifolds and their geometric properties. Provides a framework for understanding probability distributions and inference processes.
@@ -149,7 +152,7 @@ A mathematical optimization technique where variables are restricted to integers
 The synthesis of knowledge from multiple academic disciplines. Synergetics provides a framework for understanding connections between mathematics, science, art, and humanities.
 
 ### Isotropic Vector Matrix (IVM)
-Buckminster Fuller's term for the optimal sphere packing lattice in three dimensions. Represents the most efficient arrangement of spheres in space.
+In this implementation, the FCC sublattice generated by the twelve permutations of `(2,1,1,0)`. Canonical sites have component sum divisible by four. It is distinct from the full integer-quadray BCC image. See [FCC neighborhoods](geometric-patterns-spatial-relationships.md).
 
 ### Iterative Method
 An algorithm that refines an approximation through repeated application. Used in numerical analysis and optimization problems.
@@ -170,7 +173,7 @@ An interconnected system of concepts and relationships. Synergetic education aim
 ## L
 
 ### Lattice
-A regular arrangement of points in space. The IVM lattice represents the optimal sphere packing arrangement discovered by Buckminster Fuller.
+A discrete additive subgroup generated by independent spatial vectors. The full default integer-quadray image is BCC; the package's twelve-neighbor IVM subset is FCC.
 
 ### Learning Analytics
 The measurement, collection, analysis, and reporting of data about learners and their contexts. Used to optimize learning processes and educational outcomes.
@@ -184,18 +187,18 @@ A solution that is optimal within a neighborhood of points, but not necessarily 
 ## M
 
 ### Mnemonic Encoding
-A memory aid technique for representing large numbers using meaningful patterns. The package provides functions for creating memorable representations of large mathematical values.
+Human-facing formatting and associations for large numbers. It is not numeric compression, and does not remove the cost of computing or storing the original integer.
 
 ### Modular Arithmetic
 A system of arithmetic for integers where numbers "wrap around" after reaching a certain value. Important in number theory and cryptography.
 
 ### Morphogenesis
-The biological process that causes an organism to develop its shape. Can be modeled using synergetic principles of self-organization.
+Development of biological form. Geometric analogy alone is not a validated morphogenesis model; this package does not implement one.
 
 ## N
 
 ### Natural Gradient
-An optimization technique that follows the steepest direction in information space rather than parameter space. Improves convergence in machine learning.
+A gradient defined with respect to a chosen information-geometric metric. Its convergence depends on the model and algorithm; it is not an implemented package optimizer.
 
 ### Network Theory
 The study of graphs and networks. Applied to social networks, biological systems, and information flow in collaborative systems.
@@ -204,7 +207,7 @@ The study of graphs and networks. Applied to social networks, biological systems
 The study of systems that do not follow linear relationships. Important for understanding complex systems like weather patterns and population dynamics.
 
 ### Normalization
-The process of scaling data to a standard range or distribution. In coordinate systems, normalization ensures consistent representation.
+For quadrays, subtracting the minimum component to select a minimum-zero representative of a common-offset class. It does not impose a fixed component sum or unit Euclidean norm. Constructor integer snapping is a separate step.
 
 ### Numerical Stability
 The property of an algorithm to produce accurate results despite small perturbations in input data. Critical for geometric calculations.
@@ -212,13 +215,13 @@ The property of an algorithm to produce accurate results despite small perturbat
 ## O
 
 ### Octahedron
-A polyhedron with 8 triangular faces. One of the Platonic solids, with volume exactly 4 tetrahedral units.
+A regular polyhedron with eight triangular faces. The default `Octahedron()` has IVM volume four at the package's declared size; this is not a scale-independent volume for every octahedron.
 
 ### Ontology
 The study of being and existence. In synergetics, ontology addresses the fundamental nature of geometric and mathematical relationships.
 
 ### Optimization
-The process of finding the best solution to a problem. Synergetic optimization considers multiple objectives and constraints simultaneously.
+Selecting a best solution relative to a specified objective and constraints. The package does not provide a general multiobjective optimizer.
 
 ### Orbital Mechanics
 The application of celestial mechanics to artificial satellites and spacecraft. Uses geometric principles for trajectory optimization.
@@ -232,7 +235,7 @@ A number that reads the same forwards and backwards. The package provides functi
 The set of all possible parameter values for a mathematical model. Used in optimization and sensitivity analysis.
 
 ### Pattern Recognition
-The identification of regularities and patterns in data. A core capability of synergetic analysis for discovering mathematical and geometric relationships.
+Finding regularities in selected data. Implemented decimal-pattern analysis describes finite inputs; a match alone is not evidence of a universal mathematical, physical or biological law.
 
 ### Penrose Tiling
 A non-periodic tiling of the plane discovered by Roger Penrose. Demonstrates aperiodic order and fivefold symmetry.
@@ -241,7 +244,7 @@ A non-periodic tiling of the plane discovered by Roger Penrose. Demonstrates ape
 A sudden change in the behavior of a system as a parameter is varied. Seen in learning breakthroughs and physical systems like water freezing.
 
 ### Platonic Solid
-One of five regular polyhedra: tetrahedron, cube, octahedron, dodecahedron, and icosahedron. Each has exact volume relationships expressible in tetrahedral units.
+One of the five convex regular polyhedra: tetrahedron, cube, octahedron, dodecahedron and icosahedron. Their volumes require a size convention; the package's cuboctahedron is not a Platonic solid.
 
 ### Primorial
 The product of prime numbers up to a given limit. Similar to factorial but using only prime numbers. Used in number theory and cryptography.
@@ -255,7 +258,7 @@ A type of geometry that studies properties invariant under projection. Related t
 ## Q
 
 ### Quadray Coordinate System
-Buckminster Fuller's four-dimensional coordinate system for representing points in tetrahedral space. Provides exact representation of geometric relationships in the IVM lattice.
+Four redundant tetrahedral labels for three spatial dimensions modulo common offsets. `QuadrayCoordinate` stores integer labels; its nearest inverse projects onto the full integer lattice, not only IVM. See [coordinate contracts](api/index.md#quadraycoordinate).
 
 ### Quantum Geometry
 The study of geometric structures in quantum mechanics. Synergetic principles may provide insights into quantum information and computation.
@@ -266,16 +269,16 @@ A solid material with long-range order but no translational periodicity. Discove
 ## R
 
 ### Rational Approximation
-The representation of an irrational number as a ratio of integers. Continued fractions provide optimal rational approximations.
+A rational value used to approximate another quantity. An exact representation of the rational is not an exact representation of an irrational target; a denominator cap alone is not a universal error bound.
 
 ### Recursive Function
 A function that calls itself during execution. Used in algorithms for pattern generation and fractal construction.
 
 ### Rhombic Dodecahedron
-A polyhedron with 12 rhombic faces. Represents the most efficient space-filling shape and appears in sphere packing.
+A polyhedron with twelve rhombic faces; a suitable rhombic dodecahedron is an FCC Voronoi cell. No general “most efficient space-filling shape” claim follows without a specified optimization criterion. It is not an exported geometry class here.
 
 ### Rhombic Triacontahedron
-A polyhedron with 30 rhombic faces. One of the Archimedean solids, with exact volume relationships.
+A polyhedron with thirty rhombic faces, dual to the icosidodecahedron and a Catalan solid, not an Archimedean solid. It is not an exported geometry class here.
 
 ### Round-Off Error
 The difference between an approximation and the true value due to rounding. Accumulates in floating-point calculations but avoided in exact arithmetic.
@@ -283,7 +286,7 @@ The difference between an approximation and the true value due to rounding. Accu
 ## S
 
 ### Scheherazade Number
-A power of 1001 (10³ + 1). Higher powers reveal remarkable palindromic patterns and contain Pascal's triangle coefficients.
+A power of 1001. Three-digit blocks can match a Pascal row only while coefficients fit without carries. Use `scheherazade_pascal_coefficients` rather than assuming that every power has an uncarried reading.
 
 ### Self-Organization
 The process by which complex systems organize themselves without external control. A key principle in synergetic learning and biological systems.
@@ -298,7 +301,7 @@ A measure of information content or uncertainty in a probability distribution. N
 A three-dimensional fractal constructed by recursively subdividing a tetrahedron and removing the central portion.
 
 ### Sphere Packing
-The problem of arranging spheres to maximize density. The IVM lattice represents the optimal solution discovered by Buckminster Fuller.
+Arranging nonoverlapping spheres, often to study density or contact structure. This package visualizes declared FCC neighborhoods; it neither discovers nor proves the general optimal-packing theorem.
 
 ### Statistical Mechanics
 The application of probability theory and statistics to systems with many particles. Uses concepts like entropy and phase transitions.
@@ -307,13 +310,13 @@ The application of probability theory and statistics to systems with many partic
 A mathematical model for systems that evolve randomly over time. Important in modeling learning processes and decision-making.
 
 ### Symbolic Computation
-Mathematical computation with symbols rather than numbers. Allows exact manipulation of mathematical expressions.
+Manipulation of symbolic expressions. `SymergeticsNumber` provides rational arithmetic, not a general symbolic-expression engine; irrational roots remain approximations.
 
 ### Symmetry Group
 A set of transformations that preserve the structure of an object. Important in crystallography and geometric pattern analysis.
 
 ### Synergetic Geometry
-Buckminster Fuller's comprehensive geometric framework that unifies mathematics, physics, and philosophy through exact relationships.
+Fuller's geometric and philosophical framework. The Python implementation supplies specific arithmetic and geometry tools, not a demonstrated unification of physics and philosophy.
 
 ### Synergetics
 The study of systems in transformation, emphasizing synergy (cooperative action) and geometry. Buckminster Fuller's lifelong work to understand fundamental patterns.
@@ -327,7 +330,7 @@ An approach to problem-solving that views problems as part of an overall system.
 A structural principle based on isolated compression elements within a network of tension elements. Creates lightweight, strong structures.
 
 ### Tetrahedron
-A polyhedron with 4 triangular faces. The fundamental unit of volume in synergetic geometry, with volume defined as 1 tetrahedral unit.
+A polyhedron with four triangular faces. The package's default regular `Tetrahedron()` defines IVM volume one, with edge `2*sqrt(2)` at scale one. Other tetrahedra can have fractional IVM volume.
 
 ### Topological Invariant
 A property that remains unchanged under continuous deformations. Important in understanding the fundamental structure of geometric objects.
@@ -341,10 +344,10 @@ The property of a pattern that looks the same when shifted by a certain amount. 
 ## U
 
 ### Unit Vector
-A vector with length 1, often used as a basis for coordinate systems. Important in defining coordinate axes and directions.
+A vector of Euclidean length one. The default Urner basis columns have length `sqrt(3)`, so quadray basis directions are not unit vectors at scale one.
 
 ### Universal Pattern
-A fundamental pattern or relationship that appears across different domains. Synergetics seeks to identify universal patterns in geometry and mathematics.
+A proposed relation holding across a stated domain. A finite sequence plot or geometric analogy cannot establish universality without a precise proposition and independent evidence.
 
 ## V
 
@@ -352,7 +355,7 @@ A fundamental pattern or relationship that appears across different domains. Syn
 A quantity that measures the difference between an internal model and sensory input. Minimized in active inference processes.
 
 ### Vector Equilibrium
-Buckminster Fuller's term for the cuboctahedron, representing perfect balance of forces in three-dimensional space.
+Fuller's name for the cuboctahedral arrangement of twelve equal contact directions. The package constructs its geometry; it does not solve a force-balance model.
 
 ### Volume Element
 An infinitesimal volume used in integration. In synergetic geometry, the tetrahedral volume element is fundamental.
@@ -369,6 +372,17 @@ In spacetime geometry, the path of an object through four-dimensional spacetime.
 
 ### XYZ Coordinates
 Standard Cartesian coordinates in three-dimensional space. The package provides conversion between XYZ and Quadray coordinate systems.
+
+### Vertex mean and solid mass centroid
+`centroid_exact()` returns the exact mean of declared vertices.
+`volume_centroid_exact()` returns the uniform-solid mass center of the declared
+triangle-fan surface; zero volume has no defined mass centroid.
+`centroid()` is a separate floor-snapped lattice approximation.
+
+### XYZ and IVM units
+At the default scale-one embedding, XYZ volume equals `8/3` times IVM volume.
+Surface area uses XYZ-squared units. Custom embedding scales change Euclidean
+measures, not native IVM volume. See [unit derivation](mathematical-foundations-synergetics.md#ivm-tetrahedral-units-and-xyz-cubic-units).
 
 ## Z
 

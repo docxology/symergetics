@@ -1,177 +1,83 @@
 ## System Architecture
 
-
 ### Design Principles
 
-The Symergetics package employs a modular architecture designed around three core principles that ensure mathematical accuracy and practical usability:
-
-1. **Mathematical Precision**: All components maintain exact arithmetic precision without floating-point approximation errors. Every module preserves exact mathematical relationships essential to synergetic analysis throughout all operations.
-
-2. **Separation of Concerns**: Each module handles specific aspects of synergetic analysis while maintaining clear interfaces. The complex functionality is organized logically with well-defined responsibilities and clear boundaries between modules.
-
-3. **Extensibility**: The architecture supports easy addition of new capabilities without affecting existing functionality. The package can grow and evolve to meet new research needs while maintaining backward compatibility and system stability.
-
-These principles create a system that is both mathematically rigorous and practically useful, enabling researchers to explore synergetic principles with confidence in the accuracy and reliability of the computational tools.
-
+The package separates rational data, integer geometry, numerical analysis and
+visualization. Exactness is a property of particular operations and inputs, not
+of every component. Float plotting, irrational quantities and lattice snapping
+are explicit boundaries. Modularity does not guarantee compatibility or
+correctness of an arbitrary extension.
 
 ### Package Structure
 
+| Area | Source | Responsibility |
+| --- | --- | --- |
+| Arithmetic | [core/numbers.py](../../symergetics/core/numbers.py) | Fraction-backed numbers, roots and rational approximations |
+| Coordinates | [core/coordinates.py](../../symergetics/core/coordinates.py) | Integer quadrays, embedding, nearest-site inversion and exact metrics |
+| Constants | [core/constants.py](../../symergetics/core/constants.py) | Named rational values and approximation tables |
+| Solid geometry | [geometry/polyhedra.py](../../symergetics/geometry/polyhedra.py) | Declared topology, live volume, area and centers |
+| Prime products | [computation/primorials.py](../../symergetics/computation/primorials.py) | Prime-bounded primorials, powers of 1001 and binomial-block checks |
+| Digit patterns | [computation/palindromes.py](../../symergetics/computation/palindromes.py) | Representation-dependent number-pattern utilities |
+| Analysis | [computation/analysis.py](../../symergetics/computation/analysis.py) | Mathematical analysis helpers; inspect individual numerical methods |
+| Visualization | [visualization](../../symergetics/visualization/) | Geometric and mathematical plots and output handling |
+| Conversion | [utils/conversion.py](../../symergetics/utils/conversion.py) | Conversion helpers and their own numeric policies |
 
-The package structure is organized into five specialized directories, each handling specific aspects of synergetic analysis:
-
-**Core Directory** (`symergetics/core/`): Fundamental arithmetic and coordinate system operations
-- `numbers.py`: Exact rational arithmetic using `SymergeticsNumber` wrapper
-- `coordinates.py`: Quadray coordinate transformations and IVM lattice operations
-- `constants.py`: Mathematical constants including Platonic solid volumes
-
-**Geometry Directory** (`symergetics/geometry/`): Geometric computations and spatial analysis
-- `polyhedra.py`: Volume calculations for Platonic solids using IVM units
-- `transformations.py`: Coordinate system transformations with exact precision
-- `analysis.py`: Geometric analysis tools for spatial relationships
-
-**Computation Directory** (`symergetics/computation/`): Advanced pattern analysis and algorithms
-- `primorials.py`: Scheherazade number analysis and primorial sequence computation
-- `palindromes.py`: Palindrome detection across multiple number bases
-- `patterns.py`: Mathematical pattern discovery algorithms
-
-**Visualization Directory** (`symergetics/visualization/`): Plotting and visualization tools
-- `geometry.py`: 3D geometric plotting and spatial visualization
-- `mathematical.py`: Mathematical pattern visualization and analysis
-- `output.py`: Multiple output format support (PNG, SVG, PDF, ASCII)
-
-**Utils Directory** (`symergetics/utils/`): Utility functions and helper modules
-- `conversion.py`: Data format conversion utilities
-- `reporting.py`: Report generation and output formatting
-- `helpers.py`: Common functionality across all modules
-
-This modular design ensures clear separation of concerns while enabling seamless integration across all components. Complete implementation details are available at the [GitHub repository](https://github.com/docxology/symergetics/tree/main/symergetics).
-
+This replaces descriptions of unimplemented `patterns`, `complexity`,
+`optimization`, engineering-analysis and automatic analyzer-registration
+frameworks. The [architecture guide](../../docs/architecture/index.md) and
+[API reference](../../docs/api/index.md) own detailed interfaces.
 
 ### Core Module: Mathematical Foundation
 
-
-The core module provides the fundamental mathematical operations that underpin all other functionality. This module serves as the mathematical foundation for the entire Symergetics package, ensuring that all calculations maintain exact precision while providing the essential building blocks for synergetic analysis.
-
-
-**Exact Rational Arithmetic:** The `SymergeticsNumber` class provides exact arithmetic operations that maintain mathematical precision throughout all computations. Operations like 3/4 + 1/6 yield exactly 11/12 rather than floating-point approximations, preserving the exact mathematical relationships that are essential to synergetic analysis. The class extends Python's built-in `fractions.Fraction` with additional functionality specifically designed for synergetic calculations.
-
-
-The implementation includes automatic simplification using the Euclidean algorithm, comprehensive error handling for edge cases, and seamless integration with the geometric analysis components. This ensures that researchers can perform complex mathematical operations with confidence in the accuracy of the results. Implementation details are available in the [numbers module](https://github.com/docxology/symergetics/tree/main/symergetics/core/numbers).
-
-
-**Quadray Coordinate System:** The `QuadrayCoordinate` class enables tetrahedral coordinate representation with exact conversion to Cartesian coordinates. This system preserves spatial relationships through precise mathematical transformations, providing a natural framework for analyzing tetrahedral geometry and complex spatial relationships.
-
-
-The Quadray system uses four axes arranged in tetrahedral symmetry, with coordinates that are conventionally normalized so that the minimum coordinate is zero. This constraint ensures that the system maintains its geometric properties while providing a more natural representation for tetrahedral analysis than traditional Cartesian coordinates. Complete implementation is available in the [coordinates module](https://github.com/docxology/symergetics/tree/main/symergetics/core/coordinates).
-
-
-**Mathematical Constants:** The `SymergeticsConstants` class provides access to exact mathematical constants including tetrahedron volume (exactly 1) and octahedron volume (exactly 4). These constants form the foundation for all geometric calculations in the synergetic framework, providing the exact relationships that are essential for understanding the mathematical structure of natural systems.
-
-
-The constants include all five Platonic solid volumes, the golden ratio φ, and other mathematical relationships that are central to synergetic analysis. All constants are represented using exact rational arithmetic, ensuring that calculations maintain mathematical precision throughout the analysis process. Implementation details are available in the [constants module](https://github.com/docxology/symergetics/tree/main/symergetics/core/constants).
-
+The core stores rational numbers and integer quadray representatives. Do not
+infer symbolic π/φ, continuous rational coordinates or exact float exports from
+those types. The [mathematical foundations](03_mathematical_foundations.md)
+define their domains and units.
 
 ### Geometry Module: Spatial Analysis
 
-
-The geometry module extends the core framework to handle complex geometric computations:
-
-
-**Volume Calculations:** The polyhedra classes provide exact volume calculations for all Platonic solids, with the tetrahedron serving as the fundamental unit (exactly 1 IVM unit). These calculations maintain mathematical precision throughout complex geometric operations. Implementation details are available in the [polyhedra module](https://github.com/docxology/symergetics/tree/main/symergetics/geometry/polyhedra).
-
-
-**Coordinate Transformations:** The transformation functions enable seamless conversion between coordinate systems while preserving geometric accuracy. The `quadray_to_cartesian` function performs exact conversions using precise mathematical relationships. Complete implementation is available in the [transformations module](https://github.com/docxology/symergetics/tree/main/symergetics/geometry/transformations).
-
-
-**Geometric Analysis:** The geometric analysis capabilities examine structural relationships in polyhedral forms, identifying symmetry patterns and geometric ratios that reveal underlying mathematical structures. These tools enable comprehensive analysis of complex geometric relationships. Implementation details are available in the [geometry module](https://github.com/docxology/symergetics/tree/main/symergetics/geometry).
-
+The four concrete solid classes are `Tetrahedron`, `Cube`, `Octahedron` and
+`Cuboctahedron`. Their mutable vertices and declared indexed fans determine
+measurements. A vertex mean is not a uniform-solid mass centroid. Valid
+nonintersecting closed surfaces are a precondition of solid measurements.
 
 ### Computation Module: Pattern Discovery
 
-
-The computation module focuses on advanced mathematical analysis and pattern recognition:
-
-
-**Primorial Sequences:** The `primorial` function computes exact primorial sequences, such as the 6th primorial equaling exactly 30,030. These calculations maintain mathematical precision while enabling analysis of prime number relationships and distribution patterns. Implementation details are available in the [primorials module](https://github.com/docxology/symergetics/tree/main/symergetics/computation/primorials).
-
-
-**Scheherazade Analysis:** The `scheherazade_power` function performs pattern discovery in Scheherazade numbers (powers of 1001), revealing embedded mathematical structures including palindromic sequences and Pascal triangle coefficients. These analyses require exact arithmetic to uncover subtle patterns. Complete implementation is available in the [Scheherazade analysis module](https://github.com/docxology/symergetics/tree/main/symergetics/computation/patterns).
-
-
-**Palindrome Detection:** The `is_palindromic` function provides sophisticated pattern recognition capabilities across multiple number bases, enabling discovery of palindromic properties that reveal underlying mathematical symmetries. These tools support comprehensive analysis of number patterns. Implementation details are available in the [palindromes module](https://github.com/docxology/symergetics/tree/main/symergetics/computation/palindromes).
-
+Prime products and digit-pattern operations act on specified mathematical
+inputs. A string pattern is not a general scientific classifier. No distributed
+analysis service or benchmarked large-data performance is established by this
+architecture description.
 
 ### Visualization Module: Output Generation
 
-
-The visualization module provides comprehensive support for representing mathematical concepts:
-
-
-**Geometric Plotting:** The geometric plotting capabilities create visual representations of geometric structures including polyhedra, coordinate systems, and spatial relationships. These tools generate high-quality visualizations that accurately represent underlying mathematical structures. Implementation details are available in the [geometric visualization module](https://github.com/docxology/symergetics/tree/main/symergetics/visualization/geometry).
-
-
-**Mathematical Visualizations:** The mathematical visualization tools create comprehensive visual representations of mathematical patterns and relationships, including sequence analysis, pattern discovery, and statistical summaries. These visualizations support both research and educational applications. Complete implementation is available in the [mathematical visualization module](https://github.com/docxology/symergetics/tree/main/symergetics/visualization/mathematical).
-
-
-**Multiple Output Formats:**
-- PNG: High-quality raster images for publications
-- SVG: Vector graphics for scalable diagrams
-- PDF: Embedded vector content for documents
-- ASCII: Text-based representations for terminals
-
+Visualization uses numerical projections of computed data. Supported output
+formats depend on the selected renderer and installed optional dependencies;
+a format recognized by discovery is not necessarily embeddable by the paper
+renderer. Captions must state units and approximation boundaries.
 
 ### Testing and Quality Assurance
 
-
-**Testing evidence:** Tests include exact rational arithmetic assertions such as
-3/4 + 1/6 = 11/12. Suite size, execution results and coverage are different
-measurements. [Test evidence and count semantics](../TEST_EVIDENCE.md) binds a
-generated source inventory to its file hashes and distinguishes function
-definitions from parametrized pytest cases and execution receipts. Coverage
-must be measured with pytest-cov for the tested revision; no universal numerical
-accuracy follows from a test count.
-
-Complete test implementation is available in the [tests directory](https://github.com/docxology/symergetics/tree/main/tests).
-
-
-**Validation Framework:**
-- Tests check specific mathematical operations and expected results
-- Coordinate transformations maintain geometric accuracy
-- Pattern recognition algorithms function correctly
-- Visualization outputs accurately represent underlying data
-
+[Test evidence](../TEST_EVIDENCE.md) distinguishes source-definition inventories,
+collected cases and historical execution/coverage receipts. A passing assertion
+supports that case, not universal exactness or domain efficacy. This document
+reports source review, not a fresh execution receipt.
 
 ### Integration and Workflow
 
-
-**Seamless Module Integration:** The high-level interface integrates all modules through a unified workflow that combines arithmetic operations, geometric analysis, computational methods, and visualization capabilities. This integration enables complete analysis workflows from coordinate input to pattern discovery and visual output. Implementation details are available in the [main package module](https://github.com/docxology/symergetics/tree/main/symergetics).
-
-
-**Extensibility:** The modular architecture supports easy addition of new capabilities through custom analyzer classes and registration mechanisms. This design enables researchers to extend the system with domain-specific analysis tools while maintaining compatibility with existing functionality. Complete implementation is available in the [core modules](https://github.com/docxology/symergetics/tree/main/symergetics/core).
-
+The [checkout guide](../../README.md) owns package installation. The
+[paper quick start](../QUICK_START.md) uses the renderer directly; the larger
+`generate_paper.py` orchestration can run tests, regenerate examples and clear
+outputs, so it must not be described as a PDF-only command.
 
 ### Performance and Scalability
 
-
-**Efficient Algorithms:**
-- Optimized for large-scale mathematical analysis
-- Memory management for handling large datasets
-- Parallel processing support for computationally intensive tasks
-
-
-**Resource Management:**
-- Careful allocation of computational resources
-- Efficient handling of large number sequences
-- Optimized visualization generation
-
+Rational arithmetic and integer pattern analysis are limited by bit growth,
+algorithmic search and memory. No automatic load balancing, memory-budget
+calculator or distributed runtime is claimed here. Record problem sizes and
+measured conditions before claiming efficiency.
 
 ### Documentation and Maintenance
 
-
-Complete documentation is available at:
-- **[README file](https://github.com/docxology/symergetics/blob/main/README.md)**: Installation and usage guidelines
-- **[API documentation](https://github.com/docxology/symergetics/tree/main/docs)**: Detailed function and class references
-- **[Examples directory](https://github.com/docxology/symergetics/tree/main/examples)**: Practical usage demonstrations
-
-
-This modular architecture ensures that Symergetics can be used effectively for both simple calculations and complex research applications while maintaining the exact mathematical precision essential to synergetic analysis.
+Keep callable examples in the [API reference](../../docs/api/index.md),
+mathematical conventions in [foundations](03_mathematical_foundations.md), and
+proposed domain uses in [research applications](09_research_applications.md).

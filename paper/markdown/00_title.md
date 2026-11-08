@@ -16,14 +16,16 @@ Symergetics, Synergetics, Buckminster Fuller, rational arithmetic, geometric pat
 **Repository:**  
 Symergetics Package: https://github.com/docxology/symergetics
 
-**DOI:** 10.5281/zenodo.17114390
+**Historical paper DOI:** [10.5281/zenodo.17114390](https://doi.org/10.5281/zenodo.17114390)
 
-**Date:** September 13, 2025  
-**Version:** 1.0.0
+**Historical title-page date:** September 13, 2025  
+**Historical title-page version:** 1.0.0
+
+These metadata describe the earlier paper, not the current package version.
+The editable sections describe the development checkout and do not revise an
+immutable deposited PDF. Use the DOI landing page for deposited citation metadata.
 
 ---
 
-## Abstract
-
-*See Abstract section for full abstract content.*
+The [abstract](01_abstract.md) states the current source scope and limitations.
 

@@ -2,14 +2,20 @@
 
 Source review base: `8ab949e4932537ceee1af93b08196fe21bf4ee85` (2026-10-13).
 
+This page preserves a **historical snapshot**, not current-main suite counts.
+The commands below document that snapshot's Python 3.12 environment; a fresh
+scientific workflow uses explicit Python 3.13 as described in
+[the checkout guide](../README.md). No tests were rerun for the documentation
+corrections, and the checked inventory is not asserted to match later edits.
+
 Reproduce the inventory without importing test modules:
 
 ```bash
-python paper/validation/test_inventory.py > /tmp/test_inventory.json
+python3.12 paper/validation/test_inventory.py > /tmp/test_inventory.json
 diff -u paper/validation/test_inventory.json /tmp/test_inventory.json
 ```
 
-The checked inventory counts **1,017 test-prefixed AST function definitions
+The historical checked inventory counts **1,017 test-prefixed AST function definitions
 across 39 Python files** under `tests/**/test_*.py`. It includes nested
 functions; it does not claim that every definition is discoverable by pytest.
 Its input digest is `84ccefc608ec85b1d3ab5273440e3b25970d34523b4be9800d2fee73e97fba7d`.
@@ -26,7 +32,7 @@ uv run --python 3.12 --extra test --extra scientific pytest tests/ --collect-onl
 uv run --python 3.12 --extra test --extra scientific pytest tests/ -q
 ```
 
-Current collection receipt (2026-10-13, Python 3.12): **1,030 collected cases**
+Historical collection receipt (2026-10-13, Python 3.12): **1,030 collected cases**
 using the collection command above at the recorded test-source digest.
 
 Collection does not demonstrate execution, pass rate, numerical accuracy or
@@ -43,13 +49,13 @@ A bounded original-source run yielded 996 passed, 20 skipped, 1 deselected,
 85.91% coverage. Those receipts belong to the earlier digest
 `54da74ac354e2c205ccf4888ff787b37d3b40c073bfcfcab5b4d018118450e34`.
 
-The resource boundary now rejects oversized nominal canvases before figure
-construction, checks draw and export DPI, and applies configuration atomically.
-The formerly stalled test requires early `ValueError`; it is no longer excluded.
-Additional controls cover scaled figures, low export DPI with huge draw buffers,
-non-finite dimensions, numeric strings and accepted publication sizes.
-Fresh unrestricted execution receipt (2026-10-13, Python 3.12, current test-source
-digest): **1,010 passed, 20 skipped, no deselections**, **85.97% coverage**
+At the recorded review revision, the resource boundary rejected oversized nominal
+canvases before figure construction, checked draw/export DPI and applied
+configuration atomically. The formerly stalled case required early `ValueError`
+and was no longer excluded. The recorded controls covered scaled figures, huge
+draw buffers, non-finite dimensions, numeric strings and publication sizes.
+Historical unrestricted execution receipt (2026-10-13, Python 3.12, recorded
+test-source digest): **1,010 passed, 20 skipped, no deselections**, **85.97% coverage**
 (85% floor reached), 55.89 seconds, using the full-suite command above.
 Test-generated output artifacts were restored after verification.
 
