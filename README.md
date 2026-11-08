@@ -32,9 +32,11 @@ specification, lattice algorithms and formalization;
 native and browser games. See the [suite guide](docs/synergetics-suite.md) for
 coordinate/volume conventions and exact-data exchange boundaries.
 
-The current minor release adds exact rational roots/powers and continuous
-`Fraction` centroids compatible with QuadMath. Mutable polyhedron volumes
-follow live geometry. See the [API contracts](docs/api/index.md).
+The methods suite adds exact rational metrics, indexed live surface analysis,
+uniform-solid mass centroids and even-odd multi-shell volumes. Area and
+rendering use the same declared triangle fans. Plots retain local geometry at
+huge translations; the scientific poster computes its arithmetic and sequences
+instead of embedding stale test statistics. See the [API contracts](docs/api/index.md).
 
 With sibling checkouts, Node.js and a C++17 compiler:
 

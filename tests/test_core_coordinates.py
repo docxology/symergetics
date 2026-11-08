@@ -815,5 +815,79 @@ def test_numpy_backed_fraction_rounding_uses_unbounded_remainders():
     assert QuadrayCoordinate(value, 0, 0, 0).as_tuple() == (1, 0, 0, 0)
 
 
+def test_forward_native_combinations_preserve_small_resolved_components():
+    n = 2**60
+    q, r = QuadrayCoordinate(n + 1, n, 0, 0), QuadrayCoordinate(1, 0, 1, 0)
+    assert q.to_xyz() == (1.0, float(2 * n + 1), 1.0)
+    assert q.dot(r) == 2.0
+    assert q.dot_exact(r) == 2
+    assert q.dot_exact(r, urner_embedding()) == 2
+
+
+def test_dot_retains_representable_result_despite_overflowing_xyz_products():
+    length = 2**600
+    q = QuadrayCoordinate(length, 0, 0, 0)
+    r = QuadrayCoordinate(length + 1, length, 0, 2 * length)
+    assert q.dot_exact(r) == 3 * length
+    assert q.dot(r) == float(3 * length)
+    assert q.dot(r, urner_embedding()) == float(3 * length)
+    assert q.dot(QuadrayCoordinate(length, length, 0, 2 * length)) == 0.0
+
+
+@pytest.mark.parametrize("scale", (1e-200, 1e200))
+def test_norm_and_distance_keep_representable_answers_in_extreme_units(scale):
+    matrix = urner_embedding(scale)
+    expected = math.sqrt(3) * scale
+    assert QuadrayCoordinate(1, 0, 0, 0).magnitude(matrix) == pytest.approx(expected, abs=0)
+    offset = 2**60
+    start, end = QuadrayCoordinate(offset, 0, 0, 0), QuadrayCoordinate(offset + 1, 0, 0, 0)
+    assert start.distance_to(end, matrix) == pytest.approx(expected, abs=0)
+
+
+def test_scaled_huge_native_coordinates_are_combined_before_float_conversion():
+    length = 2**1100
+    matrix = urner_embedding(2.0**-500)
+    q = QuadrayCoordinate(length, 0, 0, 0)
+    assert q.to_xyz(matrix) == (2.0**600,) * 3
+    assert q.magnitude(matrix) == pytest.approx(math.sqrt(3) * 2.0**600)
+    assert q.distance_to(QuadrayCoordinate(0, 0, 0, 0), matrix) == q.magnitude(matrix)
+
+
+def test_exact_metric_observes_physical_aliases_and_unbounded_integer_distances():
+    length, gauge = 10**400, 10**450
+    q = QuadrayCoordinate(length, 0, 0, 0)
+    alias = QuadrayCoordinate(length + gauge, gauge, gauge, gauge, normalize=False)
+    assert q != alias
+    assert q.squared_distance_exact(alias) == 0
+    assert q.dot_exact(alias) == q.squared_norm_exact() == 3 * length * length
+    assert isinstance(q.squared_norm_exact(), Fraction)
+    assert q.squared_distance_exact(QuadrayCoordinate(0, length, 0, 0)) == 8 * length * length
+    assert QuadrayCoordinate(gauge, gauge, gauge, gauge, normalize=False).squared_norm_exact() == 0
+
+
+def test_exact_custom_metric_uses_binary_coefficients_and_effective_first_three_columns():
+    matrix = np.array([[0.1, 0, 0, -0.1], [0, 2, 0, -2], [0, 0, 3, -3]])
+    q, r = QuadrayCoordinate(3, 1, 0, 0), QuadrayCoordinate(1, 2, 0, 0)
+    assert q.dot_exact(r, matrix) == 3 * Fraction(0.1) ** 2 + 8
+    assert q.squared_norm_exact(matrix) == 9 * Fraction(0.1) ** 2 + 4
+    assert q.squared_distance_exact(r, matrix) == 4 * Fraction(0.1) ** 2 + 4
+    # Column-four summation roundoff is tolerated but is not an extra map term.
+    rounded = matrix.copy()
+    rounded[:, 3] += np.array([1e-16, 1e-15, 1e-15])
+    shifted = QuadrayCoordinate(10**100 + 3, 10**100 + 1, 10**100, 10**100,
+                                normalize=False)
+    assert shifted.to_xyz(rounded) == q.to_xyz(matrix)
+    assert shifted.dot_exact(r, rounded) == q.dot_exact(r, matrix)
+
+
+def test_exact_scaled_metric_does_not_underflow_small_positive_squared_distance():
+    q, origin = QuadrayCoordinate(1, 0, 0, 0), QuadrayCoordinate(0, 0, 0, 0)
+    for scale in (1e-200, 0.3, 1e200):
+        expected = 3 * Fraction(scale) ** 2
+        assert q.squared_norm_exact(urner_embedding(scale)) == expected
+        assert q.squared_distance_exact(origin, urner_embedding(scale)) == expected
+        assert expected > 0
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

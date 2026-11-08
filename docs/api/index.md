@@ -103,7 +103,10 @@ class QuadrayCoordinate:
     def __init__(self, a, b, c, d, normalize=True)
     def to_xyz(self, embedding=None) -> Tuple[float, float, float]
     def magnitude(self, embedding=None) -> float
-    def distance_to(self, other) -> float
+    def distance_to(self, other, embedding=None) -> float
+    def dot_exact(self, other, embedding=None) -> Fraction
+    def squared_norm_exact(self, embedding=None) -> Fraction
+    def squared_distance_exact(self, other, embedding=None) -> Fraction
 ```
 
 **Key Methods:**
@@ -121,6 +124,12 @@ not a rational-coordinate representation.
 by canonical tuple order. Custom embeddings must be finite, rank-three 3×4
 matrices with the common-offset gauge in their kernel. `to_xyz` and `as_array`
 are floating-point boundaries; they do not promise arbitrary-precision XYZ.
+
+Exact metrics evaluate native integer combinations and rational embedding
+coefficients before any floating boundary. Finite floats mean their exact
+stored binary values. Floating dot products round completed expressions once;
+norms use range-safe evaluation. This preserves resolved cancellation and
+large common-offset aliases without promising arbitrary-precision XYZ output.
 
 ```mermaid
 classDiagram
@@ -161,15 +170,52 @@ physical sites and graph-radius semantics.
 
 ### Polyhedra Classes
 
-All polyhedra expose `centroid_exact()`, returning a minimum-zero
-`tuple[Fraction, Fraction, Fraction, Fraction]` without lattice snapping.
-Empty input raises `ValueError`. This agrees with QuadMath's
-`centroid_exact(points)`; see [suite transport and units](../synergetics-suite.md).
-The existing `centroid()` remains a floor-snapped integer coordinate, not the
-continuous centroid.
+`centroid_exact()` is the exact **declared vertex mean**, not generally the
+uniform solid's center of mass. It returns a minimum-zero four-`Fraction`
+tuple compatible with QuadMath. Empty input raises `ValueError`. The existing
+`centroid()` remains floor-snapped and gauge-invariant; the rational mean
+must not be reconstructed through the integer coordinate constructor.
 
 `vertices` remains mutable. `volume()` calculates from the current vertices
 rather than returning a stale cached value after a vertex replacement.
+
+### Indexed surfaces and live solid analysis
+
+| Method | Contract |
+|---|---|
+| `face_indices()` | Stable cyclic vertex indices into the current mutable `vertices` sequence |
+| `triangulated_faces()` | Declared polygon fans; the same surface used for measures and rendering |
+| `surface_area(embedding=None)` | Floating area in the supplied XYZ metric; scaled accumulation retains recoverable subnormal totals |
+| `volume_centroid_exact()` | Exact uniform-solid mass centroid as a canonical rational tuple; undefined for zero volume |
+| `analyze_geometry()` | Live affine rank, physical vertex count, closure, nonplanar face indices, triangle-surface convexity, area, both volume units and both centroids |
+| `to_xyz_vertices(embedding=None, relative_to=None)` | Optional displacement-first coordinates, avoiding large absolute-position cancellation |
+
+Volume and solid moments require closed, orientable, non-self-intersecting
+triangle surfaces. Nonintersecting disconnected shells add their masses;
+nested shells use **even-odd enclosure**, subtracting cavities and restoring
+islands. Self/mutual intersection is an input precondition, not a detection
+claim. Nonplanar polygon faces use their declared triangle fan; nonplanarity
+does not alone imply nonconvexity. Zero-volume analysis reports no solid
+centroid instead of inventing a vertex-mean substitute.
+
+```python
+from fractions import Fraction
+from symergetics.core.coordinates import QuadrayCoordinate
+from symergetics.geometry.polyhedra import Cube
+
+cube = Cube()
+assert cube.surface_area() == 24
+cube.vertices[0] = QuadrayCoordinate(2, 0, 0, 0)
+analysis = cube.analyze_geometry()
+assert analysis["volume_ivm"] == Fraction(9, 2)
+assert analysis["volume_xyz"] == 12
+assert analysis["is_convex"] and analysis["nonplanar_faces"] == (0, 2, 4)
+assert cube.centroid_exact() == (Fraction(1, 8), 0, 0, 0)
+assert cube.volume_centroid_exact() == (Fraction(1, 4), 0, 0, 0)
+```
+
+At default scale one, XYZ volume is `8/3` times native IVM volume.
+See the [suite units and interoperability contract](../synergetics-suite.md).
 
 #### Tetrahedron
 
@@ -330,27 +376,49 @@ CUBE_VERTICES = [...]         # Cube vertices
 
 ## Visualization Module
 
-High-level plotting API for geometry, numbers, and mathematical constructs. All functions honor the visualization configuration and produce organized outputs under `output/{category}/{subcategory}/`.
+High-level plotting API for geometry, numbers, and mathematical constructs.
+Configured outputs use `output/{category}/{subcategory}/`. The mega abstract
+has its own fixed poster layout rather than inheriting the ordinary figure size.
 
 ### Configuration
 
 ```python
-from symergetics.visualization import set_config, get_config, reset_config,
-  ensure_output_dir, get_organized_output_path,
-  create_output_structure_readme, list_output_structure,
-  save_config, load_config
+from symergetics.visualization import (
+    set_config, get_config, reset_config,
+    ensure_output_dir, get_organized_output_path,
+    create_output_structure_readme, list_output_structure,
+    save_config, load_config,
+)
 ```
 
 ### Geometry Visualizations
 
 ```python
 from symergetics.visualization.geometry import (
-  plot_polyhedron,
-  plot_quadray_coordinate,
-  plot_ivm_lattice,
-  plot_coordinate_transformation
+    plot_polyhedron,
+    plot_polyhedron_3d,
+    plot_polyhedron_graphical_abstract,
+    plot_polyhedron_wireframe,
+    plot_quadray_coordinate,
+    plot_ivm_lattice,
+    plot_coordinate_transformation,
 )
 ```
+
+`plot_polyhedron_3d` applies elevation/azimuth and surface/wireframe visibility
+to both actual backends. Polyhedron plots use an anchor-relative XYZ frame;
+metadata includes `coordinate_frame`, `origin_quadray_exact` and live
+`geometry_analysis`. Equal spans and unit box aspect preserve physical lengths.
+Graphical abstracts distinguish vertex and solid centroids and canonical
+reference volumes from the live shape. Animations consume the same indexed
+triangle fans and record exact frame origins.
+
+The advanced `create_mega_graphical_abstract(title, output_path, backend)`
+renders computed rational arithmetic, actual finite sequences, scale-declared
+geometry and numerical-boundary examples. It does not embed test/coverage
+statistics or substitute synthetic curves for computed data. Irrational
+constants remain approximations. Only its declared arguments are accepted;
+previously ignored extra keywords are no longer silently swallowed.
 
 ### Number Visualizations
 

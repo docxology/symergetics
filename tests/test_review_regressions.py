@@ -477,23 +477,34 @@ class TestPlotlyBackends:
         assert palindrome['metadata']['symmetry_score'] == 1.0
         assert asymmetric['metadata']['symmetry_score'] == 0.0
 
-    def test_create_animation_writes_gif(self):
+    def test_create_animation_renders_surface_and_distinct_camera_frames(self):
+        import numpy as np
+        from PIL import Image, ImageSequence
         from symergetics.visualization import create_animation
 
         with tempfile.TemporaryDirectory() as tmp:
-            set_config({'output_dir': tmp})
+            set_config({'output_dir': tmp, 'figure_size': (3, 3), 'dpi': 60})
             try:
                 result = create_animation(
-                    [{'polyhedron': 'cuboctahedron'}] * 4,
+                    [{'polyhedron': 'tetrahedron', 'azimuth': angle}
+                     for angle in (10, 55, 100, 145)],
                     output_filename='regression_rotation', fps=4)
             finally:
                 reset_config()
 
-            assert result['metadata']['type'] == 'animation'
-            assert result['metadata']['frames'] == 4
-            for file_path in result['files']:
-                assert os.path.exists(file_path)
-                assert os.path.getsize(file_path) > 0
+            with Image.open(result['files'][0]) as gif:
+                frames = [np.asarray(frame.convert('RGB')).astype(float)
+                          for frame in ImageSequence.Iterator(gif)]
+                assert gif.info['duration'] == 250
+            assert len(frames) == 4
+            assert all(np.any(frame != frames[0]) for frame in frames[1:])
+            # Blue translucent face interiors cover an area, not only markers.
+            # The old triangular-face slice emitted two-point polygons.
+            for frame in frames:
+                blue_face = ((frame[:, :, 2] > frame[:, :, 0] + 20)
+                             & (frame[:, :, 2] > frame[:, :, 1] + 10)
+                             & (frame[:, :, 0] > 80))
+                assert np.count_nonzero(blue_face) > 100
 
     def test_remaining_plotly_renderers_covered(self):
         """Cover the rest of the new plotly backends."""

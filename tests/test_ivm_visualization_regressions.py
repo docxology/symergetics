@@ -224,3 +224,37 @@ def test_unknown_transformation_backend_is_rejected_before_callback(output_confi
     with pytest.raises(ValueError, match="Unsupported backend"):
         plot_coordinate_transformation(QuadrayCoordinate(0, 0, 0, 0), transform, backend=backend)
     assert not list(output_config.rglob("*"))
+
+
+@pytest.mark.parametrize("kind", ["coordinate", "lattice"])
+def test_plotly_global_context_fits_every_actual_point_and_basis_endpoint(output_config, kind):
+    pytest.importorskip("plotly")
+    far = QuadrayCoordinate(100, 0, 0, 0)
+    result = (
+        plot_quadray_coordinate(far, lattice_size=1, backend="plotly")
+        if kind == "coordinate" else
+        plot_ivm_lattice(1, highlight_coordinates=[far], backend="plotly")
+    )
+    html = Path(result["files"][0]).read_text()
+    start = html.index("[", html.index("Plotly.newPlot("))
+    decoder = json.JSONDecoder()
+    traces, end = decoder.raw_decode(html[start:])
+    layout, _ = decoder.raw_decode(html[start + end:].lstrip(" ,\n"))
+
+    def values(value):
+        if isinstance(value, dict):
+            return np.frombuffer(base64.b64decode(value["bdata"]), dtype=value["dtype"])
+        return np.asarray(value)
+
+    points = np.vstack([np.column_stack([values(trace[axis]) for axis in "xyz"])
+                        for trace in traces])
+    assert any(np.array_equal(point, [100, 100, 100]) for point in points)
+    assert set(_plotly_lattice_xyz(result["files"][0])) == _fcc_xyz(1)
+    spans = []
+    for i, axis in enumerate("xyz"):
+        low, high = layout["scene"][f"{axis}axis"]["range"]
+        assert low < points[:, i].min() <= points[:, i].max() < high
+        assert (low + high) / 2 == pytest.approx((points[:, i].min() + points[:, i].max()) / 2)
+        spans.append(high - low)
+    assert len(set(spans)) == 1
+    assert layout["scene"]["aspectmode"] == "cube"

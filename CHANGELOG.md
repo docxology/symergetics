@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.3.0 — 2026-11-07
+
+### Exact metrics and live solid analysis
+
+- Add exact coordinate dot products, squared norms and squared distances, with native cancellation before floating conversion and range-safe floating norms/angles.
+- Share stable indexed faces and declared triangle fans across volume, surface measures, Matplotlib, Plotly and animation. Analyze live affine rank, physical vertices, closure, nonplanarity and triangle-surface convexity.
+- Add exact uniform-solid mass centroids, distinct from declared vertex means. Integrate concave surfaces and disjoint/nested shells using even-odd enclosure; self/mutual intersections remain an explicit input precondition.
+- Preserve recoverable subnormal surface totals and use anchor-relative XYZ display coordinates for huge translations.
+
+### Computed scientific visualization
+
+- Apply real Plotly camera and surface/wireframe controls; preserve physical scale and report local-origin/live-geometry metadata.
+- Replace synthetic poster curves, stale test/coverage claims and misleading rationality/frequency statements with computed exact arithmetic, integer Fibonacci ratios, prime-bound primorials, finite palindrome enumeration and bounded rational approximations.
+- Distinguish tetrahedral layer populations, FCC graph shells, counts and uniform dilation. Report live edge/area/volume scaling and actual numerical-boundary examples.
+- Close poster figures on both successful and failed saves. The mega-abstract API now accepts only its declared `title`, `output_path` and `backend`; previously ignored extra keywords raise rather than pretending to work.
+- Keep comparative/dashboard box plots compatible with both the declared Matplotlib 3.5 floor and current 3.11 releases; avoid the removed `boxplot(labels=...)` keyword.
+
+### Suite integration
+
+- Extend the five-runtime interoperability example with 280 exact native-metric pairs and 15 conservative Python/JavaScript graph steps, using an independently enumerated shared FCC graph.
+- Document native/default/QuadCraft units, vertex versus mass centroids, hard versus soft field methods, graph/clock ownership, formal proof scope and actual browser capability limits.
+
+Verification: **1,467 passed, 12 skipped; 91.07% statement coverage**, above the existing 85% floor, on the exercised Python 3.13 scientific environment. Installed Python 3.11 consumers also rendered both comparative/dashboard plots with Matplotlib 3.11.2. See the [suite guide](docs/synergetics-suite.md) for cross-runtime evidence and limitations.
+
 ## 1.2.0 — 2026-11-07
 
 ### Exact numbers and live geometry

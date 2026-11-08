@@ -1,6 +1,6 @@
 [project]
 name = "symergetics"
-version = "1.2.0"
+version = "1.3.0"
 description = "A comprehensive research analysis and design framework based on Buckminster Fuller's Synergetics"
 readme = "README.md"
 license = { file = "LICENSE" }

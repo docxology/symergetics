@@ -1,14 +1,14 @@
 """
 Quadray Coordinate System for Synergetic Geometry
 
-This module implements Fuller's Quadray coordinate system, a four-dimensional
-tetrahedral coordinate system based on the comprehensive QuadMath reference
-implementation (https://github.com/docxology/QuadMath).
+This module implements four-label, rank-three tetrahedral spatial coordinates.
+Common-offset labels represent the same vector; the production package remains
+independent of its QuadMath companion (https://github.com/docxology/QuadMath).
 
 Key Features:
 - Integer-based Quadray coordinates with proper normalization
 - Correct Urner embedding matrix for XYZ conversion
-- Exact integer volume calculations using determinants
+- Exact rational metrics and determinant volumes on integer coordinates
 - IVM (Isotropic Vector Matrix) lattice support
 - Integration with SymergeticsNumber for rational arithmetic
 
@@ -71,6 +71,22 @@ def _validated_embedding(embedding: Optional[np.ndarray]) -> np.ndarray:
 def _canonical(values):
     minimum = min(values)
     return tuple(value - minimum for value in values)
+
+
+def _xyz_exact(matrix: np.ndarray, coordinate: 'QuadrayCoordinate') -> Tuple[Fraction, ...]:
+    """Apply the effective d-gauge map before rounding any native combination."""
+    differences = (coordinate.a - coordinate.d, coordinate.b - coordinate.d,
+                   coordinate.c - coordinate.d)
+    return tuple(sum((Fraction(weight) * value for weight, value in zip(row[:3], differences)),
+                     Fraction()) for row in matrix)
+
+
+def _float_metric(value: Fraction) -> float:
+    """Round the final value, with signed infinity only outside float range."""
+    try:
+        return float(value)
+    except OverflowError:
+        return -math.inf if value < 0 else math.inf
 
 
 def _nearest_quadray(matrix, target):
@@ -302,9 +318,9 @@ class QuadrayCoordinate:
 
         The optional finite rank-three 3x4 embedding must annihilate the
         all-ones gauge (within summation roundoff). Its first three columns
-        define the d=0 gauge. Gauge removal uses exact integer subtraction
-        before crossing the floating-point XYZ boundary, so a large common
-        offset cannot erase small spatial displacements.
+        define the d=0 gauge. Integer subtraction and linear combinations
+        precede float conversion. Finite stored coefficients denote exact
+        binary rationals; only the final XYZ components are rounded.
 
         Args:
             embedding: Gauge-compatible 3x4 matrix; defaults to Urner embedding.
@@ -312,10 +328,8 @@ class QuadrayCoordinate:
         Returns:
             Tuple[float, float, float]: (x, y, z) Cartesian coordinates
         """
-        embedding = _validated_embedding(embedding)
-        differences = (self.a - self.d, self.b - self.d, self.c - self.d)
-        xyz_vector = embedding[:, :3] @ np.array(differences, dtype=float)
-        return tuple(float(value) for value in xyz_vector)
+        matrix = _validated_embedding(embedding)
+        return tuple(_float_metric(value) for value in _xyz_exact(matrix, self))
 
     @classmethod
     def from_xyz(cls, x: float, y: float, z: float,
@@ -349,12 +363,12 @@ class QuadrayCoordinate:
             float: Euclidean norm of the embedded vector
         """
         x, y, z = self.to_xyz(embedding)
-        return float((x * x + y * y + z * z) ** 0.5)
+        return math.hypot(x, y, z)
 
     def dot(self, other: 'QuadrayCoordinate',
             embedding: Optional[np.ndarray] = None) -> float:
         """
-        Calculate Euclidean dot product using XYZ embedding.
+        Calculate Euclidean dot product, rounding only the final exact result.
 
         Args:
             other: Another Quadray coordinate
@@ -363,9 +377,33 @@ class QuadrayCoordinate:
         Returns:
             float: Dot product in embedded Euclidean space
         """
-        x1, y1, z1 = self.to_xyz(embedding)
-        x2, y2, z2 = other.to_xyz(embedding)
-        return float(x1 * x2 + y1 * y2 + z1 * z2)
+        return _float_metric(self.dot_exact(other, embedding))
+
+    def dot_exact(self, other: 'QuadrayCoordinate',
+                  embedding: Optional[np.ndarray] = None) -> Fraction:
+        """Exact Euclidean inner product of integer coordinates.
+
+        The default metric is ``4*sum(q_i*r_i)-sum(q_i)*sum(r_i)``.
+        Custom finite coefficients are exact binary rationals. As in
+        ``to_xyz``, only the first three columns define the d-gauge map;
+        tolerated row-sum roundoff in column four does not alter it.
+        """
+        if embedding is None:
+            left, right = self.as_tuple(), other.as_tuple()
+            return Fraction(4 * sum(a * b for a, b in zip(left, right))
+                            - sum(left) * sum(right))
+        matrix = _validated_embedding(embedding)
+        return sum((a * b for a, b in zip(_xyz_exact(matrix, self),
+                                         _xyz_exact(matrix, other))), Fraction())
+
+    def squared_norm_exact(self, embedding: Optional[np.ndarray] = None) -> Fraction:
+        """Exact nonnegative squared norm under the effective embedding."""
+        return self.dot_exact(self, embedding)
+
+    def squared_distance_exact(self, other: 'QuadrayCoordinate',
+                               embedding: Optional[np.ndarray] = None) -> Fraction:
+        """Exact squared distance after native integer displacement."""
+        return self.sub(other).squared_norm_exact(embedding)
 
     def distance_to(self, other: 'QuadrayCoordinate',
                    embedding: Optional[np.ndarray] = None) -> float:

@@ -427,15 +427,13 @@ This document provides a comprehensive index of all test files in the Symergetic
 ### Specialized Tests
 
 #### `test_mega_graphical_abstract.py`
-- **Purpose**: Mega graphical abstract functionality
-- **Test Classes**: 1
-- **Test Functions**: 10
+- **Purpose**: Numerical meaning and figure ownership in the scientific poster
 - **Key Features**:
-  - Mega graphical abstract creation
-  - Default path testing
-  - Metadata testing
-  - Invalid backend handling
-  - File content testing
+  - Actual bounded-rational errors, Fibonacci ratios and prime-bound primorials
+  - Measured edge/area/volume dilation and odd/even palindrome symmetry
+  - Explicit finite-population counts
+  - Figure cleanup after successful rendering and failed saving
+  - Unsupported backend rejection
 
 ## Test Quality Metrics
 

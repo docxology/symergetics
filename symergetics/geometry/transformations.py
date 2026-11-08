@@ -252,10 +252,17 @@ def project_to_plane(coord: QuadrayCoordinate, plane_normal: Tuple[float, float,
 
     # Convert to XYZ space
     point = coord.to_xyz()
-    plane_normal = np.array(plane_normal)
+    plane_normal = np.asarray(plane_normal, dtype=float)
+    if plane_normal.shape != (3,) or not np.isfinite(plane_normal).all():
+        raise ValueError("Plane normal must be a finite nonzero three-vector")
+    normal_scale = float(np.max(np.abs(plane_normal)))
+    if normal_scale == 0:
+        raise ValueError("Plane normal must be a finite nonzero three-vector")
+    # Scaling before either dot product makes equivalent planes independent
+    # of overflow/underflow in the magnitude of their supplied normal.
+    plane_normal = plane_normal / normal_scale
     plane_point = np.array(plane_point)
     point = np.array(point)
-
     # Vector from plane point to the coordinate point
     vec = point - plane_point
 
@@ -369,7 +376,7 @@ def translate_by_vector(dx: int, dy: int, dz: int) -> Callable[[QuadrayCoordinat
     Returns:
         Callable: Translation function
     """
-    offset = QuadrayCoordinate.from_xyz(float(dx), float(dy), float(dz))
+    offset = QuadrayCoordinate.from_xyz(dx, dy, dz)
 
     def translate_func(coord: QuadrayCoordinate) -> QuadrayCoordinate:
         return translate(coord, offset)

@@ -12,6 +12,7 @@ from symergetics.geometry.transformations import (
     compose_transforms,
     coordinate_transform,
     reflect,
+    project_to_plane,
     rotate_around_axis,
     scale,
     scale_by_factor,
@@ -50,6 +51,35 @@ class TestTranslation:
         # This vector is itself a lattice point, so no snapping is needed.
         result = translate_by_vector(1, 3, -1)(QuadrayCoordinate(1, 0, 0, 0))
         np.testing.assert_array_equal(spatial(result), (2, 4, 0))
+
+    @pytest.mark.parametrize("xyz", [
+        (2**60 + 2, 0, 0),
+        (2**100 + 1, -(2**90) + 1, 3),
+    ])
+    def test_integer_xyz_translation_preserves_exact_lattice_displacement(self, xyz):
+        point = QuadrayCoordinate(7, 2, 1, 0)
+        result = translate_by_vector(*xyz)(point)
+        # Python integers, not to_xyz or a binary64 expected value.
+        a, b, c, d = result.sub(point).as_tuple()
+        assert (a - b - c + d, a + b - c - d, a - b + c - d) == xyz
+
+
+@pytest.mark.parametrize("magnitude", [1, -1, 1e200, -1e200, 1e-200, -1e-200])
+def test_plane_projection_is_invariant_under_normal_rescaling(magnitude):
+    point = QuadrayCoordinate(2, 0, 0, 0)
+    expected = QuadrayCoordinate(2, 1, 1, 0)
+    assert project_to_plane(point, (magnitude, 0, 0)) == expected
+    # Non-origin plane, with a projection which is itself exactly on-lattice.
+    expected = QuadrayCoordinate.from_xyz(4, 2, 2)
+    assert project_to_plane(point, (magnitude, 0, 0), (4, 0, 0)) == expected
+
+
+@pytest.mark.parametrize("normal", [
+    (0, 0, 0), (math.inf, 0, 0), (math.nan, 0, 0), (1, 0), (1, 0, 0, 0),
+])
+def test_plane_projection_rejects_undefined_normals(normal):
+    with pytest.raises(ValueError, match="finite nonzero three-vector"):
+        project_to_plane(QuadrayCoordinate(2, 0, 0, 0), normal)
 
 
 class TestScaling:
@@ -97,7 +127,7 @@ class TestReflection:
         assert result.as_tuple() == tuple(maximum - value for value in point.as_tuple())
         assert reflect(result, "origin") == point
 
-    @pytest.mark.parametrize("index,axis", enumerate("abcd"))
+    @pytest.mark.parametrize("index,axis", tuple(enumerate("abcd")))
     def test_named_plane_fixes_tangents_and_reverses_normal(self, index, axis):
         # Each basis vector has norm squared 3 and pairwise dot product -1.
         # One normal plus three of another basis is tangent to this plane.

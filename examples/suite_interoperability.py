@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the actual QuadMath, symergetics and QuadCraft coordinate APIs.
+"""Exercise actual suite coordinates, exact metrics, volumes and graph transport.
 
 Run in symergetics' scientific environment with sibling checkouts, Node.js and
 an available C++17 compiler. Paths and executable names can be overridden with
@@ -32,6 +32,22 @@ console.log(JSON.stringify(cases.map(([values, otherValues]) => {
     return [p.x, p.y, p.z, q.length(), Quadray.distance(q, alias),
         Quadray.distance(q, other), n.a, n.b, n.c, n.d,
         back.a, back.b, back.c, back.d];
+})));
+"""
+
+NODE_GRAPH_ADAPTER = r"""
+const fs = require('node:fs');
+const {ConservativeGraphField} = require(process.argv[1]);
+const {size, edges, initial, alphas, steps} = JSON.parse(fs.readFileSync(0, 'utf8'));
+const graph = new ConservativeGraphField(size, edges);
+console.log(JSON.stringify(alphas.map(alpha => {
+    let values = new Float64Array(initial);
+    const fields = [];
+    for (let tick = 0; tick < steps; tick++) {
+        values = graph.step(values, alpha);
+        fields.push(Array.from(values));
+    }
+    return {alpha, fields};
 })));
 """
 
@@ -112,10 +128,12 @@ def main() -> None:
 
     from quadmath.core.quadray import (
         DEFAULT_EMBEDDING, Quadray, ace_tetravolume_5x5, centroid_exact, distance,
-        integer_tetra_volume, magnitude, quadray_from_xyz, to_xyz,
+        dot_exact, integer_tetra_volume, magnitude, quadray_from_xyz,
+        squared_distance_exact, squared_norm_exact, to_xyz,
     )
     from quadmath.lattice.conversions import xyz_to_quadray_canonical
     from quadmath.lattice.omni_numbering import cumulative_count, site_at_index
+    from quadmath.lattice.ivm_dynamics import DynamicsParams, make_lattice, simulate
     from symergetics.core.coordinates import QuadrayCoordinate, enumerate_ivm_sites
     from symergetics.core.numbers import SymergeticsNumber
     from symergetics.geometry.polyhedra import (
@@ -244,6 +262,67 @@ def main() -> None:
         power = (SymergeticsNumber(value) ** Fraction(np.int64(2), 1)).value
         if any(center != expected for center in centers) or power != int(value)**2:
             raise AssertionError(f"fixed-width rational ingress failed for {value}")
+    # The exact metric boundary must agree beyond both binary64 and native
+    # float32 ranges; these cases deliberately stay in the two rational APIs.
+    metric_pairs = [*cases, ((2**2000 + 1, 2**2000, 0, 0), (1, 0, 1, 0))]
+    for values, other in metric_pairs:
+        xyz, other_xyz = suite_xyz(values), suite_xyz(other)
+        expected = (
+            sum(x * y for x, y in zip(xyz, other_xyz)),
+            sum(x * x for x in xyz),
+            sum((x - y)**2 for x, y in zip(xyz, other_xyz)),
+        )
+        q, p = Quadray(*values), Quadray(*other)
+        symer_q, symer_p = QuadrayCoordinate(*values), QuadrayCoordinate(*other)
+        for label, actual in (
+            ("QuadMath", (dot_exact(q, p), squared_norm_exact(q), squared_distance_exact(q, p))),
+            ("symergetics", (symer_q.dot_exact(symer_p), symer_q.squared_norm_exact(),
+                             symer_q.squared_distance_exact(symer_p))),
+        ):
+            if actual != expected:
+                raise AssertionError(f"{label}: exact quotient metric disagreement")
+
+    # Exchange an explicit FCC graph between the generic JavaScript transport
+    # and QuadMath's conservative operator. SimAnt itself uses a different,
+    # eight-neighbor raw-label graph; no coordinate aliasing is implied here.
+    lattice = make_lattice(3)
+    sources, targets = np.nonzero(np.triu(lattice.adjacency, k=1))
+    edges = [[int(source), int(target)] for source, target in zip(sources, targets)]
+    initial = np.arange(lattice.size, dtype=float)
+    initial[0] = 12.0
+    alphas, steps = [0.0, 0.35, 1.0], 5
+    transport = json.loads(run(
+        [args.node, "-e", NODE_GRAPH_ADAPTER,
+         str(craft_root / "games/4d_generic/graph_field.js")],
+        json.dumps({"size": lattice.size, "edges": edges, "initial": initial.tolist(),
+                    "alphas": alphas, "steps": steps}),
+    ))
+    if len(transport) != len(alphas):
+        raise AssertionError("missing conservative transport cases")
+    maximum_mass_drift = 0.0
+    for alpha, actual in zip(alphas, transport):
+        fields = np.asarray(actual["fields"], dtype=float)
+        expected = np.asarray(simulate(
+            steps, DynamicsParams(kind="conservative", alpha=alpha), lattice, initial,
+        ).fields[1:])
+        if actual["alpha"] != alpha or fields.shape != expected.shape:
+            raise AssertionError("conservative trajectory shape/coupling mismatch")
+        if not np.allclose(fields, expected, rtol=1e-13, atol=1e-13):
+            raise AssertionError(f"conservative Python/JavaScript disagreement at alpha={alpha}")
+        maximum_mass_drift = max(
+            maximum_mass_drift, float(np.max(np.abs(fields.sum(axis=1) - initial.sum()))),
+        )
+        if not np.allclose(fields.sum(axis=1), initial.sum(), rtol=0, atol=1e-12):
+            raise AssertionError("conservative transport changed closed-graph mass")
+        if np.min(fields) < np.min(initial) - 1e-12 or np.max(fields) > np.max(initial) + 1e-12:
+            raise AssertionError("conservative transport escaped the initial concentration range")
+        energies = [
+            0.5 * sum((state[source] - state[target])**2 for source, target in edges)
+            for state in (initial, *fields)
+        ]
+        if any(after > before + 1e-11 for before, after in zip(energies, energies[1:])):
+            raise AssertionError("conservative transport increased graph Dirichlet energy")
+
     print(json.dumps({"status": "passed", "coordinate_cases_per_runtime": len(cases),
                       "runtimes": ["QuadMath", "symergetics", "QuadCraft Python",
                                    "QuadCraft JavaScript", "QuadCraft C++"],
@@ -251,7 +330,14 @@ def main() -> None:
                       "ivm_site_comparisons": ivm_site_comparisons,
                       "exact_centroid_cases": len(centroid_groups),
                       "native_rational_ingress_cases": len(rational_ingress),
-                      "exact_centroid_libraries": ["QuadMath", "symergetics"]}, indent=2))
+                      "exact_centroid_libraries": ["QuadMath", "symergetics"],
+                      "exact_metric_pairs": len(metric_pairs),
+                      "conservative_transport": {
+                          "vertices": lattice.size, "edges": len(edges),
+                          "couplings": alphas, "compared_steps": len(alphas) * steps,
+                          "maximum_mass_drift": maximum_mass_drift,
+                          "runtimes": ["QuadMath", "QuadCraft JavaScript"],
+                      }}, indent=2))
 
 
 if __name__ == "__main__":

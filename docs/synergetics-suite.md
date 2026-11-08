@@ -49,10 +49,13 @@ For either Python project's scale-1 embedding,
 
 $$\|q\|^2=4\sum_i q_i^2-\left(\sum_i q_i\right)^2.$$
 
-The identity is exact algebraically. Numerically, subtracting those two large
-quadratic terms can erase a small distance. Gauge-free Cartesian differences
-and a sum of nonnegative squares avoid that cancellation. Floating XYZ inputs
-still cannot recover integer information already lost before entering an API.
+Use QuadMath `dot_exact`, `squared_norm_exact`, `squared_distance_exact` and
+symergetics' corresponding coordinate methods for exact rational metrics.
+Native combinations are formed before floating conversion; finite embedding
+floats mean their stored binary rationals. This resolves cancellation such as
+the `2**60` one-count cases that a float-first inner product erases.
+Range-safe floating norms/angles remain distinct from exact squared measures.
+Floating XYZ inputs cannot recover information already lost before API entry.
 
 ### Exact volume versus Euclidean volume
 
@@ -97,7 +100,7 @@ a new serializer API; the shared JavaScript geometry uses `Number`, not
 arbitrary-precision geometric arithmetic. Do not convert large strings to
 `Number` and call the result exact.
 
-### Continuous centroids without integer snapping
+### Exact vertex means and uniform-solid mass centroids
 
 QuadMath `centroid_exact(points)` and symergetics
 `SymergeticsPolyhedron.centroid_exact()` return the same minimum-zero tuple of
@@ -111,13 +114,71 @@ Do not feed these fractions through symergetics' integer-snapping coordinate
 constructor. Existing snapped centroids remain distinct: QuadMath uses half-up
 component rounding; symergetics uses floor snapping.
 
+These are **vertex means**, not generic solid centers of mass. For example,
+moving one Cube vertex to `(2,0,0,0)` gives vertex mean `(1/8,0,0,0)` but
+uniform-solid centroid `(1/4,0,0,0)`. symergetics
+`volume_centroid_exact()` integrates consistently oriented triangle-surface
+moments. `analyze_geometry()` reports both centers and live rank, closure,
+nonplanarity, triangle-surface convexity, area and volume in both unit systems.
+The common indexed mesh also drives Matplotlib, Plotly and animation.
+
+Nonintersecting disconnected shells add; nested shells use even-odd enclosure
+(cavities subtract, islands add). Closure does not certify absence of
+self/mutual intersections: valid embedded triangle surfaces are a precondition.
+Zero-volume solids have no mass centroid. Nonplanar polygon faces mean their
+declared triangle fan, not an unspecified alternative surface.
+
+### Simulation operators are not interchangeable
+
+For an undirected graph with Laplacian `L` and full maximum degree `d_max`,
+QuadMath's conservative heat and QuadCraft's `ConservativeGraphField` use
+`u_next = u - alpha * L*u/d_max`, with `0 <= alpha <= 1`.
+Each edge contributes equal/opposite flux. In exact arithmetic this preserves
+ordinary mass and constants, obeys the maximum principle and dissipates
+`0.5 * sum_edges((u_i-u_j)**2)`. Floating implementations add rounding error.
+Symmetric-normalized heat instead preserves the `sqrt(degree)`-weighted mode,
+not ordinary mass on irregular boundary graphs. Neither operator's stationary
+distribution should be relabeled as the other's.
+
+| Consumer | Deliberate contract |
+|---|---|
+| QuadMath `IVMField.harmonic_extension` | Hard Dirichlet values; every component must be anchored, with failure atomicity and separate component scales |
+| Existing regularized `IVMField.learn` | Soft observation penalty; not a hard-boundary solver |
+| Majority trajectory fitting | Exact integer/Fraction residuals, binary-float alpha decisions and one final mean-square conversion; noisy fractional observations stay fractional |
+| SimAnt terrain graph | Eight raw reversible axis neighbors, terrain masks and distinct occupancy aliases; not the twelve-neighbor physical FCC graph |
+| SimAnt pheromones | Conservative transport separated from deposition, evaporation, caps and Float32 storage; HUD accounts for the nonconservative terms |
+| Shared continuous game loop | Fixed callback seconds; interval configuration and browser timestamps remain milliseconds |
+| Doom | Sixty-Hz simulation; input changes settle elapsed time first, held fire belongs to captured input and respawn starts a fresh clock |
+| Asteroids | Swept moving-target contacts in the shared physical metric, including periodic images, lifetime and fragment remainder |
+| Minecraft/Mahjong | Actual projected footprint and reverse stable paint order; preserve raw cell/tile identity |
+
+The interoperability example supplies an explicit FCC graph to the generic
+JavaScript field kernel before comparing it with QuadMath. It does not pretend
+SimAnt's raw terrain graph is that FCC graph.
+
+### Formal scope and graphical evidence
+
+QuadMath's dependency-free Lean development proves the common-offset physical
+quotient and canonical uniqueness, exact distance positivity/congruence,
+independent-gauge determinant invariance, the signed XYZ/native volume bridge,
+and universal shell lower bounds. `lake build` and `leanchecker` are separate
+CI gates. A universal shell-count formula and BFS equivalence remain outside
+the proved scope; floating simulation and browser gameplay are not Lean proofs.
+
+Scientific figures declare their physical scale and use live geometry.
+The mega abstract computes finite Fibonacci ratios, prime-bound primorials,
+palindrome counts and bounded rational approximations; it contains no copied
+test counts or universal rationality claim. Irrational quantities remain
+approximations. Sparse lattice planes preserve exact native indices while
+displaying local-origin cells, rather than allocating a dense huge-span image.
+
 ## Coordinated software releases
 
 | Project | Version | Release notes |
 |---|---|---|
-| QuadMath | 0.5.0 | [Stable information geometry and exact centroids](https://github.com/docxology/QuadMath/blob/main/CHANGELOG.md) |
-| symergetics | 1.2.0 | [Exact roots, live geometry and release provenance](../CHANGELOG.md) |
-| QuadCraft | v0.4.0 | [All-game browser coverage and interactive fixes](https://github.com/docxology/QuadCraft/blob/main/CHANGELOG.md) |
+| QuadMath | 0.6.0 | [Exact methods, conservative simulation and formal quotient proofs](https://github.com/docxology/QuadMath/blob/main/CHANGELOG.md) |
+| symergetics | 1.3.0 | [Live solid moments, indexed geometry and computed scientific figures](../CHANGELOG.md) |
+| QuadCraft | v0.5.0 | [Time-owned simulation, continuous collisions and conservative gameplay transport](https://github.com/docxology/QuadCraft/blob/main/CHANGELOG.md) |
 
 ## Complete suite verification
 
@@ -197,6 +258,10 @@ Cartesian norms, distinct-point distances, explicit unit mapping, independently
 enumerated FCC graph balls, agreement between exact volume formulations and
 continuous rational centroids beyond binary64's range and integer precision,
 plus NumPy-backed rational ingress before fixed-width arithmetic can wrap.
+It also checks 280 native exact-metric pairs against an independent integer
+XYZ oracle and 15 conservative steps on the same explicit FCC graph in the
+Python/JavaScript kernels. The exercised run observed maximum mass drift
+`1.4210854715202004e-14`; this is floating evidence, not an exact-JavaScript claim.
 Missing runtimes and mismatches fail the command; they are not silently skipped.
 It neither launches the OpenGL game nor proves browser rendering or the entire
 mathematical library.
@@ -244,7 +309,7 @@ Exact rational enumeration has no heuristic candidate cap. Its cost still
 depends on basis/input bit lengths; no constant-time claim is made for
 arbitrary custom embeddings.
 
-Verified with Python 3.13.17, Node.js and the C++17 toolchain:
+Historical 0.5.0 / 1.2.0 / v0.4.0 release evidence, not current test-count pins:
 
 | Check | Observed result |
 |---|---|
@@ -262,19 +327,21 @@ Verified with Python 3.13.17, Node.js and the C++17 toolchain:
 
 The earlier numerical smoke exercised 196 scaled inverse roundtrips, 21
 volume/radius scale-covariance checks and 120 nearest queries against a finite
-exhaustive oracle. The current browser gate covers the complete 30-game
-catalog with real picking, keyboard actions, simulation/gravity, pause/reset,
-rotation, placement and scoring transitions. This is not a claim that every
-gameplay path or every browser was tested.
+exhaustive oracle. The methods-pass Chromium gate again passed all 30 games;
+its Doom scenario additionally exercises late input and respawn timing, and
+held automatic fire when native capture is available. The methods-pass CLI
+reported 2,341 passing checks, zero failures. This does not claim every gameplay
+path or every browser was tested.
 
 The repeatable browser command and artifact/trace policy are in
 [QuadCraft's browser gate](https://github.com/docxology/QuadCraft/blob/main/games/tests/browser/README.md).
 Mouse capture capability is recorded, not fabricated; keyboard movement remains
 available when the browser rejects native pointer lock. The patched scientific
 environment, including Pillow 13 and pytest 9, passed the full suite and all demos.
-The [merged Linux Chromium run](https://github.com/docxology/QuadCraft/actions/runs/42339885685)
-also passed all 30 surfaces and recorded Doom mouse capture as active,
-so both actual native-capture outcomes have been exercised.
+The [previous-release Linux Chromium run](https://github.com/docxology/QuadCraft/actions/runs/42339885685)
+passed all 30 surfaces with native Doom capture active. The current methods
+pass's local Chromium run recorded actual denial, with keyboard controls
+available. A capture-denied run does not exercise the capture-only held-fire branch.
 
 On the local macOS workstation, the normal graphical native configuration
 could not complete because system GLEW was missing. The independent headless

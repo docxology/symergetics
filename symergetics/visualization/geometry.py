@@ -29,6 +29,113 @@ from ..geometry.polyhedra import (
 from . import _validate_canvas, ensure_output_dir, get_config, get_organized_output_path
 
 
+def _edge_indices(polyhedron):
+    """Declared topology, independent of vertex equality or mutable hashes."""
+    return sorted({tuple(sorted((face[i], face[(i + 1) % len(face)])))
+                   for face in polyhedron.face_indices() for i in range(len(face))})
+
+
+def _polyhedron_frame(polyhedron):
+    """Subtract an exact anchor before embedding; never subtract rounded XYZ."""
+    if not polyhedron.vertices:
+        raise ValueError("No vertices to plot")
+    anchor = polyhedron.vertices[0]
+    return np.asarray(polyhedron.to_xyz_vertices(relative_to=anchor), dtype=float), anchor
+
+
+def _display_bounds(points):
+    points = np.asarray(points, dtype=float)
+    low, high = points.min(axis=0), points.max(axis=0)
+    center = low + (high - low) / 2
+    half = float(np.max(high - low)) * 0.55
+    if half == 0:
+        half = 1.0
+    return [(float(c - half), float(c + half)) for c in center]
+
+
+def _fit_3d(ax, points, *, relative=False):
+    """Fit every displayed point using extrema, with a unit metric box."""
+    bounds = _display_bounds(points)
+    ax.set_xlim(*bounds[0])
+    ax.set_ylim(*bounds[1])
+    ax.set_zlim(*bounds[2])
+    ax.set_box_aspect((1, 1, 1))
+    for axis, label in zip((ax.set_xlabel, ax.set_ylabel, ax.set_zlabel), 'XYZ'):
+        axis(f'Δ{label} (anchor-relative)' if relative else label)
+    return bounds
+
+
+def _plotly_scene(points, *, relative=False, elevation=20, azimuth=45):
+    elevation, azimuth = np.deg2rad([elevation, azimuth])
+    eye = dict(x=2.5 * np.cos(elevation) * np.cos(azimuth),
+               y=2.5 * np.cos(elevation) * np.sin(azimuth),
+               z=2.5 * np.sin(elevation))
+    scene = dict(aspectmode='cube', camera=dict(eye=eye, up=dict(x=0, y=0, z=1)))
+    for axis, bounds in zip('xyz', _display_bounds(points)):
+        label = f'Δ{axis.upper()} (anchor-relative)' if relative else axis.upper()
+        scene[f'{axis}axis'] = dict(title=label, range=bounds)
+    return scene
+
+
+def _geometry_metadata(polyhedron, anchor):
+    return dict(coordinate_frame='anchor-relative XYZ (scale 1)',
+                origin_quadray_exact=anchor.as_tuple(),
+                geometry_analysis=polyhedron.analyze_geometry())
+
+
+def _draw_polyhedron(ax, polyhedron, vertices, *, show_edges=True,
+                     show_faces=True, show_vertices=True, alpha=0.7):
+    """Render the same declared triangle fan used by model measurements."""
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    colors = get_config()['colors']
+    if show_faces:
+        triangles = [vertices[list(triangle)] for triangle in polyhedron.triangulated_faces()]
+        if triangles:
+            ax.add_collection3d(Poly3DCollection(
+                triangles, facecolors=colors['primary'], alpha=alpha,
+                edgecolors='none'))
+    if show_edges:
+        for a, b in _edge_indices(polyhedron):
+            edge = vertices[[a, b]]
+            ax.plot(*edge.T, color=colors['secondary'], linewidth=2)
+    if show_vertices:
+        ax.scatter(*vertices.T, color=colors['primary'], s=40)
+
+
+def _render_polyhedron_matplotlib(polyhedron, *, suffix, kind, show_edges=True,
+                                  show_faces=True, show_vertices=True, alpha=0.7,
+                                  elevation=20, azimuth=45):
+    import matplotlib.pyplot as plt
+    vertices, anchor = _polyhedron_frame(polyhedron)
+    config = get_config()
+    _validate_canvas(config['figure_size'], max(config['dpi'], float(plt.rcParams['figure.dpi'])))
+    fig = plt.figure(figsize=config['figure_size'])
+    try:
+        ax = fig.add_subplot(111, projection='3d')
+        _draw_polyhedron(ax, polyhedron, vertices, show_edges=show_edges,
+                         show_faces=show_faces, show_vertices=show_vertices, alpha=alpha)
+        _fit_3d(ax, vertices, relative=True)
+        ax.view_init(elev=elevation, azim=azimuth)
+        ax.set_title(f'{type(polyhedron).__name__} — {polyhedron.volume()} IVM units\n'
+                     f'XYZ relative to quadray anchor {anchor.as_tuple()}')
+        files = []
+        for fmt in config['formats']:
+            if fmt == 'html':
+                continue
+            path = get_organized_output_path('geometric', 'polyhedra',
+                                             f'{type(polyhedron).__name__.lower()}_{suffix}.{fmt}')
+            fig.savefig(path, dpi=config['dpi'], **config['png_options'])
+            files.append(str(path))
+    finally:
+        plt.close(fig)
+    return dict(files=files, metadata=dict(
+        type=kind, polyhedron=type(polyhedron).__name__, vertices=len(vertices),
+        volume=polyhedron.volume(), backend='matplotlib',
+        view_elevation=elevation, view_azimuth=azimuth,
+        show_wireframe=show_edges, show_surface=show_faces,
+        **_geometry_metadata(polyhedron, anchor)))
+
+
 def plot_polyhedron(polyhedron: Union[str, SymergeticsPolyhedron],
                    backend: Optional[str] = None,
                    **kwargs) -> Dict[str, Any]:
@@ -43,6 +150,12 @@ def plot_polyhedron(polyhedron: Union[str, SymergeticsPolyhedron],
 
     Returns:
         Dict: Visualization metadata and file paths
+
+    Polyhedron views display scale-1 XYZ displacements from the exact first
+    vertex anchor, recorded as ``metadata.origin_quadray_exact``. Surfaces use
+    the declared triangle fan, including warped-face interpretation, not a
+    convex hull. ``geometry_analysis`` reports live area, solid/vertex centroids
+    and validity diagnostics; it is not a self-intersection test.
 
     Examples:
         >>> plot_polyhedron('tetrahedron')
@@ -79,309 +192,76 @@ def plot_polyhedron(polyhedron: Union[str, SymergeticsPolyhedron],
 
 
 def _plot_polyhedron_matplotlib(polyhedron: SymergeticsPolyhedron,
-                               show_edges: bool = True,
-                               show_faces: bool = True,
-                               show_vertices: bool = True,
-                               alpha: float = 0.7,
+                               show_edges: bool = True, show_faces: bool = True,
+                               show_vertices: bool = True, alpha: float = 0.7,
                                **kwargs) -> Dict[str, Any]:
-    """Plot polyhedron using matplotlib."""
-    try:
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    except ImportError:
-        raise ImportError("matplotlib is required for matplotlib backend")
+    """Plot indexed live geometry in an explicitly anchor-relative frame."""
+    return _render_polyhedron_matplotlib(
+        polyhedron, suffix='3d', kind='polyhedron_3d', show_edges=show_edges,
+        show_faces=show_faces, show_vertices=show_vertices, alpha=alpha,
+        elevation=kwargs.get('elevation', 20), azimuth=kwargs.get('azimuth', 45))
 
-    # Create figure
-    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
-    fig = plt.figure(figsize=get_config()["figure_size"])
-    ax = fig.add_subplot(111, projection='3d')
 
-    # Get vertex coordinates
-    vertices_xyz = polyhedron.to_xyz_vertices()
-    if not vertices_xyz:
-        raise ValueError("No vertices to plot")
-
-    # Convert to numpy array for easier manipulation
-    vertices = np.array(vertices_xyz)
-
-    # Plot vertices
-    if show_vertices:
-        ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-                  color=get_config()["colors"]["primary"], s=50, alpha=1.0)
-
-    # Plot edges
-    if show_edges:
-        # Get edges from faces (simplified approach)
-        try:
-            faces = polyhedron.faces()
-            if faces:
-                for face in faces:
-                    face_vertices = np.array([v.to_xyz() for v in face])
-                    # Plot face edges
-                    for i in range(len(face_vertices)):
-                        start = face_vertices[i]
-                        end = face_vertices[(i + 1) % len(face_vertices)]
-                        ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]],
-                               color=get_config()["colors"]["secondary"], linewidth=2)
-        except (AttributeError, NotImplementedError, ValueError):
-            # Polyhedra without face data: fall back to plain vertex scatter
-            pass
-
-    # Plot faces
+def _render_polyhedron_plotly(polyhedron, *, enhanced=False, show_edges=True,
+                              show_faces=True, show_vertices=True, alpha=0.3,
+                              elevation=20, azimuth=45):
+    import plotly.graph_objects as go
+    vertices, anchor = _polyhedron_frame(polyhedron)
+    x, y, z = vertices.T
+    fig = go.Figure()
+    colors = get_config()['colors']
     if show_faces:
-        try:
-            faces = polyhedron.faces()
-            if faces:
-                face_colors = plt.cm.viridis(np.linspace(0, 1, len(faces)))
-                for i, face in enumerate(faces):
-                    face_vertices = np.array([v.to_xyz() for v in face])
-                    if len(face_vertices) >= 3:
-                        face_collection = Poly3DCollection([face_vertices],
-                                                         alpha=alpha,
-                                                         facecolors=[face_colors[i]],
-                                                         edgecolors=get_config()["colors"]["secondary"])
-                        ax.add_collection3d(face_collection)
-        except (AttributeError, NotImplementedError, ValueError):
-            pass
-
-    # Set labels and title
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.set_title(f'{type(polyhedron).__name__} - Volume: {polyhedron.volume()} IVM units')
-
-    # Set equal aspect ratio
-    max_range = np.ptp(vertices, axis=0).max() / 2.0
-    mid_x = vertices[:, 0].mean()
-    mid_y = vertices[:, 1].mean()
-    mid_z = vertices[:, 2].mean()
-    ax.set_xlim(mid_x - max_range, mid_x + max_range)
-    ax.set_ylim(mid_y - max_range, mid_y + max_range)
-    ax.set_zlim(mid_z - max_range, mid_z + max_range)
-
-    # Save plot using organized structure
-    base_filename = f"{type(polyhedron).__name__.lower()}_3d"
-    files = []
-
-    for fmt in get_config()["formats"]:
-        if fmt == "html":
-            continue  # matplotlib doesn't support HTML directly
-
-        filename = f"{base_filename}.{fmt}"
-        filepath = get_organized_output_path('geometric', 'polyhedra', filename)
-        fig.savefig(filepath, 
-                    dpi=get_config()["dpi"], 
-                    facecolor=get_config()["png_options"]["facecolor"],
-                    bbox_inches=get_config()["png_options"]["bbox_inches"],
-                    pad_inches=get_config()["png_options"]["pad_inches"],
-                    transparent=get_config()["png_options"]["transparent"])
-        files.append(str(filepath))
-
-    plt.close(fig)
-
-    return {
-        'files': files,
-        'metadata': {
-            'type': 'polyhedron_3d',
-            'polyhedron': type(polyhedron).__name__,
-            'vertices': len(polyhedron.vertices),
-            'volume': polyhedron.volume(),
-            'backend': 'matplotlib'
-        }
-    }
+        triangles = polyhedron.triangulated_faces()
+        if triangles:
+            i, j, k = zip(*triangles)
+            fig.add_trace(go.Mesh3d(x=x, y=y, z=z, i=i, j=j, k=k,
+                                   opacity=alpha, color=colors['primary'],
+                                   flatshading=True, name='Faces'))
+    if show_edges:
+        for a, b in _edge_indices(polyhedron):
+            edge = vertices[[a, b]]
+            fig.add_trace(go.Scatter3d(x=edge[:, 0], y=edge[:, 1], z=edge[:, 2],
+                                      mode='lines', line=dict(color=colors['secondary'], width=3),
+                                      name='Edges', showlegend=False))
+    if show_vertices:
+        fig.add_trace(go.Scatter3d(x=x, y=y, z=z, mode='markers',
+                                  marker=dict(size=8, color=colors['primary']), name='Vertices'))
+    fig.update_layout(
+        title=f'{type(polyhedron).__name__} — {polyhedron.volume()} IVM units<br>'
+              f'XYZ relative to quadray anchor {anchor.as_tuple()}',
+        scene=_plotly_scene(vertices, relative=True, elevation=elevation, azimuth=azimuth),
+        width=get_config()['figure_size'][0] * 100,
+        height=get_config()['figure_size'][1] * 100)
+    suffix = '3d_enhanced' if enhanced else '3d'
+    path = get_organized_output_path('geometric', 'polyhedra',
+                                     f'{type(polyhedron).__name__.lower()}_{suffix}.html')
+    fig.write_html(str(path))
+    return dict(files=[str(path)], metadata=dict(
+        type='polyhedron_3d_enhanced' if enhanced else 'polyhedron_3d',
+        polyhedron=type(polyhedron).__name__, vertices=len(vertices), volume=polyhedron.volume(),
+        backend='plotly', show_wireframe=show_edges, show_surface=show_faces,
+        show_vertices=show_vertices, elevation=elevation, azimuth=azimuth,
+        **_geometry_metadata(polyhedron, anchor)))
 
 
 def _plot_polyhedron_plotly(polyhedron: SymergeticsPolyhedron,
-                           **kwargs) -> Dict[str, Any]:
-    """Plot polyhedron using plotly."""
-    try:
-        import plotly.graph_objects as go
-    except ImportError:
-        raise ImportError("plotly is required for plotly backend")
-
-    # Get vertex coordinates
-    vertices_xyz = polyhedron.to_xyz_vertices()
-    if not vertices_xyz:
-        raise ValueError("No vertices to plot")
-
-    vertices = np.array(vertices_xyz)
-
-    # Create mesh data
-    x, y, z = vertices[:, 0], vertices[:, 1], vertices[:, 2]
-
-    # Create figure
-    fig = go.Figure()
-
-    # Add vertices
-    fig.add_trace(go.Scatter3d(
-        x=x, y=y, z=z,
-        mode='markers',
-        marker=dict(
-            size=8,
-            color=get_config()["colors"]["primary"],
-            opacity=1.0
-        ),
-        name='Vertices'
-    ))
-
-    # Add real edges (derived from the polyhedron's faces, not a complete graph)
-    vertex_index = {v: i for i, v in enumerate(polyhedron.vertices)}
-    for a, b in polyhedron.edges():
-        pa, pb = vertices[vertex_index[a]], vertices[vertex_index[b]]
-        fig.add_trace(go.Scatter3d(
-            x=[pa[0], pb[0]],
-            y=[pa[1], pb[1]],
-            z=[pa[2], pb[2]],
-            mode='lines',
-            line=dict(color=get_config()["colors"]["secondary"], width=3),
-            showlegend=False
-        ))
-
-    # Add faces as a translucent surface mesh
-    face_i, face_j, face_k = [], [], []
-    for face in polyhedron.faces():
-        for m in range(1, len(face) - 1):
-            face_i.append(vertex_index[face[0]])
-            face_j.append(vertex_index[face[m]])
-            face_k.append(vertex_index[face[m + 1]])
-    if face_i:
-        fig.add_trace(go.Mesh3d(
-            x=x, y=y, z=z, i=face_i, j=face_j, k=face_k,
-            opacity=0.3,
-            color=get_config()["colors"]["primary"],
-            flatshading=True,
-            name='Faces'
-        ))
-
-    # Update layout
-    fig.update_layout(
-        title=f'{type(polyhedron).__name__} - Volume: {polyhedron.volume()} IVM units',
-        scene=dict(
-            xaxis_title='X',
-            yaxis_title='Y',
-            zaxis_title='Z'
-        ),
-        width=get_config()["figure_size"][0] * 100,
-        height=get_config()["figure_size"][1] * 100
-    )
-
-    # Save plot using organized structure
-    filename = f"{type(polyhedron).__name__.lower()}_3d.html"
-    filepath = get_organized_output_path('geometric', 'polyhedra', filename)
-    fig.write_html(str(filepath))
-    files = [str(filepath)]
-
-    return {
-        'files': files,
-        'metadata': {
-            'type': 'polyhedron_3d',
-            'polyhedron': type(polyhedron).__name__,
-            'vertices': len(polyhedron.vertices),
-            'volume': polyhedron.volume(),
-            'backend': 'plotly'
-        }
-    }
+                           show_edges=True, show_faces=True, show_vertices=True,
+                           alpha=0.3, **kwargs) -> Dict[str, Any]:
+    """Honor the same visibility and viewing contract as Matplotlib."""
+    return _render_polyhedron_plotly(
+        polyhedron, show_edges=show_edges, show_faces=show_faces,
+        show_vertices=show_vertices, alpha=alpha,
+        elevation=kwargs.get('elevation', 20), azimuth=kwargs.get('azimuth', 45))
 
 
 def _plot_polyhedron_3d_plotly(polyhedron: SymergeticsPolyhedron,
-                              show_wireframe: bool = True,
-                              show_surface: bool = True,
-                              elevation: float = 20,
-                              azimuth: float = 45,
-                              **kwargs) -> Dict[str, Any]:
-    """Create enhanced 3D plotly visualization."""
-    try:
-        import plotly.graph_objects as go
-    except ImportError:
-        raise ImportError("plotly is required for plotly backend")
-
-    # Get vertex coordinates
-    vertices_xyz = polyhedron.to_xyz_vertices()
-    if not vertices_xyz:
-        raise ValueError("No vertices to plot")
-
-    vertices = np.array(vertices_xyz)
-
-    # Create mesh data
-    x, y, z = vertices[:, 0], vertices[:, 1], vertices[:, 2]
-
-    # Create figure
-    fig = go.Figure()
-
-    # Add surface as a translucent mesh built from the polyhedron's faces
-    vertex_index = {v: i for i, v in enumerate(polyhedron.vertices)}
-    if show_surface:
-        face_i, face_j, face_k = [], [], []
-        for face in polyhedron.faces():
-            for m in range(1, len(face) - 1):
-                face_i.append(vertex_index[face[0]])
-                face_j.append(vertex_index[face[m]])
-                face_k.append(vertex_index[face[m + 1]])
-        if face_i:
-            fig.add_trace(go.Mesh3d(
-                x=x, y=y, z=z, i=face_i, j=face_j, k=face_k,
-                opacity=0.4,
-                color='lightblue',
-                flatshading=True,
-                name='Faces'
-            ))
-        fig.add_trace(go.Scatter3d(
-            x=x, y=y, z=z,
-            mode='markers',
-            marker=dict(size=8, color='lightblue', opacity=0.8),
-            name='Vertices'
-        ))
-
-    # Add wireframe from the polyhedron's real edges
-    if show_wireframe:
-        for a, b in polyhedron.edges():
-            pa, pb = vertices[vertex_index[a]], vertices[vertex_index[b]]
-            fig.add_trace(go.Scatter3d(
-                x=[pa[0], pb[0]],
-                y=[pa[1], pb[1]],
-                z=[pa[2], pb[2]],
-                mode='lines',
-                line=dict(color='black', width=2),
-                showlegend=False
-            ))
-
-    # Update layout
-    fig.update_layout(
-        title=f"{type(polyhedron).__name__} 3D Visualization",
-        scene=dict(
-            xaxis_title='X',
-            yaxis_title='Y',
-            zaxis_title='Z',
-            camera=dict(
-                eye=dict(x=1.5, y=1.5, z=1.5),
-                center=dict(x=0, y=0, z=0)
-            )
-        ),
-        width=800,
-        height=600
-    )
-
-    # Save plot using organized structure
-    filename = f"{type(polyhedron).__name__.lower()}_3d_enhanced.html"
-    filepath = get_organized_output_path('geometric', 'polyhedra', filename)
-    fig.write_html(str(filepath))
-    files = [str(filepath)]
-
-    return {
-        'files': files,
-        'metadata': {
-            'type': 'polyhedron_3d_enhanced',
-            'polyhedron': type(polyhedron).__name__,
-            'vertices': len(polyhedron.vertices),
-            'volume': polyhedron.volume(),
-            'show_wireframe': show_wireframe,
-            'show_surface': show_surface,
-            'elevation': elevation,
-            'azimuth': azimuth,
-            'backend': 'plotly'
-        }
-    }
+                              show_wireframe=True, show_surface=True,
+                              elevation=20, azimuth=45, **kwargs) -> Dict[str, Any]:
+    """Create enhanced Plotly geometry with the requested physical camera."""
+    return _render_polyhedron_plotly(
+        polyhedron, enhanced=True, show_edges=show_wireframe,
+        show_faces=show_surface, show_vertices=kwargs.get('show_vertices', show_surface),
+        elevation=elevation, azimuth=azimuth)
 
 
 def _plot_polyhedron_ascii(polyhedron: SymergeticsPolyhedron,
@@ -490,7 +370,6 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     """Plot Quadray coordinate using matplotlib."""
     try:
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
@@ -548,21 +427,11 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     ax.set_zlabel('Z')
     ax.set_title(f'Quadray Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})')
 
-    # Set equal aspect ratio
-    all_points = [(x, y, z)]
-    if show_lattice:
-        all_points.extend(lattice_points)
-
-    if all_points:
-        points_array = np.array(all_points)
-        max_range = np.ptp(points_array, axis=0).max() / 2.0
-        if max_range > 0:
-            mid_x = points_array[:, 0].mean()
-            mid_y = points_array[:, 1].mean()
-            mid_z = points_array[:, 2].mean()
-            ax.set_xlim(mid_x - max_range, mid_x + max_range)
-            ax.set_ylim(mid_y - max_range, mid_y + max_range)
-            ax.set_zlim(mid_z - max_range, mid_z + max_range)
+    # Fit the point, global lattice context, origin and all basis endpoints.
+    all_points = [(x, y, z), (0, 0, 0)]
+    all_points.extend(np.array(direction.to_xyz()) * vector_scale for direction in quadray_directions)
+    all_points.extend(lattice_points)
+    _fit_3d(ax, all_points)
 
     # Create a custom legend with direction vectors
     legend_elements = [
@@ -674,7 +543,6 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
     """Plot IVM lattice using matplotlib."""
     try:
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
@@ -706,16 +574,8 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
     ax.set_zlabel('Z')
     ax.set_title(f'Isotropic Vector Matrix (IVM) Lattice - Graph-shell radius {size}')
 
-    # Set equal aspect ratio
-    if lattice_points:
-        max_range = np.ptp(lattice_array, axis=0).max() / 2.0
-        if max_range > 0:
-            mid_x = lattice_array[:, 0].mean()
-            mid_y = lattice_array[:, 1].mean()
-            mid_z = lattice_array[:, 2].mean()
-            ax.set_xlim(mid_x - max_range, mid_x + max_range)
-            ax.set_ylim(mid_y - max_range, mid_y + max_range)
-            ax.set_zlim(mid_z - max_range, mid_z + max_range)
+    displayed = lattice_points + [coord.to_xyz() for coord in (highlight_coordinates or [])]
+    _fit_3d(ax, displayed)
 
     ax.legend()
 
@@ -876,128 +736,14 @@ def plot_polyhedron_3d(polyhedron: Union[str, SymergeticsPolyhedron],
 
 
 def _plot_polyhedron_3d_matplotlib(polyhedron: SymergeticsPolyhedron,
-                                 show_wireframe: bool = True,
-                                 show_surface: bool = True,
-                                 elevation: float = 20,
-                                 azimuth: float = 45,
-                                 **kwargs) -> Dict[str, Any]:
-    """Create enhanced 3D matplotlib visualization."""
-    try:
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    except ImportError:
-        raise ImportError("matplotlib is required for matplotlib backend")
-
-    _validate_canvas((get_config()["figure_size"][0] * 1.2, get_config()["figure_size"][1] * 1.2), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
-    fig = plt.figure(figsize=(get_config()["figure_size"][0] * 1.2, get_config()["figure_size"][1] * 1.2))
-    ax = fig.add_subplot(111, projection='3d')
-
-    vertices_xyz = polyhedron.to_xyz_vertices()
-    if not vertices_xyz:
-        raise ValueError("No vertices to plot")
-
-    vertices = np.array(vertices_xyz)
-
-    # Enhanced wireframe rendering
-    if show_wireframe:
-        # Get edges from faces
-        try:
-            faces = polyhedron.faces()
-            if faces:
-                for face in faces:
-                    face_vertices = np.array([v.to_xyz() for v in face])
-                    for i in range(len(face_vertices)):
-                        start = face_vertices[i]
-                        end = face_vertices[(i + 1) % len(face_vertices)]
-                        ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]],
-                               color=get_config()["colors"]["secondary"], linewidth=2, alpha=0.8)
-        except (AttributeError, NotImplementedError, ValueError):
-            pass
-
-    # Enhanced surface rendering
-    if show_surface:
-        try:
-            faces = polyhedron.faces()
-            if faces:
-                face_colors = plt.cm.viridis(np.linspace(0, 1, len(faces)))
-                for i, face in enumerate(faces):
-                    face_vertices = np.array([v.to_xyz() for v in face])
-                    if len(face_vertices) >= 3:
-                        # Create surface with lighting effects
-                        face_collection = Poly3DCollection([face_vertices],
-                                                         alpha=0.7,
-                                                         facecolors=[face_colors[i]],
-                                                         edgecolors=get_config()["colors"]["secondary"],
-                                                         linewidths=1)
-                        ax.add_collection3d(face_collection)
-        except (AttributeError, NotImplementedError, ValueError):
-            pass
-
-    # Add vertex labels
-    for i, vertex in enumerate(vertices):
-        ax.text(vertex[0], vertex[1], vertex[2], f'V{i}',
-               color=get_config()["colors"]["primary"], fontsize=8, ha='center')
-
-    # Set camera position
-    ax.view_init(elev=elevation, azim=azimuth)
-
-    # Enhanced labels and styling
-    ax.set_xlabel('X', fontsize=get_config()["fonts"]["label"]["size"])
-    ax.set_ylabel('Y', fontsize=get_config()["fonts"]["label"]["size"])
-    ax.set_zlabel('Z', fontsize=get_config()["fonts"]["label"]["size"])
-
-    title = f'{type(polyhedron).__name__} - 3D Enhanced View\nVolume: {polyhedron.volume()} IVM units'
-    ax.set_title(title, fontsize=get_config()["fonts"]["title"]["size"],
-                fontweight=get_config()["fonts"]["title"]["weight"])
-
-    # Enhanced axis limits
-    max_range = np.ptp(vertices, axis=0).max() / 2.0
-    mid_x = vertices[:, 0].mean()
-    mid_y = vertices[:, 1].mean()
-    mid_z = vertices[:, 2].mean()
-    ax.set_xlim(mid_x - max_range, mid_x + max_range)
-    ax.set_ylim(mid_y - max_range, mid_y + max_range)
-    ax.set_zlim(mid_z - max_range, mid_z + max_range)
-
-    # Add grid and enhance appearance
-    ax.grid(True, alpha=0.3)
-    ax.set_facecolor(get_config()["colors"]["background"])
-
-    # Save with enhanced settings
-    base_filename = f"{type(polyhedron).__name__.lower()}_3d_enhanced"
-    files = []
-
-    for fmt in get_config()["formats"]:
-        if fmt == "html":
-            continue
-
-        filename = f"{base_filename}.{fmt}"
-        filepath = get_organized_output_path('geometric', 'polyhedra', filename)
-        fig.savefig(filepath,
-                    dpi=get_config()["dpi"],
-                    facecolor=get_config()["png_options"]["facecolor"],
-                    bbox_inches=get_config()["png_options"]["bbox_inches"],
-                    pad_inches=get_config()["png_options"]["pad_inches"],
-                    transparent=get_config()["png_options"]["transparent"])
-        files.append(str(filepath))
-
-    plt.close(fig)
-
-    return {
-        'files': files,
-        'metadata': {
-            'type': 'polyhedron_3d_enhanced',
-            'polyhedron': type(polyhedron).__name__,
-            'vertices': len(polyhedron.vertices),
-            'volume': polyhedron.volume(),
-            'view_elevation': elevation,
-            'view_azimuth': azimuth,
-            'show_wireframe': show_wireframe,
-            'show_surface': show_surface,
-            'backend': 'matplotlib'
-        }
-    }
+                                 show_wireframe=True, show_surface=True,
+                                 elevation=20, azimuth=45, **kwargs) -> Dict[str, Any]:
+    """Create an enhanced view of the live indexed surface."""
+    return _render_polyhedron_matplotlib(
+        polyhedron, suffix='3d_enhanced', kind='polyhedron_3d_enhanced',
+        show_edges=show_wireframe, show_faces=show_surface,
+        show_vertices=kwargs.get('show_vertices', show_surface),
+        elevation=elevation, azimuth=azimuth)
 
 
 def plot_polyhedron_graphical_abstract(polyhedron: Union[str, SymergeticsPolyhedron],
@@ -1051,8 +797,6 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
     """Create graphical abstract using matplotlib."""
     try:
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
@@ -1060,45 +804,51 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
     _validate_canvas((16, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
 
-    vertices_xyz = polyhedron.to_xyz_vertices()
-    if not vertices_xyz:
-        raise ValueError("No vertices to plot")
-
-    vertices = np.array(vertices_xyz)
+    vertices, anchor = _polyhedron_frame(polyhedron)
+    analysis = polyhedron.analyze_geometry()
 
     # Subplot 1: 3D View
     ax1.remove()
     ax1 = fig.add_subplot(221, projection='3d')
-    ax1.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-               color=get_config()["colors"]["primary"], s=50, alpha=0.8)
-    ax1.set_title('3D Structure', fontsize=12, fontweight='bold')
-    ax1.set_xlabel('X')
-    ax1.set_ylabel('Y')
-    ax1.set_zlabel('Z')
+    _draw_polyhedron(ax1, polyhedron, vertices)
+    _fit_3d(ax1, vertices, relative=True)
+    ax1.set_title('Anchor-relative XYZ structure', fontsize=12, fontweight='bold')
 
     # Subplot 2: 2D Projections
     ax2.scatter(vertices[:, 0], vertices[:, 1], color=get_config()["colors"]["secondary"], s=50, alpha=0.8)
     ax2.set_title('XY Projection', fontsize=12, fontweight='bold')
-    ax2.set_xlabel('X')
-    ax2.set_ylabel('Y')
+    ax2.set_xlabel('ΔX (anchor-relative)')
+    ax2.set_ylabel('ΔY (anchor-relative)')
     ax2.grid(True, alpha=0.3)
     ax2.set_aspect('equal')
 
+    if show_coordinates:
+        # Exact centroid displacement first, including independent input gauges.
+        for centroid, label, marker, color in (
+            (analysis['vertex_centroid_exact'], 'Vertex centroid', 'x', 'black'),
+            (analysis['volume_centroid_exact'], 'Solid centroid', '*', 'crimson'),
+        ):
+            if centroid is None:
+                continue
+            a, b, c, d = (value - origin for value, origin in
+                          zip(centroid, anchor.as_tuple()))
+            point = np.array([float(a - b - c + d), float(a + b - c - d),
+                              float(a - b + c - d)])
+            ax1.scatter(*point, marker=marker, color=color, s=90, label=label)
+            ax2.scatter(*point[:2], marker=marker, color=color, s=90, label=label)
+        ax1.legend(fontsize=7)
+        ax2.legend(fontsize=7)
+
     # Subplot 3: Volume Information
     if show_volume_ratios:
-        polyhedra_info = {
-            'Tetrahedron': {'volume': 1, 'color': '#1f77b4'},
-            'Octahedron': {'volume': 4, 'color': '#ff7f0e'},
-            'Cube': {'volume': 3, 'color': '#2ca02c'},
-            'Cuboctahedron': {'volume': 20, 'color': '#d62728'}
-        }
-
-        names = list(polyhedra_info.keys())
-        volumes = [polyhedra_info[name]['volume'] for name in names]
-        colors = [polyhedra_info[name]['color'] for name in names]
+        models = [Tetrahedron(), Octahedron(), Cube(), Cuboctahedron()]
+        names = [type(model).__name__ for model in models] + ['Current shape']
+        volumes = [float(model.volume()) for model in models] + [float(polyhedron.volume())]
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
 
         bars = ax3.bar(names, volumes, color=colors, alpha=0.7)
-        ax3.set_title('Volume Ratios', fontsize=12, fontweight='bold')
+        ax3.set_title('Canonical reference and live volume', fontsize=12, fontweight='bold')
+        ax3.tick_params(axis='x', labelrotation=20)
         ax3.set_ylabel('Volume (IVM units)')
 
         # Add value labels on bars
@@ -1108,20 +858,24 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
 
     # Subplot 4: Coordinate Information
     if show_coordinates:
-        coord_text = f"Polyhedron: {type(polyhedron).__name__}\n"
-        coord_text += f"Volume: {polyhedron.volume()} IVM units\n"
-        coord_text += f"Vertices: {len(polyhedron.vertices)}\n\n"
-
-        if show_coordinates and len(vertices) <= 8:  # Only show if reasonable number
-            coord_text += "Vertex Coordinates:\n"
-            for i, vertex in enumerate(vertices):
-                coord_text += (
-                    f"V{i + 1}: ({float(vertex[0]):.2f}, {float(vertex[1]):.2f}, "
-                    f"{float(vertex[2]):.2f})\n"
-                )
+        vertex_centroid = '(' + ', '.join(map(str, analysis['vertex_centroid_exact'])) + ')'
+        solid_centroid = (None if analysis['volume_centroid_exact'] is None else
+                          '(' + ', '.join(map(str, analysis['volume_centroid_exact'])) + ')')
+        coord_text = (
+            f"Polyhedron: {type(polyhedron).__name__}\n"
+            f"Volume: {analysis['volume_ivm']} IVM; {float(analysis['volume_xyz']):.6g} XYZ³\n"
+            f"Surface area: {analysis['surface_area']:.6g} XYZ² (triangle fan)\n"
+            f"Vertices: {len(vertices)} declared; {analysis['physical_vertex_count']} physical\n"
+            f"Affine rank: {analysis['affine_rank']}; closed topology: {analysis['closed']}\n"
+            f"Convex: {analysis['is_convex']}; nonplanar faces: {analysis['nonplanar_faces']}\n"
+            f"Exact vertex centroid (quadray):\n{vertex_centroid}\n"
+            f"Exact solid centroid (quadray):\n{solid_centroid}\n"
+            f"Display origin (exact quadray): {anchor.as_tuple()}\n"
+            "Closed, non-self-intersecting triangulated-surface interpretation."
+        )
 
         ax4.text(0.1, 0.5, coord_text, transform=ax4.transAxes,
-                fontsize=10, verticalalignment='center',
+                fontsize=9, verticalalignment='center',
                 bbox=dict(boxstyle="round,pad=0.3", facecolor='lightblue', alpha=0.5))
         ax4.set_title('Geometric Properties', fontsize=12, fontweight='bold')
         ax4.set_xlim(0, 1)
@@ -1162,7 +916,8 @@ def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhe
             'volume': polyhedron.volume(),
             'show_volume_ratios': show_volume_ratios,
             'show_coordinates': show_coordinates,
-            'backend': 'matplotlib'
+            'backend': 'matplotlib',
+            **_geometry_metadata(polyhedron, anchor)
         }
     }
 
@@ -1209,99 +964,11 @@ def plot_polyhedron_wireframe(polyhedron: Union[str, SymergeticsPolyhedron],
 
 
 def _plot_polyhedron_wireframe_matplotlib(polyhedron: SymergeticsPolyhedron,
-                                       elevation: float = 20,
-                                       azimuth: float = 45,
-                                       **kwargs) -> Dict[str, Any]:
-    """Create wireframe visualization using matplotlib."""
-    try:
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-    except ImportError:
-        raise ImportError("matplotlib is required for matplotlib backend")
-
-    _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
-    fig = plt.figure(figsize=get_config()["figure_size"])
-    ax = fig.add_subplot(111, projection='3d')
-
-    vertices_xyz = polyhedron.to_xyz_vertices()
-    if not vertices_xyz:
-        raise ValueError("No vertices to plot")
-
-    vertices = np.array(vertices_xyz)
-
-    # Plot vertices as small dots
-    ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-              color=get_config()["colors"]["primary"], s=30, alpha=0.6)
-
-    # Draw edges
-    try:
-        faces = polyhedron.faces()
-        if faces:
-            for face in faces:
-                face_vertices = np.array([v.to_xyz() for v in face])
-                # Close the face by connecting last vertex to first
-                face_vertices = np.vstack([face_vertices, face_vertices[0]])
-
-                # Plot edges
-                ax.plot(face_vertices[:, 0], face_vertices[:, 1], face_vertices[:, 2],
-                       color=get_config()["colors"]["secondary"], linewidth=2, alpha=0.8)
-    except (AttributeError, NotImplementedError, ValueError):
-        # Polyhedra without face data: skip wireframe rather than fake edges
-        pass
-
-    # Set camera position
-    ax.view_init(elev=elevation, azim=azimuth)
-
-    # Clean styling - minimal labels
-    ax.set_xlabel('X', fontsize=10)
-    ax.set_ylabel('Y', fontsize=10)
-    ax.set_zlabel('Z', fontsize=10)
-    ax.set_title(f'{type(polyhedron).__name__} - Wireframe Structure',
-                fontsize=12, fontweight='bold')
-
-    # Set equal aspect ratio
-    max_range = np.ptp(vertices, axis=0).max() / 2.0
-    mid_x = vertices[:, 0].mean()
-    mid_y = vertices[:, 1].mean()
-    mid_z = vertices[:, 2].mean()
-    ax.set_xlim(mid_x - max_range, mid_x + max_range)
-    ax.set_ylim(mid_y - max_range, mid_y + max_range)
-    ax.set_zlim(mid_z - max_range, mid_z + max_range)
-
-    # Remove grid for cleaner look
-    ax.grid(False)
-
-    # Save wireframe visualization
-    base_filename = f"{type(polyhedron).__name__.lower()}_wireframe"
-    files = []
-
-    for fmt in get_config()["formats"]:
-        if fmt == "html":
-            continue
-
-        filename = f"{base_filename}.{fmt}"
-        filepath = get_organized_output_path('geometric', 'polyhedra', filename)
-        fig.savefig(filepath,
-                    dpi=get_config()["dpi"],
-                    facecolor='white',
-                    bbox_inches='tight',
-                    pad_inches=0.1)
-        files.append(str(filepath))
-
-    plt.close(fig)
-
-    return {
-        'files': files,
-        'metadata': {
-            'type': 'polyhedron_wireframe',
-            'polyhedron': type(polyhedron).__name__,
-            'vertices': len(polyhedron.vertices),
-            'volume': polyhedron.volume(),
-            'view_elevation': elevation,
-            'view_azimuth': azimuth,
-            'backend': 'matplotlib'
-        }
-    }
+                                       elevation=20, azimuth=45, **kwargs) -> Dict[str, Any]:
+    """Create a wireframe using declared indexed edges."""
+    return _render_polyhedron_matplotlib(
+        polyhedron, suffix='wireframe', kind='polyhedron_wireframe',
+        show_faces=False, elevation=elevation, azimuth=azimuth)
 
 
 def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
@@ -1338,9 +1005,7 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
                        label='End')
             ax.legend()
 
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
+        _fit_3d(ax, path_array)
         ax.set_title(f'Coordinate Transformation ({len(path_coords)} steps)')
 
         filename = f"coordinate_transformation_{len(path_coords)}_steps.png"
@@ -1405,8 +1070,11 @@ def _plot_quadray_plotly(coord: QuadrayCoordinate, show_lattice: bool = True,
             mode='lines', line=dict(color=colors_cfg["secondary"], width=4),
             name=f'Basis {name}', showlegend=i == 0))
 
+    displayed = [coord.to_xyz(), (0, 0, 0), *basis_xyz]
+    if show_lattice:
+        displayed.extend(lattice_points)
     fig.update_layout(title=f'Quadray Coordinate {coord.as_tuple()}',
-                      width=width, height=height)
+                      scene=_plotly_scene(displayed), width=width, height=height)
 
     filepath = get_organized_output_path('geometric', 'coordinates',
                                          f"quadray_coordinate_plotly_{abs(hash(coord.as_tuple())) % 10000}.html")
@@ -1448,7 +1116,9 @@ def _plot_ivm_lattice_plotly(size: int = 5,
             mode='markers', marker=dict(size=8, color=colors_cfg["accent"]),
             name='Highlighted'))
 
-    fig.update_layout(title=f'IVM Lattice (graph-shell radius {size})', width=width, height=height)
+    displayed = lattice_points + [c.to_xyz() for c in (highlight_coordinates or [])]
+    fig.update_layout(title=f'IVM Lattice (graph-shell radius {size})',
+                      scene=_plotly_scene(displayed), width=width, height=height)
 
     filepath = get_organized_output_path('geometric', 'lattice',
                                          f"ivm_lattice_plotly_size_{size}.html")

@@ -409,6 +409,8 @@ def create_animation(frames: List[Dict[str, Any]],
             'octahedron', 'cube', 'cuboctahedron'; default per frame index)
         'azimuth': view azimuth in degrees (default: evenly spread over 360)
         'elevation': view elevation in degrees (default 20)
+    Surfaces use the model's declared triangulated face fan in a scale-1,
+    anchor-relative XYZ frame; equal numeric ranges and box aspect preserve metric.
 
     Args:
         frames: List of frame specifications (dicts); length gives the frame count
@@ -432,8 +434,6 @@ def create_animation(frames: List[Dict[str, Any]],
     except ImportError as e:
         raise ImportError(f"Animation requires matplotlib and pillow: {e}")
 
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
     from ..geometry.polyhedra import (
         create_cube,
         create_cuboctahedron,
@@ -447,9 +447,10 @@ def create_animation(frames: List[Dict[str, Any]],
         'cube': create_cube,
         'cuboctahedron': create_cuboctahedron,
     }
+    from .geometry import _draw_polyhedron, _fit_3d, _polyhedron_frame
     default_shapes = ['tetrahedron', 'octahedron', 'cube', 'cuboctahedron']
-    colors_cfg = get_config()["colors"]
     frame_images = []
+    frame_origins = []
     for index, frame in enumerate(frames):
         shape = frame.get('polyhedron', default_shapes[index % len(default_shapes)])
         if shape not in shape_factories:
@@ -459,25 +460,17 @@ def create_animation(frames: List[Dict[str, Any]],
         elevation = frame.get('elevation', 20.0)
 
         polyhedron = shape_factories[shape]()
-        vertices = np.array(polyhedron.to_xyz_vertices())
-        vertex_index = {v: i for i, v in enumerate(polyhedron.vertices)}
+        vertices, anchor = _polyhedron_frame(polyhedron)
+        frame_origins.append(anchor.as_tuple())
 
         _validate_canvas(get_config()["figure_size"],
                          max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
         figure = plt.figure(figsize=get_config()["figure_size"])
         axis = figure.add_subplot(111, projection='3d')
-        face_tris = [
-            [vertices[vertex_index[v]] for v in face[m:m + 3]]
-            for face in polyhedron.faces()
-            for m in range(1, len(face) - 1)
-        ]
-        axis.add_collection3d(Poly3DCollection(
-            face_tris, facecolors=colors_cfg["primary"], alpha=0.35,
-            edgecolors=colors_cfg["secondary"]))
-        axis.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-                     color=colors_cfg["accent"], s=30)
-        axis.set_box_aspect((1, 1, 1))
-        axis.set_axis_off()
+        _draw_polyhedron(axis, polyhedron, vertices, alpha=0.35)
+        _fit_3d(axis, vertices, relative=True)
+        axis.set_title(f'{shape.capitalize()} — anchor-relative XYZ\n'
+                       f'Origin quadray: {anchor.as_tuple()}')
         axis.view_init(elev=elevation, azim=azimuth)
         figure.canvas.draw()
         buffer = np.asarray(figure.canvas.buffer_rgba())[:, :, :3]
@@ -499,6 +492,8 @@ def create_animation(frames: List[Dict[str, Any]],
             'fps': fps,
             'duration': len(frames) / fps,
             'output_filename': output_filename,
+            'coordinate_frame': 'anchor-relative XYZ (scale 1)',
+            'frame_origins_quadray_exact': frame_origins,
             'backend': 'matplotlib'
         }
     }

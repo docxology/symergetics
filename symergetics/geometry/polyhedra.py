@@ -15,6 +15,7 @@ Based on QuadMath implementation by docxology
 """
 
 from fractions import Fraction
+import math
 from typing import List, Optional, Tuple
 
 from ..core.coordinates import (
@@ -22,7 +23,7 @@ from ..core.coordinates import (
     IVM_NEIGHBORS,
     OCTAHEDRON_VERTICES,
     QuadrayCoordinate,
-    urner_embedding,
+    _validated_embedding,
 )
 
 
@@ -135,6 +136,75 @@ def _bareiss_determinant_5x5(matrix: List[List[int]]) -> int:
 
     return A[n-1][n-1]
 
+def _project(vertex):
+    """Exact coordinates on the rank-three quadray quotient."""
+    return (vertex.a - vertex.d, vertex.b - vertex.d, vertex.c - vertex.d)
+
+
+def _difference(left, right):
+    return tuple(a - b for a, b in zip(left, right))
+
+
+def _cross(left, right):
+    a, b, c = left
+    x, y, z = right
+    return (b * z - c * y, c * x - a * z, a * y - b * x)
+
+
+def _dot(left, right):
+    return sum(a * b for a, b in zip(left, right))
+
+
+def _shell_contains(point, triangles, points):
+    """Exact even-odd ray test; the point must not lie on this shell.
+
+    Directions (1, n, n**2) avoid any finite collection of bad planes after
+    finitely many retries. Retry coplanar rays and edge/vertex hits rather than
+    counting an ambiguous crossing. Degenerate triangles contribute no area.
+    Nonintersection of the supplied shells is a precondition, not checked here.
+    """
+    direction_index = 0
+    while True:
+        direction = (1, direction_index, direction_index**2)
+        crossings = 0
+        for i, j, k in triangles:
+            a = points[i]
+            u = _difference(points[j], a)
+            v = _difference(points[k], a)
+            normal = _cross(u, v)
+            if not any(normal):
+                continue
+            offset = _difference(point, a)
+            perpendicular = _cross(direction, v)
+            determinant = _dot(u, perpendicular)
+            if determinant == 0:
+                if _dot(normal, offset) == 0:
+                    break
+                continue
+            first = _dot(offset, perpendicular)
+            other = _cross(offset, u)
+            second = _dot(direction, other)
+            distance = _dot(v, other)
+            if determinant < 0:
+                determinant, first, second, distance = (
+                    -determinant, -first, -second, -distance)
+            if distance <= 0 or first < 0 or second < 0 or first + second > determinant:
+                continue
+            if first == 0 or second == 0 or first + second == determinant:
+                break
+            crossings += 1
+        else:
+            return crossings % 2 == 1
+        direction_index += 1
+
+
+def _float_area(value):
+    try:
+        return float(value)
+    except OverflowError:
+        return math.copysign(math.inf, 1 if value > 0 else -1)
+
+
 
 class SymergeticsPolyhedron:
     """
@@ -158,72 +228,247 @@ class SymergeticsPolyhedron:
         Calculate the volume of the polyhedron in IVM units.
 
         Recomputed from the current publicly mutable vertices on every call.
+        Uses the declared fan-triangulated closed, orientable surface. Shells
+        must not intersect themselves or each other. Disjoint solids add;
+        nested shells alternate solid/cavity by even-odd enclosure, independent
+        of their input winding. Concavity and nonplanar declared fans are
+        supported; this is not a convex-hull calculation.
 
         Returns:
             Fraction: Volume in tetrahedral (IVM) units
         """
         return self._calculate_volume()
 
-    def faces(self) -> List[List[QuadrayCoordinate]]:
-        """
-        Get the faces of the polyhedron as vertex lists.
-
-        Must be provided by subclasses; used by the default volume method.
-        """
+    def face_indices(self) -> Tuple[Tuple[int, ...], ...]:
+        """Declared face cycles, indexed by position, independent of geometry."""
         raise NotImplementedError
+
+    def faces(self) -> List[List[QuadrayCoordinate]]:
+        """Map declared cycles to the current, publicly mutable vertices."""
+        return [[self.vertices[i] for i in face] for face in self.face_indices()]
+
+    def triangulated_faces(self) -> Tuple[Tuple[int, int, int], ...]:
+        """Return the declared face fans as vertex-index triples.
+
+        Warped or concave polygon faces mean precisely this triangulated
+        surface, not a fitted plane or a convex hull. Solid measurements
+        require closed orientable shells with no self- or mutual intersections;
+        nested shells use even-odd solid/cavity semantics.
+        """
+        return tuple((face[0], face[i], face[i + 1])
+                     for face in self.face_indices()
+                     for i in range(1, len(face) - 1))
 
     def edges(self) -> List[Tuple[QuadrayCoordinate, QuadrayCoordinate]]:
         """
         Get the edges of the polyhedron, derived from its faces.
 
-        Each pair of vertices consecutive on a face forms an edge; pairs are
-        deduplicated. Subclasses may override with explicit edge lists.
+        Consecutive vertex indices form edges, deduplicated by index rather
+        than coordinate value, so collapsed geometry retains its topology.
 
         Returns:
             List[Tuple]: Unique vertex pairs connected by edges
         """
         seen = set()
         edges = []
-        for face in self.faces():
-            n = len(face)
-            for i in range(n):
-                a, b = face[i], face[(i + 1) % n]
-                key = tuple(sorted((a.as_tuple(), b.as_tuple())))
+        for face in self.face_indices():
+            for i, a in enumerate(face):
+                b = face[(i + 1) % len(face)]
+                key = tuple(sorted((a, b)))
                 if key not in seen:
                     seen.add(key)
-                    edges.append((a, b))
+                    edges.append((self.vertices[a], self.vertices[b]))
         return edges
 
-    def _calculate_volume(self) -> Fraction:
-        """
-        Calculate volume by fan decomposition from vertices[0].
-
-        For a convex polyhedron, the cones from any vertex over the faces
-        that do not contain that vertex tile the polyhedron exactly, so the
-        exact rational volume is the sum of their tetra volumes.
-
-        Returns:
-            Fraction: Total volume in IVM units
-        """
-        faces = self.faces()  # subclasses must provide the face list
-        apex = self.vertices[0]
-        total = Fraction(0)
-        for face in faces:
-            if apex in face:
+    def _oriented_shells(self):
+        """Orient each connected fan shell by adjacency, retaining diagonals."""
+        triangles = self.triangulated_faces()
+        incidence = {}
+        for index, triangle in enumerate(triangles):
+            for a, b in zip(triangle, triangle[1:] + triangle[:1]):
+                incidence.setdefault(tuple(sorted((a, b))), []).append(
+                    (index, 1 if a < b else -1))
+        closed = bool(triangles) and all(len(edge) == 2 for edge in incidence.values())
+        if not closed:
+            return (triangles,), False
+        adjacent = [[] for _ in triangles]
+        for (left, ld), (right, rd) in incidence.values():
+            relation = -ld * rd
+            adjacent[left].append((right, relation))
+            adjacent[right].append((left, relation))
+        signs = {}
+        components = []
+        for start in range(len(triangles)):
+            if start in signs:
                 continue
-            for i in range(1, len(face) - 1):
-                total += integer_tetra_volume(apex, face[0], face[i], face[i + 1])
-        return total
+            signs[start] = 1
+            pending = [start]
+            component = []
+            while pending:
+                current = pending.pop()
+                component.append(current)
+                for neighbor, relation in adjacent[current]:
+                    expected = signs[current] * relation
+                    if neighbor in signs:
+                        if signs[neighbor] != expected:
+                            return (triangles,), False
+                    else:
+                        signs[neighbor] = expected
+                        pending.append(neighbor)
+            components.append(component)
+        return tuple(tuple(triangles[i] if signs[i] == 1 else
+                           (triangles[i][0], triangles[i][2], triangles[i][1])
+                           for i in component)
+                     for component in components), True
+
+    def _solid_moments(self):
+        """Positive shell moments combined with exact even-odd enclosure signs."""
+        shells, closed = self._oriented_shells()
+        if not closed:
+            raise ValueError("Solid measurements require a closed orientable mesh")
+        points = [_project(vertex) for vertex in self.vertices]
+        anchor = points[0]
+        relative = [_difference(point, anchor) for point in points]
+        shell_moments = []
+        for triangles in shells:
+            determinant = 0
+            moments = [0, 0, 0]
+            for i, j, k in triangles:
+                a, b, c = relative[i], relative[j], relative[k]
+                weight = _dot(a, _cross(b, c))
+                determinant += weight
+                for axis in range(3):
+                    moments[axis] += weight * (a[axis] + b[axis] + c[axis])
+            if determinant < 0:
+                determinant = -determinant
+                moments = [-moment for moment in moments]
+            shell_moments.append((determinant, moments))
+        if len(shells) == 1:
+            determinant, moments = shell_moments[0]
+            return determinant, moments, anchor
+        determinant = 0
+        moments = [0, 0, 0]
+        for index, (weight, shell_moment) in enumerate(shell_moments):
+            if weight == 0:
+                continue
+            representative = points[shells[index][0][0]]
+            depth = sum(_shell_contains(representative, other, points)
+                        for other_index, other in enumerate(shells)
+                        if other_index != index and shell_moments[other_index][0])
+            sign = -1 if depth % 2 else 1
+            determinant += sign * weight
+            for axis in range(3):
+                moments[axis] += sign * shell_moment[axis]
+        return determinant, moments, anchor
+
+    def _calculate_volume(self) -> Fraction:
+        """Live enclosed volume in IVM units, from signed oriented cones.
+
+        Requires closed orientable shells without self- or mutual intersections.
+        Disjoint solids add; nesting alternates cavities and solids regardless
+        of winding. Concavity and warped faces' declared fans are supported.
+        """
+        determinant, _, _ = self._solid_moments()
+        return Fraction(determinant, 4)
+
+    def volume_centroid_exact(self) -> Tuple[Fraction, Fraction, Fraction, Fraction]:
+        """Uniform-density solid centroid, not the generally different vertex mean.
+
+        Uses the same even-odd enclosed mass as volume(), not input shell
+        winding. Return the canonical minimum-zero rational quadray tuple.
+        A zero-volume solid has no defined mass centroid and raises ValueError.
+        """
+        determinant, moments, anchor = self._solid_moments()
+        if determinant == 0:
+            raise ValueError("Volume centroid is undefined for zero volume")
+        values = tuple(Fraction(origin) + Fraction(moment, 4 * determinant)
+                       for origin, moment in zip(anchor, moments)) + (Fraction(0),)
+        minimum = min(values)
+        return tuple(value - minimum for value in values)
+
+    def surface_area(self, embedding=None) -> float:
+        """Live fan-triangle area in embedding-squared units (default scale 1).
+
+        Exact displacements and cross products precede floating conversion.
+        Cross products share a scale before summing triangle norms; only the
+        total is rescaled, retaining representable subnormal aggregate areas.
+        Area is generally irrational; no planarity or convexity is assumed.
+        """
+        matrix = _validated_embedding(embedding)
+        rows = [tuple(Fraction(value) for value in row[:3]) for row in matrix]
+        points = [_project(vertex) for vertex in self.vertices]
+        crosses = []
+        scale = Fraction(0)
+        for i, j, k in self.triangulated_faces():
+            u = _difference(points[j], points[i])
+            v = _difference(points[k], points[i])
+            cross = _cross(tuple(_dot(row, u) for row in rows),
+                           tuple(_dot(row, v) for row in rows))
+            crosses.append(cross)
+            scale = max(scale, *(abs(value) for value in cross))
+        if scale == 0:
+            return 0.0
+        total = math.fsum(math.hypot(*(float(value / scale) for value in cross))
+                          for cross in crosses)
+        return _float_area(Fraction(total) * scale / 2)
+
+    def analyze_geometry(self):
+        """Live exact topology/shape diagnostics and default scale-1 metrics.
+
+        ``closed`` describes indexed topology, even when physical vertices
+        coincide. ``nonplanar_faces`` contains declared face indices.
+        Convexity requires rank three and supporting fan triangles, independently
+        of declared-face planarity. This is not an intersection detector:
+        solid metrics assume shells have no self- or mutual intersections and
+        use even-odd enclosure. Cartesian volume is 8/3 times IVM at scale 1.
+        """
+        points = [_project(vertex) for vertex in self.vertices]
+        vectors = [_difference(point, points[0]) for point in points[1:]] if points else []
+        first = next((v for v in vectors if any(v)), None)
+        normal = next((_cross(first, v) for v in vectors if any(_cross(first, v))),
+                      None) if first else None
+        rank = (3 if any(_dot(normal, v) for v in vectors) else 2) if normal else int(first is not None)
+        nonplanar = []
+        for index, face in enumerate(self.face_indices()):
+            relative = [_difference(points[i], points[face[0]]) for i in face[1:]]
+            direction = next((v for v in relative if any(v)), None)
+            perpendicular = next((_cross(direction, v) for v in relative
+                                  if any(_cross(direction, v))), None) if direction else None
+            if perpendicular and any(_dot(perpendicular, v) for v in relative):
+                nonplanar.append(index)
+        shells, closed = self._oriented_shells()
+        convex = closed and rank == 3 and len(shells) == 1
+        if convex:
+            for i, j, k in shells[0]:
+                normal = _cross(_difference(points[j], points[i]),
+                                _difference(points[k], points[i]))
+                sides = [_dot(normal, _difference(point, points[i])) for point in points]
+                if any(side > 0 for side in sides) and any(side < 0 for side in sides):
+                    convex = False
+                    break
+        volume = self.volume() if closed else None
+        return {
+            "affine_rank": rank,
+            "physical_vertex_count": len(set(points)),
+            "closed": closed,
+            "nonplanar_faces": tuple(nonplanar),
+            "is_convex": convex,
+            "surface_area": self.surface_area(),
+            "volume_ivm": volume,
+            "volume_xyz": volume * Fraction(8, 3) if volume is not None else None,
+            "vertex_centroid_exact": self.centroid_exact() if points else None,
+            "volume_centroid_exact": self.volume_centroid_exact() if volume else None,
+        }
 
     def centroid(self) -> QuadrayCoordinate:
         """
         Calculate the centroid (average) of all vertices.
 
         Note:
-            The centroid is snapped to the integer Quadray lattice with floor
-            division. For solids whose true centroid falls between lattice
-            points (e.g. a tetrahedron) the result is the floor of the exact
-            rational centroid, not the centroid itself.
+            Each vertex is independently put in the minimum-zero gauge, then
+            component means are floor-snapped and normalized. This intentional
+            lattice approximation is neither an exact vertex mean nor a solid
+            mass centroid; use the explicitly named exact methods for those.
 
         Returns:
             QuadrayCoordinate: Floor-snapped centroid lattice point
@@ -231,11 +476,10 @@ class SymergeticsPolyhedron:
         if not self.vertices:
             return QuadrayCoordinate(0, 0, 0, 0)
 
-        # Sum all coordinates
-        total_a = sum(v.a for v in self.vertices)
-        total_b = sum(v.b for v in self.vertices)
-        total_c = sum(v.c for v in self.vertices)
-        total_d = sum(v.d for v in self.vertices)
+        # Remove each input's independent gauge before intentional floor snapping.
+        canonical = [tuple(value - min(vertex.as_tuple()) for value in vertex.as_tuple())
+                     for vertex in self.vertices]
+        total_a, total_b, total_c, total_d = map(sum, zip(*canonical))
 
         n = len(self.vertices)
         return QuadrayCoordinate(
@@ -261,19 +505,21 @@ class SymergeticsPolyhedron:
         a, b, c, d = ((total - minimum) / count for total in totals)
         return a, b, c, d
 
-    def to_xyz_vertices(self, embedding=None) -> List[Tuple[float, float, float]]:
+    def to_xyz_vertices(self, embedding=None, *, relative_to=None) -> List[Tuple[float, float, float]]:
         """
         Convert all vertices to XYZ coordinates.
 
         Args:
             embedding: Optional 3x4 embedding matrix
+            relative_to: Optional QuadrayCoordinate anchor. Subtraction occurs
+                exactly before embedding, preserving small translated shapes.
 
         Returns:
             List[Tuple[float, float, float]]: XYZ coordinates of all vertices
         """
-        if embedding is None:
-            embedding = urner_embedding()
-        return [v.to_xyz(embedding) for v in self.vertices]
+        vertices = self.vertices if relative_to is None else [
+            vertex.sub(relative_to) for vertex in self.vertices]
+        return [vertex.to_xyz(embedding) for vertex in vertices]
 
     @property
     def num_vertices(self) -> int:
@@ -318,9 +564,6 @@ class Tetrahedron(SymergeticsPolyhedron):
 
         super().__init__(vertices)
 
-    def _calculate_volume(self) -> Fraction:
-        """Calculate volume of tetrahedron (exact rational IVM units)."""
-        return integer_tetra_volume(*self.vertices)
 
     @property
     def num_edges(self) -> int:
@@ -332,19 +575,8 @@ class Tetrahedron(SymergeticsPolyhedron):
         """Number of faces in a tetrahedron."""
         return 4
 
-    def faces(self) -> List[List[QuadrayCoordinate]]:
-        """
-        Get all faces of the tetrahedron.
-
-        Returns:
-            List[List]: Triangular faces defined by vertex triples
-        """
-        return [
-            [self.vertices[0], self.vertices[1], self.vertices[2]],  # Base
-            [self.vertices[0], self.vertices[1], self.vertices[3]],  # Side 1
-            [self.vertices[0], self.vertices[2], self.vertices[3]],  # Side 2
-            [self.vertices[1], self.vertices[2], self.vertices[3]],  # Side 3
-        ]
+    def face_indices(self) -> Tuple[Tuple[int, ...], ...]:
+        return ((0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3))
 
 
 class Octahedron(SymergeticsPolyhedron):
@@ -380,25 +612,10 @@ class Octahedron(SymergeticsPolyhedron):
         """Number of faces in an octahedron."""
         return 8
 
-    def faces(self) -> List[List[QuadrayCoordinate]]:
-        """
-        Get all triangular faces of the octahedron.
-
-        Returns:
-            List[List]: Triangular faces defined by vertex triples
-        """
-        # Octahedron vertices: [0:+X, 1:-X, 2:+Y, 3:-Y, 4:+Z, 5:-Z]
-        # Faces are triangles connecting vertices
-        return [
-            [self.vertices[0], self.vertices[2], self.vertices[4]],  # +X, +Y, +Z
-            [self.vertices[0], self.vertices[2], self.vertices[5]],  # +X, +Y, -Z
-            [self.vertices[0], self.vertices[3], self.vertices[4]],  # +X, -Y, +Z
-            [self.vertices[0], self.vertices[3], self.vertices[5]],  # +X, -Y, -Z
-            [self.vertices[1], self.vertices[2], self.vertices[4]],  # -X, +Y, +Z
-            [self.vertices[1], self.vertices[2], self.vertices[5]],  # -X, +Y, -Z
-            [self.vertices[1], self.vertices[3], self.vertices[4]],  # -X, -Y, +Z
-            [self.vertices[1], self.vertices[3], self.vertices[5]],  # -X, -Y, -Z
-        ]
+    def face_indices(self) -> Tuple[Tuple[int, ...], ...]:
+        # Vertices ordered [+X, -X, +Y, -Y, +Z, -Z].
+        return ((0, 2, 4), (0, 2, 5), (0, 3, 4), (0, 3, 5),
+                (1, 2, 4), (1, 2, 5), (1, 3, 4), (1, 3, 5))
 
 
 class Cube(SymergeticsPolyhedron):
@@ -423,22 +640,9 @@ class Cube(SymergeticsPolyhedron):
 
         super().__init__(vertices)
 
-    def faces(self) -> List[List[QuadrayCoordinate]]:
-        """
-        Get the 6 square faces of the cube (vertex order from CUBE_VERTICES).
-
-        Returns:
-            List[List]: Square faces defined by 4-vertex cycles
-        """
-        v = self.vertices
-        return [
-            [v[0], v[5], v[3], v[6]],  # +col1 plane
-            [v[4], v[1], v[7], v[2]],  # -col1 plane
-            [v[0], v[6], v[1], v[7]],  # +col2 plane
-            [v[5], v[3], v[4], v[2]],  # -col2 plane
-            [v[0], v[7], v[2], v[5]],  # +col3 plane
-            [v[6], v[3], v[4], v[1]],  # -col3 plane
-        ]
+    def face_indices(self) -> Tuple[Tuple[int, ...], ...]:
+        return ((0, 5, 3, 6), (4, 1, 7, 2), (0, 6, 1, 7),
+                (5, 3, 4, 2), (0, 7, 2, 5), (6, 3, 4, 1))
 
 
     @property
@@ -475,22 +679,12 @@ class Cuboctahedron(SymergeticsPolyhedron):
 
         super().__init__(vertices)
 
-    def faces(self) -> List[List[QuadrayCoordinate]]:
-        """
-        Get the 14 faces: 8 triangles + 6 squares.
-
-        Indices refer to the IVM_NEIGHBORS order of the default vertices.
-        """
-        v = self.vertices
-        triangles = [
-            (1, 2, 0), (1, 6, 4), (8, 2, 7), (8, 6, 11),
-            (3, 5, 0), (3, 9, 4), (10, 5, 7), (10, 9, 11),
-        ]
-        squares = [
-            (1, 2, 8, 6), (3, 5, 10, 9), (0, 1, 4, 3),
-            (7, 8, 11, 10), (0, 2, 7, 5), (4, 6, 11, 9),
-        ]
-        return [[v[i] for i in face] for face in triangles + squares]
+    def face_indices(self) -> Tuple[Tuple[int, ...], ...]:
+        # Indices refer to the deterministic IVM_NEIGHBORS order.
+        return ((1, 2, 0), (1, 6, 4), (8, 2, 7), (8, 6, 11),
+                (3, 5, 0), (3, 9, 4), (10, 5, 7), (10, 9, 11),
+                (1, 2, 8, 6), (3, 5, 10, 9), (0, 1, 4, 3),
+                (7, 8, 11, 10), (0, 2, 7, 5), (4, 6, 11, 9))
 
     @property
     def num_edges(self) -> int:

@@ -216,7 +216,8 @@ def _plot_palindromic_comparison(ax, domain1_metrics, domain2_metrics, name1, na
         data = [pal1, pal2]
         labels = [name1, name2]
 
-        ax.boxplot(data, labels=labels)
+        ax.boxplot(data)
+        ax.set_xticks(range(1, len(labels) + 1), labels)
         ax.set_ylabel('Palindromic Density')
         ax.set_title('Palindromic Density Comparison')
 
@@ -693,7 +694,8 @@ def _plot_distribution_summary(ax, lengths, complexities, symmetries):
     data = [lengths, complexities, symmetries]
     labels = ['Length', 'Complexity', 'Symmetry']
 
-    ax.boxplot(data, labels=labels)
+    ax.boxplot(data)
+    ax.set_xticks(range(1, len(labels) + 1), labels)
     ax.set_ylabel('Value')
     ax.set_title('Metric Distributions')
     ax.grid(True, alpha=0.3)
@@ -780,9 +782,10 @@ def _plot_box_plot_comparison(ax, complexities, symmetries, densities):
     data = [complexities, symmetries, densities]
     labels = ['Complexity', 'Symmetry', 'Palindromic\nDensity']
 
-    ax.boxplot(data, labels=labels, patch_artist=True,
+    ax.boxplot(data, patch_artist=True,
               boxprops=dict(facecolor='lightblue', color='blue'),
               medianprops=dict(color='red', linewidth=2))
+    ax.set_xticks(range(1, len(labels) + 1), labels)
 
     ax.set_ylabel('Value')
     ax.set_title('Metric Comparison')
@@ -1091,7 +1094,8 @@ def _plot_rational_approximations(ax, analyses):
     labels = list(constants.keys())
 
     if data:
-        ax.boxplot(data, labels=labels)
+        ax.boxplot(data)
+        ax.set_xticks(range(1, len(labels) + 1), labels)
         ax.set_ylabel('Approximation Error')
         ax.set_title('Rational Approximation Quality by Constant')
         ax.tick_params(axis='x', rotation=45)
@@ -1122,7 +1126,8 @@ def _plot_platonic_relationships(ax, relationships):
 
     if scaling_data:
         # Create box plot
-        ax.boxplot(scaling_data, labels=solid_types)
+        ax.boxplot(scaling_data)
+        ax.set_xticks(range(1, len(solid_types) + 1), solid_types)
         ax.set_ylabel('Scaling Factor')
         ax.set_title('Platonic Solid Scaling Factors')
         ax.tick_params(axis='x', rotation=45)
@@ -1132,1394 +1137,523 @@ def create_mega_graphical_abstract(
     title: str = "Symergetics Mega Graphical Abstract",
     output_path: Optional[str] = None,
     backend: Optional[str] = None,
-    **kwargs
 ) -> Dict[str, Any]:
+    """Render 17 computed arithmetic, geometry and finite-sequence panels.
+
+    Uses a nominal 32-by-24-inch canvas at 300 DPI. Irrational references are
+    floating approximations; mesh units and finite enumeration domains are
+    explicit. No test counts, coverage claims or synthetic sequence substitutes
+    are embedded. Required computation errors propagate, closing the figure.
     """
-    Create a mega graphical abstract - a composite large image showcasing
-    the various kinds of calculations and visualizations of the Symergetics package.
-
-    This function generates a comprehensive visual overview that demonstrates:
-    - Symbolic operations on all-integer accounting
-    - Geometric ratios from high-frequency shapes
-    - Mathematical pattern analysis
-    - Coordinate system transformations
-    - Visualization capabilities
-
-    Args:
-        title: Title for the mega graphical abstract
-        output_path: Custom output path (optional)
-        backend: Visualization backend
-        **kwargs: Additional visualization parameters
-
-    Returns:
-        Dict containing visualization metadata and file paths
-    """
-    # Ensure matplotlib and numpy are available
-    plt, np = _ensure_matplotlib_numpy()
+    plt, _ = _ensure_matplotlib_numpy()
     backend = backend or get_config()["backend"]
-
     if backend != "matplotlib":
         raise ValueError("Mega graphical abstract requires matplotlib backend")
-
-    # Set up large composite figure (expanded for more panels)
     _validate_canvas((32, 24), 300)
     fig = plt.figure(figsize=(32, 24), dpi=150)
-    fig.suptitle(title, fontsize=32, fontweight='bold', y=0.95)
-
-    # Create subplot grid for various visualizations (now 6x6 for more panels)
-    gs = fig.add_gridspec(6, 6, hspace=0.2, wspace=0.2)
-
-    # Import required modules
     try:
-        from ..computation.palindromes import is_palindromic
-        from ..computation.primorials import primorial
-        from ..core.constants import SymergeticsConstants
-        from ..core.coordinates import QuadrayCoordinate
-        from ..core.numbers import SymergeticsNumber, rational_pi, rational_sqrt
-        from ..geometry.polyhedra import Tetrahedron
-        from ..utils.conversion import continued_fraction_approximation
-    except ImportError as e:
-        raise ImportError(f"Required modules not available: {e}")
-
-    # Panel 1: Core Concept - Symbolic Operations on All-Integer Accounting
-    ax1 = fig.add_subplot(gs[0, 0:2])
-    _create_symbolic_operations_panel(ax1)
-
-    # Panel 2: Geometric Ratios from High-Frequency Shapes
-    ax2 = fig.add_subplot(gs[0, 2:4])
-    _create_geometric_ratios_panel(ax2)
-
-    # Panel 3: Mathematical Pattern Analysis
-    ax3 = fig.add_subplot(gs[0, 4:6])
-    _create_mathematical_patterns_panel(ax3)
-
-    # Panel 4: Decimal → Rational → Sphere Packing Connection
-    ax4 = fig.add_subplot(gs[1, 0:2])
-    _create_decimal_to_sphere_packing_panel(ax4)
-
-    # Panel 5: Frequency Ratios & Shape Hierarchies
-    ax5 = fig.add_subplot(gs[1, 2:4])
-    _create_frequency_ratios_panel(ax5)
-
-    # Panel 6: Natural Language Expressions
-    ax6 = fig.add_subplot(gs[1, 4:6])
-    _create_natural_language_panel(ax6)
-
-    # Panel 7: Sphere Packing & Volume Relationships
-    ax7 = fig.add_subplot(gs[2, 0:2])
-    _create_sphere_packing_panel(ax7)
-
-    # Panel 8: IVM Lattice Visualization
-    ax8 = fig.add_subplot(gs[2, 2:4])
-    _create_ivm_lattice_panel(ax8)
-
-    # Panel 9: Vector Equilibrium
-    ax9 = fig.add_subplot(gs[2, 4:6])
-    _create_vector_equilibrium_panel(ax9)
-
-    # Panel 10: Decimal to Symbolic Conversion
-    ax10 = fig.add_subplot(gs[3, 0:2])
-    _create_decimal_to_symbolic_panel(ax10)
-
-    # Panel 11: Continued Fractions
-    ax11 = fig.add_subplot(gs[3, 2:4])
-    _create_continued_fractions_panel(ax11)
-
-    # Panel 12: Quadray Coordinate System
-    ax12 = fig.add_subplot(gs[3, 4:6])
-    _create_quadray_coordinate_panel(ax12)
-
-    # Panel 13: Palindrome Analysis
-    ax13 = fig.add_subplot(gs[4, 0:2])
-    _create_palindrome_analysis_panel(ax13)
-
-    # Panel 14: Primorial Distribution
-    ax14 = fig.add_subplot(gs[4, 2:4])
-    _create_primorial_distribution_panel(ax14)
-
-    # Panel 15: Pattern Discovery Summary
-    ax15 = fig.add_subplot(gs[4, 4:6])
-    _create_pattern_discovery_summary_panel(ax15)
-
-    # Panel 16: Synergetics Frequency Sphere Packing
-    ax16 = fig.add_subplot(gs[5, 0:3])
-    _create_synergetics_sphere_frequency_panel(ax16)
-
-    # Panel 17: Statistical Overview
-    ax17 = fig.add_subplot(gs[5, 3:6])
-    _create_statistical_overview_panel(ax17)
-
-    # Add contextualizing text
-    _add_contextualizing_text(fig)
-
-    # Save the composite image
-    if output_path is None:
-        from . import get_organized_output_path
-        output_path = get_organized_output_path('mathematical', 'mega_graphical_abstract', 'mega_graphical_abstract.png')
-
-    # Ensure output directory exists
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-
-    # Save with high quality
-    fig.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
-    plt.close(fig)
-
-    return {
-        'files': [str(output_path)],
-        'metadata': {
-            'type': 'mega_graphical_abstract',
-            'title': title,
-            'panels': 17,
-            'dimensions': '32x24 inches at 300 DPI',
-            'description': 'Comprehensive visual overview of Synergetics package capabilities with decimal-to-symbolic-sphere-packing relationships'
+        fig.suptitle(title, fontsize=32, fontweight='bold', y=0.97)
+        gs = fig.add_gridspec(
+            6, 6, hspace=0.4, wspace=0.35,
+            left=0.05, right=0.97, bottom=0.09, top=0.92,
+        )
+        panels = [
+            (0, 0, 2, _create_symbolic_operations_panel),
+            (0, 2, 4, _create_geometric_ratios_panel),
+            (0, 4, 6, _create_mathematical_patterns_panel),
+            (1, 0, 2, _create_decimal_to_sphere_packing_panel),
+            (1, 2, 4, _create_frequency_ratios_panel),
+            (1, 4, 6, _create_natural_language_panel),
+            (2, 0, 2, _create_sphere_packing_panel),
+            (2, 2, 4, _create_ivm_lattice_panel),
+            (2, 4, 6, _create_vector_equilibrium_panel),
+            (3, 0, 2, _create_decimal_to_symbolic_panel),
+            (3, 2, 4, _create_continued_fractions_panel),
+            (3, 4, 6, _create_quadray_coordinate_panel),
+            (4, 0, 2, _create_palindrome_analysis_panel),
+            (4, 2, 4, _create_primorial_distribution_panel),
+            (4, 4, 6, _create_pattern_discovery_summary_panel),
+            (5, 0, 3, _create_synergetics_sphere_frequency_panel),
+            (5, 3, 6, _create_geometry_precision_panel),
+        ]
+        for row, first, last, draw in panels:
+            ax = fig.add_subplot(gs[row, first:last])
+            ax.set(xlim=(0, 1), ylim=(0, 1))
+            draw(ax)
+        _add_contextualizing_text(fig)
+        if output_path is None:
+            from . import get_organized_output_path
+            output_path = get_organized_output_path(
+                'mathematical', 'mega_graphical_abstract', 'mega_graphical_abstract.png',
+            )
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        return {
+            'files': [str(output_path)],
+            'metadata': {
+                'type': 'mega_graphical_abstract', 'title': title,
+                'panels': len(panels), 'dimensions': '32x24 inches at 300 DPI',
+                'description': 'Computed rational arithmetic, scale-declared geometry and finite sequence examples',
+            },
         }
-    }
+    finally:
+        plt.close(fig)
+
+
 
 
 def _create_symbolic_operations_panel(ax):
-    """Create panel showing symbolic operations on all-integer accounting with visualizations."""
-    ax.text(0.5, 0.9, 'SYMBOLIC OPERATIONS', ha='center', va='center',
-            fontsize=16, fontweight='bold', color='#1f77b4')
-    ax.text(0.5, 0.8, 'All-Integer Accounting', ha='center', va='center',
-            fontsize=13, color='#2ca02c')
+    """Show exact scalar results from the actual rational arithmetic API."""
+    from fractions import Fraction
+    from ..core.numbers import SymergeticsNumber as N
 
-    # Create a small plot showing rational approximations
-    ax_small = ax.inset_axes([0.1, 0.2, 0.8, 0.5])
-
-    try:
-        import numpy as np
-
-        from ..core.constants import PHI, PI, SQRT2
-
-        # Plot actual rational approximations vs true values
-        approximations = [PI, PHI, SQRT2]
-        true_values = [np.pi, (1 + np.sqrt(5))/2, np.sqrt(2)]
-        labels = ['π', 'φ', '√2']
-
-        x_pos = np.arange(len(labels))
-        approx_vals = [float(approx.value) for approx in approximations]
-
-        # Bar plot comparing approximations
-        bars = ax_small.bar(x_pos, approx_vals, alpha=0.7, color=['#1f77b4', '#ff7f0e', '#2ca02c'], label='Rational Approx')
-        ax_small.plot(x_pos, true_values, 'ro-', linewidth=2, markersize=8, label='True Value')
-
-        ax_small.set_xticks(x_pos)
-        ax_small.set_xticklabels(labels, fontsize=10)
-        ax_small.set_ylabel('Value', fontsize=8)
-        ax_small.set_title('Rational Approximations', fontsize=9)
-        ax_small.legend(fontsize=6)
-        ax_small.grid(True, alpha=0.3)
-
-        # Add mathematical expressions using mathtext
-        ax.text(0.5, 0.1, r'$\pi \approx \frac{355}{113}$, $\phi \approx \frac{89}{55}$, $\sqrt{2} \approx \frac{577}{408}$',
-                ha='center', va='center', fontsize=7, style='italic')
-
-    except Exception as e:
-        # Fallback to text-based visualization
-        ax_small.text(0.5, 0.5, f'Mathematical\nVisualization\nError: {str(e)[:30]}...',
-                     ha='center', va='center', fontsize=8, transform=ax_small.transAxes)
-        ax_small.set_xlim(0, 1)
-        ax_small.set_ylim(0, 1)
-
-    ax_small.set_xticks([])
-    ax_small.set_yticks([])
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    rows = [
+        ('1/3 + 1/6', str((N(Fraction(1, 3)) + N(Fraction(1, 6))).value)),
+        ('(7/5) × (5/21)', str((N(Fraction(7, 5)) * N(Fraction(5, 21))).value)),
+        ('sqrt(16/81)', str((N(Fraction(16, 81)) ** Fraction(1, 2)).value)),
+        ('(2¹²⁰ + 1) − 2¹²⁰', str(((N(2**120) + 1) - N(2**120)).value)),
+    ]
+    ax.text(0.5, 0.94, 'EXACT RATIONAL ARITHMETIC', ha='center',
+            fontsize=15, fontweight='bold', transform=ax.transAxes)
+    table = ax.table(cellText=rows, colLabels=['Operation', 'Exact result'],
+                     cellLoc='center', bbox=[0.05, 0.18, 0.9, 0.62])
+    table.auto_set_font_size(False)
+    table.set_fontsize(11)
+    ax.text(0.5, 0.05, 'Integer/Fraction operations; no floating intermediate.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
 
 
+
+
 def _create_geometric_ratios_panel(ax):
-    """Create panel showing geometric ratios from high-frequency shapes with improved 3D visualizations."""
-    ax.text(0.5, 0.9, 'GEOMETRIC RATIOS', ha='center', va='center',
-            fontsize=16, fontweight='bold', color='#ff7f0e')
-    ax.text(0.5, 0.8, 'Platonic Solids & Volume Relationships', ha='center', va='center',
-            fontsize=13, color='#d62728')
-
-    try:
-        import numpy as np
-
-        from ..core.constants import PHI
-
-        # Create 3D visualization of Platonic solids
-        ax_3d = ax.inset_axes([0.05, 0.25, 0.6, 0.5], projection='3d')
-
-        phi_val = float(PHI.value)
-
-        # Define Platonic solid vertices with better proportions
-        # Tetrahedron (4 triangular faces)
-        tetra_vertices = np.array([
-            [1, 1, 1], [-1, -1, 1], [-1, 1, -1], [1, -1, -1]
-        ])
-        # Normalize to unit sphere
-        tetra_vertices = tetra_vertices / np.linalg.norm(tetra_vertices, axis=1, keepdims=True).max()
-
-        # Cube (6 square faces)
-        cube_vertices = np.array([
-            [1, 1, 1], [1, 1, -1], [1, -1, -1], [1, -1, 1],
-            [-1, 1, 1], [-1, 1, -1], [-1, -1, -1], [-1, -1, 1]
-        ])
-        cube_vertices = cube_vertices / np.linalg.norm(cube_vertices, axis=1, keepdims=True).max()
-
-        # Octahedron (8 triangular faces)
-        octa_vertices = np.array([
-            [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]
-        ])
-        octa_vertices = octa_vertices / np.linalg.norm(octa_vertices, axis=1, keepdims=True).max()
-
-        # Plot the solids
-        colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
-        solids_data = [
-            (tetra_vertices, [(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)], 'Tetrahedron (4 faces)'),
-            (cube_vertices, [(0,1), (1,2), (2,3), (3,0), (4,5), (5,6), (6,7), (7,4), (0,4), (1,5), (2,6), (3,7)], 'Cube (6 faces)'),
-            (octa_vertices, [(0,2), (0,3), (0,4), (0,5), (1,2), (1,3), (1,4), (1,5), (2,4), (4,3), (3,5), (5,2)], 'Octahedron (8 faces)')
-        ]
-
-        for i, (vertices, edges, label) in enumerate(solids_data):
-            # Offset each solid for visibility
-            offset = np.array([i*2.5 - 2.5, 0, 0])
-            vertices_offset = vertices + offset
-
-            # Plot vertices
-            ax_3d.scatter(vertices_offset[:, 0], vertices_offset[:, 1], vertices_offset[:, 2],
-                         c=colors[i], s=50, alpha=0.8, label=label)
-
-            # Plot edges
-            for edge in edges:
-                ax_3d.plot3D([vertices_offset[edge[0], 0], vertices_offset[edge[1], 0]],
-                           [vertices_offset[edge[0], 1], vertices_offset[edge[1], 1]],
-                           [vertices_offset[edge[0], 2], vertices_offset[edge[1], 2]],
-                           color=colors[i], linewidth=2, alpha=0.6)
-
-            # Add volume ratio label
-            center = vertices_offset.mean(axis=0)
-            volume_ratios = ['V=1', 'V=3', 'V=4']
-            ax_3d.text(center[0], center[1], center[2] + 0.5, volume_ratios[i],
-                      ha='center', va='center', fontsize=8, fontweight='bold')
-
-        ax_3d.set_xlabel('X', fontsize=8)
-        ax_3d.set_ylabel('Y', fontsize=8)
-        ax_3d.set_zlabel('Z', fontsize=8)
-        ax_3d.set_title('3D Platonic Solids with Volume Ratios', fontsize=9)
-        ax_3d.legend(loc='upper right', fontsize=6)
-        ax_3d.grid(True, alpha=0.3)
-
-        # Add mathematical relationships on the right
-        ax_math = ax.inset_axes([0.7, 0.25, 0.25, 0.5])
-
-        # Volume relationships
-        relationships = [
-            r'$\frac{V_{tetra}}{V_{octa}} = \frac{1}{4}$',
-            r'$\frac{V_{cube}}{V_{octa}} = \frac{3}{4}$',
-            r'$\phi = \frac{1+\sqrt{5}}{2} \approx$' + f'{phi_val:.6f}',
-            r'$\text{Surface Areas (edge } r\text{):}$',
-            r'$\text{Tetra: } \sqrt{3}r^2$',
-            r'$\text{Cube: } 6r^2$',
-            r'$\text{Octa: } 2\sqrt{3}r^2$'
-        ]
-
-        for i, expr in enumerate(relationships):
-            ax_math.text(0.05, 0.95 - i*0.12, expr, ha='left', va='top',
-                        fontsize=6, wrap=True)
-
-        ax_math.set_xlim(0, 1)
-        ax_math.set_ylim(0, 1)
-        ax_math.set_xticks([])
-        ax_math.set_yticks([])
-        ax_math.set_title('Geometric Relations', fontsize=8)
-
-    except Exception as e:
-        # Enhanced fallback with better 2D representations
-        ax_geom = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Draw more accurate 2D representations
-        # Tetrahedron as triangle with height ratio
-        ax_geom.plot([0.2, 0.4, 0.0, 0.2], [0.2, 0.5, 0.35, 0.2], 'b-', linewidth=2, label='Tetrahedron')
-        ax_geom.text(0.2, 0.35, 'V=1', ha='center', va='center', fontsize=8, fontweight='bold')
-
-        # Cube as square
-        ax_geom.plot([0.5, 0.7, 0.7, 0.5, 0.5], [0.2, 0.2, 0.4, 0.4, 0.2], 'r-', linewidth=2, label='Cube')
-        ax_geom.text(0.6, 0.3, 'V=√3', ha='center', va='center', fontsize=8, fontweight='bold')
-
-        # Octahedron as diamond
-        ax_geom.plot([0.8, 0.9, 0.8, 0.7, 0.8], [0.2, 0.3, 0.4, 0.3, 0.2], 'g-', linewidth=2, label='Octahedron')
-        ax_geom.text(0.8, 0.3, 'V=√2', ha='center', va='center', fontsize=8, fontweight='bold')
-
-        ax_geom.set_xlim(0, 1)
-        ax_geom.set_ylim(0, 1)
-        ax_geom.set_xticks([])
-        ax_geom.set_yticks([])
-        ax_geom.set_title('Platonic Solids (2D Projection)', fontsize=9)
-        ax_geom.legend(loc='upper right', fontsize=6)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    """Compare canonical models at one physical scale (translation only)."""
+    import numpy as np
+    from ..geometry.polyhedra import Tetrahedron, Cube, Octahedron
+    from .geometry import _draw_polyhedron, _fit_3d
+    ax.text(0.5, 0.92, 'CANONICAL GEOMETRY — ONE PHYSICAL SCALE',
+            ha='center', fontsize=13, fontweight='bold')
+    view = ax.inset_axes([0.02, 0.23, 0.72, 0.6], projection='3d')
+    all_vertices = []
+    models = [Tetrahedron(), Cube(), Octahedron()]
+    descriptions = []
+    for i, model in enumerate(models):
+        vertices = np.array(model.to_xyz_vertices(), dtype=float)
+        vertices += np.array([(i - 1) * 6, 0, 0])
+        _draw_polyhedron(view, model, vertices, alpha=0.25)
+        all_vertices.extend(vertices)
+        center = vertices.mean(axis=0)
+        view.text(*center, f'{type(model).__name__}\n{model.volume()} IVM', fontsize=7)
+        descriptions.append(f'{type(model).__name__}:\nV={model.volume()} IVM\nA={model.surface_area():.4g} XYZ²')
+    _fit_3d(view, all_vertices)
+    view.tick_params(labelsize=6)
+    ax.text(0.76, 0.7, '\n\n'.join(descriptions), va='top', fontsize=7)
+    ax.text(0.5, 0.08, 'Scale-1 XYZ; solids translated, never individually normalized.\n'
+            '1 IVM volume = 8/3 XYZ³. Areas use the declared triangle fan.',
+            ha='center', fontsize=8)
     ax.axis('off')
 
 
 def _create_sphere_packing_panel(ax):
-    """Create panel showing close-packed sphere relationships and volume ratios."""
-    ax.text(0.5, 0.9, 'CLOSE-PACKED SPHERES', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#8c564b')
-    ax.text(0.5, 0.8, 'Volume Relationships in Synergetics', ha='center', va='center',
-            fontsize=10, color='#e377c2')
-
-    try:
-        import numpy as np
-
-        # Create 3D visualization of sphere packing
-        ax_3d = ax.inset_axes([0.05, 0.3, 0.6, 0.5], projection='3d')
-
-        # Define sphere centers for FCC (face-centered cubic) packing
-        # This represents the closest packing of spheres
-        centers = []
-
-        # Central sphere
-        centers.append([0, 0, 0])
-
-        # First coordination shell (12 spheres)
-        r = 1.0  # sphere radius
-        d = 2 * r  # distance between centers
-
-        # Face-centered positions
-        for i in [-1, 1]:
-            centers.extend([
-                [i*d, 0, 0], [0, i*d, 0], [0, 0, i*d]  # faces
-            ])
-
-        # Edge-centered positions (corners of cube)
-        for x in [-1, 1]:
-            for y in [-1, 1]:
-                for z in [-1, 1]:
-                    centers.append([x*d, y*d, z*d])
-
-        centers = np.array(centers[:13])  # Take central sphere + 12 nearest neighbors
-
-        # Plot spheres as scatter points
-        ax_3d.scatter(centers[:, 0], centers[:, 1], centers[:, 2],
-                     c='#8c564b', s=200, alpha=0.8, label='Sphere Centers')
-
-        # Draw the cubic lattice structure
-        for center in centers[1:]:  # Skip central sphere
-            ax_3d.plot3D([0, center[0]], [0, center[1]], [0, center[2]],
-                        color='#e377c2', linewidth=2, alpha=0.6)
-
-        # Add sphere radius visualization
-        u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-        x = r * np.cos(u) * np.sin(v)
-        y = r * np.sin(u) * np.sin(v)
-        z = r * np.cos(v)
-
-        # Plot one representative sphere
-        ax_3d.plot_surface(x, y, z, color='#8c564b', alpha=0.3, label='Sphere Surface')
-
-        ax_3d.set_xlabel('X', fontsize=8)
-        ax_3d.set_ylabel('Y', fontsize=8)
-        ax_3d.set_zlabel('Z', fontsize=8)
-        ax_3d.set_title('FCC Sphere Packing (12-fold Coordination)', fontsize=9)
-        ax_3d.legend(loc='upper right', fontsize=6)
-        ax_3d.grid(True, alpha=0.3)
-
-        # Add volume relationships on the right
-        ax_vol = ax.inset_axes([0.7, 0.3, 0.25, 0.5])
-
-        volume_relations = [
-            r'$\text{Atomic Volume} = \frac{4}{3}\pi r^3$',
-            r'$\text{Packing Density} = \frac{\pi}{3\sqrt{2}} \approx 0.740$',
-            r'$\text{Coordination} = 12$',
-            r'$\text{Lattice: FCC}$',
-            r'$\text{Synergetics:}$',
-            r'$\text{Vector Equilibrium}$',
-            r'$\text{Volume Ratios}$'
-        ]
-
-        for i, relation in enumerate(volume_relations):
-            ax_vol.text(0.05, 0.95 - i*0.12, relation, ha='left', va='top',
-                       fontsize=6, wrap=True)
-
-        ax_vol.set_xlim(0, 1)
-        ax_vol.set_ylim(0, 1)
-        ax_vol.set_xticks([])
-        ax_vol.set_yticks([])
-        ax_vol.set_title('Packing Relations', fontsize=8)
-
-    except Exception as e:
-        import matplotlib.pyplot as plt
-        # Fallback 2D visualization
-        ax_sphere = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Draw 2D representation of sphere packing
-        centers_2d = [[0, 0], [1, 0], [0.5, np.sqrt(3)/2],
-                     [1.5, np.sqrt(3)/2], [-0.5, np.sqrt(3)/2], [0.5, -np.sqrt(3)/2]]
-
-        for center in centers_2d:
-            circle = plt.Circle(center, 0.4, fill=True, alpha=0.6, color='#8c564b')
-            ax_sphere.add_patch(circle)
-
-        ax_sphere.set_xlim(-1, 2)
-        ax_sphere.set_ylim(-1, 1.5)
-        ax_sphere.set_xticks([])
-        ax_sphere.set_yticks([])
-        ax_sphere.set_aspect('equal')
-        ax_sphere.set_title('2D Sphere Packing (Hexagonal)', fontsize=9)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    """The twelve equal-distance canonical FCC contacts, with actual spheres."""
+    import numpy as np
+    from ..core.coordinates import IVM_NEIGHBORS
+    from .geometry import _fit_3d
+    ax.text(0.5, 0.92, 'FCC: TWELVE EQUAL-DISTANCE CONTACTS',
+            ha='center', fontsize=12, fontweight='bold')
+    view = ax.inset_axes([0.02, 0.22, 0.7, 0.6], projection='3d')
+    radius = 1.0
+    neighbors = np.array([q.to_xyz() for q in IVM_NEIGHBORS])
+    neighbors *= (2 * radius) / np.linalg.norm(neighbors[0])
+    centers = np.vstack([np.zeros(3), neighbors])
+    view.scatter(*centers.T, color='#8c564b', s=25)
+    u, v = np.mgrid[0:2*np.pi:17j, 0:np.pi:9j]
+    sphere = np.array([radius * np.cos(u) * np.sin(v),
+                       radius * np.sin(u) * np.sin(v), radius * np.cos(v)])
+    for center in centers:
+        view.plot_surface(*(sphere + center[:, None, None]),
+                          color='#8c564b', alpha=0.15, linewidth=0)
+    for center in neighbors:
+        view.plot(*np.array([np.zeros(3), center]).T, color='#e377c2', linewidth=1)
+    _fit_3d(view, np.vstack([centers - radius, centers + radius]))
+    view.tick_params(labelsize=6)
+    ax.text(0.75, 0.73, 'Sphere radius r=1\n\n12 center contacts\nAll distances = 2r\n\nFCC packing fraction\nπ/(3√2) ≈ 0.74048\n(infinite packing)',
+            fontsize=8, va='top')
+    ax.text(0.5, 0.08, 'Centers from the local 12 IVM neighbors, uniformly scaled to contact.',
+            ha='center', fontsize=8)
     ax.axis('off')
 
 
 def _create_frequency_ratios_panel(ax):
-    """Create panel showing frequency ratios and shape hierarchies."""
-    ax.text(0.5, 0.9, 'FREQUENCY RATIOS', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#d62728')
-    ax.text(0.5, 0.8, 'Shape Hierarchies & Scale Relationships', ha='center', va='center',
-            fontsize=10, color='#9467bd')
+    """Measure integer dilations of one cube, not an invented shape hierarchy."""
+    import numpy as np
+    from ..core.coordinates import QuadrayCoordinate
+    from ..geometry.polyhedra import Cube
 
-    try:
-        import numpy as np
-
-        # Create visualization of frequency relationships
-        ax_freq = ax.inset_axes([0.05, 0.3, 0.9, 0.4])
-
-        # Frequency levels and their volume relationships
-        frequencies = [1, 2, 3, 4, 5, 6, 8, 12, 20, 30]
-        volumes = [f**3 for f in frequencies]  # Volume scales with cube of frequency
-
-        # Plot frequency vs volume relationship
-        ax_freq.loglog(frequencies, volumes, linewidth=3, markersize=8,
-                      label='Volume Scaling (V ∝ f³)', color='#d62728', marker='o', linestyle='-')
-
-        # Add reference lines for different scaling relationships
-        f_range = np.logspace(0, 1.5, 50)
-        ax_freq.loglog(f_range, f_range**3, 'b--', alpha=0.7, label='Cubic (Volume)')
-        ax_freq.loglog(f_range, f_range**2, 'g--', alpha=0.7, label='Quadratic (Area)')
-        ax_freq.loglog(f_range, f_range**1, 'orange', alpha=0.7, label='Linear (Edge)')
-
-        # Add key frequency points
-        key_freqs = [1, 2, 4, 8]
-        key_labels = ['Tetra', 'Octa', 'Cube', 'VE']
-        for freq, label in zip(key_freqs, key_labels):
-            ax_freq.annotate(label, (freq, freq**3), xytext=(5, 5),
-                           textcoords='offset points', fontsize=8, fontweight='bold')
-
-        ax_freq.set_xlabel('Frequency Level', fontsize=8)
-        ax_freq.set_ylabel('Volume (log scale)', fontsize=8)
-        ax_freq.set_title('Synergetics Frequency Hierarchy', fontsize=9)
-        ax_freq.legend(loc='upper left', fontsize=6)
-        ax_freq.grid(True, alpha=0.3)
-
-        # Add mathematical relationships below
-        relations = [
-            r'$\text{Volume: } V_f = f^3 V_1$',
-            r'$\text{Surface Area: } A_f = f^2 A_1$',
-            r'$\text{Edge Length: } L_f = f L_1$',
-            r'$\text{Frequency Hierarchy: } 1 \rightarrow 2 \rightarrow 4 \rightarrow 8 \rightarrow 20 \rightarrow 30$'
+    reference = Cube()
+    first, second = reference.edges()[0]
+    edge = first.distance_to(second)
+    area, volume = reference.surface_area(), reference.volume()
+    frequencies = np.arange(1, 7)
+    ratios = []
+    for frequency in frequencies:
+        model = Cube()
+        model.vertices = [
+            QuadrayCoordinate(*(int(frequency) * value for value in point.as_tuple()))
+            for point in reference.vertices
         ]
-
-        for i, relation in enumerate(relations):
-            ax.text(0.5, 0.15 - i*0.05, relation, ha='center', va='center',
-                   fontsize=6, style='italic')
-
-    except Exception as e:
-        # Fallback visualization
-        ax_freq = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Simple frequency hierarchy diagram
-        freq_levels = ['1', '2', '4', '8', '20', '30']
-        volumes = [1, 8, 64, 512, 8000, 27000]
-
-        ax_freq.bar(range(len(freq_levels)), volumes, color='#d62728', alpha=0.7)
-        ax_freq.set_xticks(range(len(freq_levels)))
-        ax_freq.set_xticklabels(freq_levels, fontsize=8)
-        ax_freq.set_yscale('log')
-        ax_freq.set_title('Frequency Volume Scaling', fontsize=9)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+        a, b = model.edges()[0]
+        ratios.append((a.distance_to(b) / edge, model.surface_area() / area,
+                       float(model.volume() / volume)))
+    chart = ax.inset_axes([0.14, 0.39, 0.8, 0.38])
+    for values, label in zip(np.asarray(ratios).T, ('Edge / E₁', 'Area / A₁', 'Volume / V₁')):
+        chart.loglog(frequencies, values, '-o', label=label)
+    chart.set(xlabel='Uniform integer dilation f', ylabel='Dimensionless ratio')
+    chart.legend(fontsize=7)
+    chart.grid(True, alpha=0.3)
+    ax.text(0.5, 0.94, 'MEASURED UNIFORM DILATION', ha='center',
+            fontsize=14, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.06, 'One cube: edge ×f; surface area ×f²; volume ×f³.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _create_decimal_to_symbolic_panel(ax):
-    """Create panel showing decimal to symbolic rational conversion."""
-    ax.text(0.5, 0.9, 'DECIMAL → SYMBOLIC', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#2ca02c')
-    ax.text(0.5, 0.8, 'Rational Approximation of Irrational Numbers', ha='center', va='center',
-            fontsize=10, color='#ff7f0e')
+    """Plot measured errors of actual bounded rational approximations."""
+    import math
+    from ..utils.conversion import best_rational_approximation
 
-    try:
-        import numpy as np
-
-        from ..utils.conversion import best_rational_approximation
-
-        # Create visualization showing decimal to rational conversion
-        ax_conv = ax.inset_axes([0.05, 0.3, 0.9, 0.4])
-
-        # Test values to convert
-        test_values = [np.pi, np.e, np.sqrt(2), (1 + np.sqrt(5))/2]
-        labels = ['π', 'e', '√2', 'φ']
-
-        # Find rational approximations
-        approximations = []
-        for val in test_values:
-            try:
-                rational = best_rational_approximation(val, max_denominator=1000)
-                approximations.append(rational)
-            except (ValueError, TypeError, ZeroDivisionError):
-                approximations.append((round(val*10), 10))  # Fallback
-
-        # Plot original vs approximated values
-        x_pos = np.arange(len(labels))
-        original_vals = [float(val) for val in test_values]
-        approx_vals = [num/den for num, den in approximations]
-
-        # Create bar comparison
-        width = 0.35
-        bars1 = ax_conv.bar(x_pos - width/2, original_vals, width, alpha=0.7,
-                           label='Original Value', color='#2ca02c')
-        bars2 = ax_conv.bar(x_pos + width/2, approx_vals, width, alpha=0.7,
-                           label='Rational Approx', color='#ff7f0e')
-
-        ax_conv.set_xticks(x_pos)
-        ax_conv.set_xticklabels(labels, fontsize=10)
-        ax_conv.set_ylabel('Value', fontsize=8)
-        ax_conv.set_title('Decimal to Rational Conversion', fontsize=9)
-        ax_conv.legend(fontsize=6)
-        ax_conv.grid(True, alpha=0.3)
-
-        # Add rational approximations as text
-        for i, (num, den) in enumerate(approximations):
-            ax_conv.text(x_pos[i] + width/2, approx_vals[i] + 0.1,
-                        f'{num}/{den}', ha='center', va='bottom', fontsize=7)
-
-        # Add mathematical explanations below
-        explanations = [
-            r'$\text{Rational Approximation: } \frac{h}{k} \approx x$',
-            r'$\text{Best Approximation: } \min |\frac{h}{k} - x|$',
-            r'$\text{Continued Fractions give optimal approximations}$'
-        ]
-
-        for i, explanation in enumerate(explanations):
-            ax.text(0.5, 0.15 - i*0.05, explanation, ha='center', va='center',
-                   fontsize=6, style='italic')
-
-    except Exception as e:
-        # Fallback visualization
-        ax_conv = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Simple conversion examples
-        examples = [
-            'π ≈ 355/113',
-            'e ≈ 271/100',
-            '√2 ≈ 577/408',
-            'φ ≈ 89/55'
-        ]
-
-        for i, example in enumerate(examples):
-            ax_conv.text(0.5, 0.8 - i*0.15, example, ha='center', va='center',
-                        fontsize=10, fontweight='bold', color='#2ca02c')
-
-        ax_conv.set_xlim(0, 1)
-        ax_conv.set_ylim(0, 1)
-        ax_conv.set_title('Rational Approximations', fontsize=9)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    references = [math.pi, math.e, math.sqrt(2), (1 + math.sqrt(5)) / 2]
+    names = ['π', 'e', '√2', 'φ']
+    approximations = [
+        best_rational_approximation(value, max_denominator=1000).value
+        for value in references
+    ]
+    errors = [abs(float(rational) - value)
+              for rational, value in zip(approximations, references)]
+    chart = ax.inset_axes([0.14, 0.4, 0.8, 0.34])
+    chart.bar(range(len(names)), errors, color='#2ca02c')
+    chart.set_yscale('log')
+    chart.set_xticks(range(len(names)), [
+        f'{name}\n{rational}' for name, rational in zip(names, approximations)
+    ])
+    chart.set_ylabel('Absolute error')
+    chart.tick_params(labelsize=8)
+    ax.text(0.5, 0.94, 'BOUNDED RATIONAL APPROXIMATION', ha='center',
+            fontsize=13, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.07, 'Denominator ≤ 1000; errors against binary-float references.\n'
+            'Approximation is not symbolic equality to an irrational constant.',
+            ha='center', fontsize=8, transform=ax.transAxes)
     ax.axis('off')
 
 
+
+
 def _create_vector_equilibrium_panel(ax):
-    """Create panel showing Vector Equilibrium (VE) and its properties."""
-    ax.text(0.5, 0.9, 'VECTOR EQUILIBRIUM', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#9467bd')
-    ax.text(0.5, 0.8, 'Cuboctahedron & Energy Balance', ha='center', va='center',
-            fontsize=10, color='#17becf')
-
-    try:
-        import numpy as np
-
-        # Create 3D visualization of Vector Equilibrium (Cuboctahedron)
-        ax_3d = ax.inset_axes([0.05, 0.3, 0.6, 0.5], projection='3d')
-
-        # Define cuboctahedron vertices (VE has 12 vertices, 24 edges, 14 faces)
-        phi = (1 + np.sqrt(5)) / 2  # Golden ratio
-
-        # Vertices of cuboctahedron
-        vertices = np.array([
-            # Square face vertices
-            [1, 1, 0], [1, -1, 0], [-1, 1, 0], [-1, -1, 0],
-            [1, 0, 1], [1, 0, -1], [-1, 0, 1], [-1, 0, -1],
-            [0, 1, 1], [0, 1, -1], [0, -1, 1], [0, -1, -1]
-        ])
-
-        # Normalize to unit sphere
-        vertices = vertices / np.linalg.norm(vertices, axis=1, keepdims=True).max()
-
-        # Plot vertices
-        ax_3d.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2],
-                     c='#9467bd', s=100, alpha=0.8, label='VE Vertices')
-
-        # Define edges (24 edges total)
-        edges = [
-            # Square face edges
-            (0, 1), (1, 3), (3, 2), (2, 0),
-            # Triangular face edges
-            (0, 4), (0, 8), (1, 4), (1, 11),
-            (2, 6), (2, 8), (3, 6), (3, 11),
-            (4, 5), (4, 8), (5, 9), (5, 11),
-            (6, 7), (6, 9), (7, 10), (7, 11),
-            (8, 9), (8, 10), (9, 10), (10, 11)
-        ]
-
-        # Plot edges
-        for edge in edges:
-            ax_3d.plot3D([vertices[edge[0], 0], vertices[edge[1], 0]],
-                        [vertices[edge[0], 1], vertices[edge[1], 1]],
-                        [vertices[edge[0], 2], vertices[edge[1], 2]],
-                        color='#17becf', linewidth=2, alpha=0.6)
-
-        ax_3d.set_xlabel('X', fontsize=8)
-        ax_3d.set_ylabel('Y', fontsize=8)
-        ax_3d.set_zlabel('Z', fontsize=8)
-        ax_3d.set_title('Vector Equilibrium (Cuboctahedron)', fontsize=9)
-        ax_3d.legend(loc='upper right', fontsize=6)
-        ax_3d.grid(True, alpha=0.3)
-
-        # Add VE properties on the right
-        ax_props = ax.inset_axes([0.7, 0.3, 0.25, 0.5])
-
-        properties = [
-            r'$\text{12 Vertices}$',
-            r'$\text{24 Edges}$',
-            r'$\text{14 Faces}$',
-            r'$\text{6 Squares + 8 Triangles}$',
-            r'$\text{Jitterbug Transformation}$',
-            r'$\text{Energy Equilibrium}$',
-            r'$\text{Volume} = 2.5$'
-        ]
-
-        for i, prop in enumerate(properties):
-            ax_props.text(0.05, 0.95 - i*0.12, prop, ha='left', va='top',
-                         fontsize=6, wrap=True)
-
-        ax_props.set_xlim(0, 1)
-        ax_props.set_ylim(0, 1)
-        ax_props.set_xticks([])
-        ax_props.set_yticks([])
-        ax_props.set_title('VE Properties', fontsize=8)
-
-    except Exception as e:
-        # Fallback 2D visualization
-        ax_ve = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Draw 2D representation of cuboctahedron
-        # This is a simplified projection
-        ax_ve.plot([0, 1, 1, 0, 0], [0, 0, 1, 1, 0], 'b-', linewidth=2, label='Square Face')
-        ax_ve.plot([0.5, 1, 0.75, 0.25, 0.5], [0.5, 1, 0.75, 0.75, 0.5], 'r-', linewidth=2, label='Triangular Face')
-
-        ax_ve.set_xlim(-0.2, 1.2)
-        ax_ve.set_ylim(-0.2, 1.2)
-        ax_ve.set_xticks([])
-        ax_ve.set_yticks([])
-        ax_ve.set_title('Vector Equilibrium (2D Projection)', fontsize=9)
-        ax_ve.legend(loc='upper right', fontsize=6)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    """Render the local cuboctahedron's genuine edges and physical units."""
+    import numpy as np
+    from ..geometry.polyhedra import Cuboctahedron
+    from .geometry import _draw_polyhedron, _edge_indices, _fit_3d
+    model = Cuboctahedron()
+    vertices = np.array(model.to_xyz_vertices())
+    ax.text(0.5, 0.92, 'VECTOR EQUILIBRIUM — CUBOCTAHEDRON',
+            ha='center', fontsize=12, fontweight='bold')
+    view = ax.inset_axes([0.02, 0.22, 0.7, 0.6], projection='3d')
+    _draw_polyhedron(view, model, vertices, alpha=0.2)
+    _fit_3d(view, vertices)
+    view.tick_params(labelsize=6)
+    edges = _edge_indices(model)
+    edge_length = np.linalg.norm(vertices[edges[0][0]] - vertices[edges[0][1]])
+    ax.text(0.75, 0.74,
+            f'{len(vertices)} vertices\n{len(edges)} edges\n{len(model.face_indices())} faces\n'
+            f'6 squares + 8 triangles\n\nV = {model.volume()} IVM\n'
+            f'V = {float(model.volume()) * 8 / 3:.5g} XYZ³\n'
+            f'Edge = {edge_length:.5g} XYZ\nA = {model.surface_area():.5g} XYZ²',
+            fontsize=8, va='top')
+    ax.text(0.5, 0.08, 'Native scale-1 model; no separate circumradius normalization.',
+            ha='center', fontsize=8)
     ax.axis('off')
 
 
 def _create_decimal_to_sphere_packing_panel(ax):
-    """Create panel showing the connection between decimal values, symbolic ratios, and sphere packing."""
-    ax.text(0.5, 0.95, 'DECIMAL → RATIONAL → SPHERE PACKING', ha='center', va='center',
-            fontsize=17, fontweight='bold', color='#1f77b4')
-    ax.text(0.5, 0.88, 'Natural Language Expressions', ha='center', va='center',
-            fontsize=14, color='#ff7f0e')
+    """An exact count-volume ratio, distinct from cubic frequency scaling."""
+    import math
+    from ..geometry.polyhedra import Tetrahedron
+    from ..utils.conversion import best_rational_approximation
 
-    try:
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        from ..utils.conversion import best_rational_approximation
-
-        # Create visualization showing the complete pipeline
-        ax_flow = ax.inset_axes([0.05, 0.4, 0.9, 0.4])
-
-        # Example: Convert π to rational approximation
-        pi_val = np.pi
-        rational_approx = best_rational_approximation(pi_val, max_denominator=1000)
-
-        # Show the complete transformation
-        ax_flow.text(0.25, 0.8, f'π = {pi_val:.6f}', ha='center', va='center',
-                    fontsize=13, bbox=dict(boxstyle="round,pad=0.4", facecolor='#1f77b4', alpha=0.8))
-        ax_flow.arrow(0.4, 0.8, 0.15, 0, head_width=0.05, head_length=0.05,
-                     fc='#1f77b4', ec='#1f77b4', linewidth=3, alpha=0.8)
-
-        ax_flow.text(0.65, 0.8, f'Rational:\n{rational_approx[0]}/{rational_approx[1]}', ha='center', va='center',
-                    fontsize=13, bbox=dict(boxstyle="round,pad=0.4", facecolor='#ff7f0e', alpha=0.8))
-        ax_flow.arrow(0.8, 0.8, 0.15, 0, head_width=0.05, head_length=0.05,
-                     fc='#ff7f0e', ec='#ff7f0e', linewidth=3, alpha=0.8)
-
-        ax_flow.text(0.25, 0.4, f'Sphere Packing:\n{rational_approx[0]} & {rational_approx[1]} spheres', ha='center', va='center',
-                    fontsize=11, bbox=dict(boxstyle="round,pad=0.4", facecolor='#2ca02c', alpha=0.8))
-        ax_flow.arrow(0.4, 0.4, 0.15, 0, head_width=0.05, head_length=0.05,
-                     fc='#2ca02c', ec='#2ca02c', linewidth=3, alpha=0.8)
-
-        ax_flow.text(0.65, 0.4, f'Natural Language:\n"volume of {rational_approx[0]}-frequency\ntetrahedron ÷ volume of\n{rational_approx[1]}-frequency tetrahedron"', ha='center', va='center',
-                    fontsize=10, bbox=dict(boxstyle="round,pad=0.4", facecolor='#9467bd', alpha=0.8))
-
-        # Add sphere packing visualization below
-        ax_spheres = ax.inset_axes([0.1, 0.05, 0.35, 0.25])
-
-        # Simple 2D sphere packing representation
-        centers_2d = [[0, 0], [1, 0], [0.5, np.sqrt(3)/2],
-                     [1.5, np.sqrt(3)/2], [-0.5, np.sqrt(3)/2], [0.5, -np.sqrt(3)/2]]
-
-        for i, center in enumerate(centers_2d):
-            circle = plt.Circle(center, 0.3, fill=True, alpha=0.7,
-                              color=plt.cm.viridis(i/len(centers_2d)))
-            ax_spheres.add_patch(circle)
-            ax_spheres.text(center[0], center[1], str(i+1), ha='center', va='center',
-                           fontsize=8, fontweight='bold')
-
-        ax_spheres.set_xlim(-1, 2)
-        ax_spheres.set_ylim(-1, 1.5)
-        ax_spheres.set_xticks([])
-        ax_spheres.set_yticks([])
-        ax_spheres.set_aspect('equal')
-        ax_spheres.set_title('Sphere Packing Structure', fontsize=9)
-
-        # Add mathematical relationships on the right
-        ax_math = ax.inset_axes([0.55, 0.05, 0.4, 0.25])
-
-        relationships = [
-            r'$\text{Any real number } x$',
-            r'$\text{Can be expressed as } \frac{a}{b}$',
-            r'$\text{Where } a, b \text{ are integers}$',
-            r'$\text{Representing sphere counts}$',
-            r'$\text{In Synergetics geometry}$'
-        ]
-
-        for i, relation in enumerate(relationships):
-            ax_math.text(0.05, 0.9 - i*0.18, relation, ha='left', va='top',
-                        fontsize=8, wrap=True)
-
-        ax_math.set_xlim(0, 1)
-        ax_math.set_ylim(0, 1)
-        ax_math.set_xticks([])
-        ax_math.set_yticks([])
-        ax_math.set_title('Mathematical Foundation', fontsize=9)
-
-    except Exception as e:
-        # Fallback visualization
-        ax.text(0.5, 0.5, f'Decimal-to-Sphere\nConnection\nVisualization\nError: {str(e)[:30]}...',
-               ha='center', va='center', fontsize=10)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    rational = best_rational_approximation(math.pi, max_denominator=1000).value
+    unit = Tetrahedron().volume()
+    counts = [rational.numerator, rational.denominator]
+    volumes = [count * unit for count in counts]
+    chart = ax.inset_axes([0.14, 0.4, 0.8, 0.34])
+    chart.bar([0, 1], [float(value) for value in volumes], color=['#1f77b4', '#ff7f0e'])
+    chart.set_xticks([0, 1], [f'{count} unit tetrahedra' for count in counts])
+    chart.set_ylabel('Total IVM volume')
+    chart.tick_params(labelsize=8)
+    ax.text(0.5, 0.94, 'COUNT RATIOS, NOT FREQUENCY POWERS', ha='center',
+            fontsize=13, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.08, f'Volume ratio = {volumes[0] / volumes[1]} ≈ π.\n'
+            'These are counts of congruent units, not scaled tetrahedra.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _create_natural_language_panel(ax):
-    """Create panel showing natural language expressions for mathematical relationships."""
-    ax.text(0.5, 0.95, 'NATURAL LANGUAGE EXPRESSIONS', ha='center', va='center',
-            fontsize=17, fontweight='bold', color='#9467bd')
-    ax.text(0.5, 0.88, 'Sphere Packing as Mathematical Language', ha='center', va='center',
-            fontsize=14, color='#17becf')
-
-    try:
-        # Examples of natural language expressions
-        expressions = [
-            r'$\text{"The volume of a 22-frequency tetrahedron}$' + '\n' + r'$\text{divided by the volume of a 7-frequency tetrahedron"}$',
-            r'$\text{"The surface area of a 355-frequency octahedron}$' + '\n' + r'$\text{divided by the surface area of a 113-frequency octahedron"}$',
-            r'$\text{"The edge length of a 577-frequency cube}$' + '\n' + r'$\text{divided by the edge length of a 408-frequency cube"}$'
-        ]
-
-        for i, expr in enumerate(expressions):
-            ax.text(0.5, 0.7 - i*0.2, expr, ha='center', va='center',
-                   fontsize=9, bbox=dict(boxstyle="round,pad=0.5", facecolor='#f8f9fa', alpha=0.9))
-
-        # Add the fundamental concept
-        ax.text(0.5, 0.2, r'$\text{Any real number can be expressed as:}$', ha='center', va='center',
-               fontsize=10, fontweight='bold')
-
-        ax.text(0.5, 0.1, r'$\text{"Volume of } a\text{-frequency shape} \div \text{Volume of } b\text{-frequency shape"}$',
-               ha='center', va='center', fontsize=10, style='italic',
-               bbox=dict(boxstyle="round,pad=0.3", facecolor='#e9ecef', alpha=0.8))
-
-    except Exception as e:
-        ax.text(0.5, 0.5, f'Natural Language\nVisualization\nError: {str(e)[:30]}...',
-               ha='center', va='center', fontsize=10)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    """Distinguish rational count statements from irrational limits."""
+    ax.text(0.5, 0.94, 'GEOMETRIC LANGUAGE WITH DECLARED MEANING', ha='center',
+            fontsize=12, fontweight='bold', transform=ax.transAxes)
+    explanations = [
+        'Counts: volume of n congruent unit tetrahedra divided by\n'
+        'volume of m congruent unit tetrahedra is exactly n/m (m > 0).',
+        'Dilation: an n/m edge-scale ratio gives area ratio (n/m)²\n'
+        'and volume ratio (n/m)³ for the same shape.',
+        'Every rational has an integer-pair representation.\n'
+        'Irrational constants require approximation or a limiting process.',
+    ]
+    for y, text in zip((0.72, 0.44, 0.16), explanations):
+        ax.text(0.5, y, text, ha='center', va='center', fontsize=10,
+                transform=ax.transAxes,
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='#f8f9fa', alpha=0.9))
     ax.axis('off')
 
 
+
+
 def _create_synergetics_sphere_frequency_panel(ax):
-    """Create panel showing Synergetics frequency relationships in sphere packing."""
-    ax.text(0.5, 0.95, 'SYNERGETICS FREQUENCY SPHERE PACKING', ha='center', va='center',
-            fontsize=17, fontweight='bold', color='#8c564b')
-    ax.text(0.5, 0.88, 'Integer Sphere Counts in Geometric Hierarchies', ha='center', va='center',
-            fontsize=14, color='#e377c2')
-
-    try:
-
-        # Create frequency hierarchy visualization
-        ax_freq = ax.inset_axes([0.05, 0.4, 0.9, 0.4])
-
-        # Synergetics frequency relationships
-        frequencies = [1, 2, 4, 8, 12, 20, 30, 42, 60, 84]
-        sphere_counts = []
-
-        # Calculate sphere counts for different frequencies (simplified model)
-        for freq in frequencies:
-            # This is a simplified model - in reality, sphere counts follow specific Synergetics patterns
-            count = freq * (freq + 1) * (2 * freq + 1) // 6  # Tetrahedral number approximation
-            sphere_counts.append(count)
-
-        # Plot frequency vs sphere count
-        ax_freq.semilogy(frequencies, sphere_counts, linewidth=3, markersize=10,
-                        label='Sphere Count (log scale)', color='#8c564b', marker='o', linestyle='-')
-
-        # Add frequency labels
-        for freq, count in zip(frequencies, sphere_counts):
-            ax_freq.annotate(f'f={freq}\nn={count}', (freq, count), xytext=(5, 5),
-                           textcoords='offset points', fontsize=8, ha='left')
-
-        ax_freq.set_xlabel('Frequency Level', fontsize=10)
-        ax_freq.set_ylabel('Number of Spheres', fontsize=10)
-        ax_freq.set_title('Synergetics Frequency Hierarchy', fontsize=11)
-        ax_freq.legend(loc='upper left', fontsize=8)
-        ax_freq.grid(True, alpha=0.3)
-
-        # Add natural language examples below
-        examples = [
-            r'$\text{Frequency 2: } 4 \text{ spheres} \rightarrow \text{"tetrahedral unit"}$',
-            r'$\text{Frequency 4: } 20 \text{ spheres} \rightarrow \text{"icosahedral cluster"}$',
-            r'$\text{Frequency 8: } 120 \text{ spheres} \rightarrow \text{"octahedral complex"}$',
-            r'$\text{Frequency 20: } 1,770 \text{ spheres} \rightarrow \text{"major cluster unit"}$'
-        ]
-
-        for i, example in enumerate(examples):
-            ax.text(0.5, 0.25 - i*0.08, example, ha='center', va='center',
-                   fontsize=8, bbox=dict(boxstyle="round,pad=0.2", facecolor='#fff3cd', alpha=0.8))
-
-    except Exception as e:
-        # Fallback visualization
-        ax.text(0.5, 0.5, f'Frequency Sphere\nPacking\nVisualization\nError: {str(e)[:30]}...',
-               ha='center', va='center', fontsize=10)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    """Tetrahedral cluster layer counts, not FCC shells or volume frequencies."""
+    layers = [1, 2, 4, 8, 12, 20, 30, 42, 60, 84]
+    # Same exact tetrahedral-number formula used by geometric_mnemonics.
+    counts = [n * (n + 1) * (n + 2) // 6 for n in layers]
+    ax.text(0.5, 0.95, 'TETRAHEDRAL SPHERE CLUSTERS', ha='center',
+            fontsize=17, fontweight='bold')
+    ax.text(0.5, 0.87, 'T(n) = n(n+1)(n+2)/6; n is the number of triangular layers',
+            ha='center', fontsize=12)
+    chart = ax.inset_axes([0.08, 0.43, 0.85, 0.32])
+    chart.semilogy(layers, counts, '-o', color='#8c564b', label='Tetrahedral cluster sites')
+    for n, total in zip(layers, counts):
+        chart.annotate(f'n={n}\nT={total}', (n, total), xytext=(4, 4),
+                       textcoords='offset points', fontsize=7)
+    chart.set_xlabel('Tetrahedral cluster layer index n', fontsize=9)
+    chart.set_ylabel('Sphere count T(n)', fontsize=9)
+    chart.tick_params(labelsize=8)
+    chart.grid(True, alpha=0.3)
+    ax.text(0.5, 0.16, 'Counts computed from triangular-layer sums.',
+            ha='center', fontsize=10)
+    ax.text(0.5, 0.08, 'Finite tetrahedral clusters — not FCC graph shells or subdivision volumes.',
+            ha='center', fontsize=9)
     ax.axis('off')
 
 
 def _create_mathematical_patterns_panel(ax):
-    """Create panel showing mathematical pattern analysis with visualizations."""
-    ax.text(0.5, 0.9, 'MATHEMATICAL PATTERNS', ha='center', va='center',
-            fontsize=16, fontweight='bold', color='#9467bd')
-    ax.text(0.5, 0.8, 'Pattern Discovery', ha='center', va='center',
-            fontsize=13, color='#8c564b')
-
-    try:
-        import numpy as np
-
-        # Create visualization showing different mathematical patterns
-        ax_patterns = ax.inset_axes([0.05, 0.3, 0.9, 0.4])
-
-        # Generate pattern data
-        x = np.linspace(0, 10, 100)
-
-        # Palindrome pattern (sine wave)
-        palindrome_pattern = np.sin(x) + np.sin(2*x) + 0.5*np.sin(3*x)
-        ax_patterns.plot(x, palindrome_pattern, 'b-', linewidth=2, alpha=0.8, label='Palindrome Pattern')
-
-        # Primorial growth (exponential-like)
-        primorial_x = np.arange(1, 11)
-        primorial_y = [2, 6, 30, 210, 2310, 30030, 510510, 9699690, 223092870, 6469693230]
-        ax_patterns.plot(primorial_x, np.log10(primorial_y), 'r-o', linewidth=2, markersize=4, label='Primorial Growth')
-
-        # Fibonacci sequence (golden ratio convergence)
-        fib_x = np.arange(1, 21)
-        fib_ratios = [1.6180339887] * len(fib_x)  # Golden ratio
-        convergence = 1 / (fib_x**0.5)  # Convergence rate
-        ax_patterns.plot(fib_x, fib_ratios - convergence, 'g--', linewidth=1.5, alpha=0.7, label='Golden Ratio')
-
-        ax_patterns.set_xlabel('n', fontsize=8)
-        ax_patterns.set_ylabel('Pattern Value', fontsize=8)
-        ax_patterns.set_title('Mathematical Pattern Analysis', fontsize=9)
-        ax_patterns.legend(loc='upper right', fontsize=6)
-        ax_patterns.grid(True, alpha=0.3)
-
-        # Add mathematical expressions below
-        expressions = [
-            r'$\text{Palindrome: } 12321 \rightarrow \text{symmetric pattern}$',
-            r'$\text{Primorial: } P_n = \prod_{k=1}^n p_k = 2 \times 3 \times 5 \times \dots$',
-            r'$\text{Fibonacci: } \lim_{n \to \infty} \frac{F_{n+1}}{F_n} = \phi$'
-        ]
-
-        for i, expr in enumerate(expressions):
-            ax.text(0.5, 0.2 - i*0.05, expr, ha='center', va='center',
-                   fontsize=6, style='italic')
-
-    except Exception as e:
-        # Fallback visualization
-        ax_patterns = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-        ax_patterns.text(0.5, 0.5, 'Pattern\nVisualization\nError', ha='center', va='center', fontsize=8)
-        ax_patterns.set_xlim(0, 1)
-        ax_patterns.set_ylim(0, 1)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    """Actual consecutive Fibonacci ratios, not a synthetic convergence curve."""
+    import math
+    fibonacci = [1, 1]
+    for _ in range(13):
+        fibonacci.append(fibonacci[-1] + fibonacci[-2])
+    ratios = [b / a for a, b in zip(fibonacci, fibonacci[1:])]
+    chart = ax.inset_axes([0.14, 0.39, 0.8, 0.38])
+    chart.plot(range(1, len(ratios) + 1), ratios, '-o', label='F(n+1) / F(n)')
+    chart.axhline((1 + math.sqrt(5)) / 2, linestyle='--', color='#d62728',
+                  label='Binary-float φ reference')
+    chart.set(xlabel='Consecutive Fibonacci index n', ylabel='Ratio')
+    chart.legend(fontsize=7)
+    chart.grid(True, alpha=0.3)
+    ax.text(0.5, 0.94, 'FIBONACCI RATIOS FROM INTEGER RECURRENCE', ha='center',
+            fontsize=12, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.06, 'F(n+2) = F(n+1) + F(n), starting at 1, 1.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _create_quadray_coordinate_panel(ax):
-    """Create panel showing Quadray coordinate system with visualizations."""
-    ax.text(0.5, 0.9, 'QUADRAY COORDINATES', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#e377c2')
-    ax.text(0.5, 0.8, '4D Tetrahedral System', ha='center', va='center',
-            fontsize=10, color='#7f7f7f')
-
-    try:
-        import numpy as np
-
-        # Create 3D visualization showing Quadray coordinate relationships
-        ax_3d = ax.inset_axes([0.1, 0.3, 0.6, 0.5], projection='3d')
-
-        # Define tetrahedral vertices in 3D projection
-        vertices = np.array([
-            [1, 0, 0],  # Origin
-            [0, 1, 0],  # Edge
-            [0, 0, 1],  # Face
-            [0.5, 0.5, 0.5]  # Volume center
-        ])
-
-        # Plot tetrahedral coordinate system
-        colors = ['red', 'blue', 'green', 'purple']
-        labels = ['Origin (1,0,0,0)', 'Edge (1,1,0,0)', 'Face (1,1,1,0)', 'Volume (1,1,1,1)']
-
-        for i, (vertex, color, label) in enumerate(zip(vertices, colors, labels)):
-            ax_3d.scatter(vertex[0], vertex[1], vertex[2], c=color, s=100, alpha=0.8)
-            ax_3d.text(vertex[0], vertex[1], vertex[2], f'Q{i}', fontsize=8, ha='center')
-
-        # Draw edges of tetrahedron
-        edges = [(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)]
-        for edge in edges:
-            ax_3d.plot3D([vertices[edge[0]][0], vertices[edge[1]][0]],
-                        [vertices[edge[0]][1], vertices[edge[1]][1]],
-                        [vertices[edge[0]][2], vertices[edge[1]][2]], 'gray', alpha=0.5)
-
-        ax_3d.set_xlabel('X', fontsize=8)
-        ax_3d.set_ylabel('Y', fontsize=8)
-        ax_3d.set_zlabel('Z', fontsize=8)
-        ax_3d.set_title('Quadray Tetrahedral Coordinates', fontsize=9)
-        ax_3d.grid(True, alpha=0.3)
-
-        # Add coordinate transformation equations
-        equations = [
-            r'$(x,y,z,w) \rightarrow (x,y,z)$',
-            r'$\text{Volume: } x + y + z + w = 1$',
-            r'$\text{Edge: } x + y = 1$'
-        ]
-
-        for i, eq in enumerate(equations):
-            ax.text(0.8, 0.6 - i*0.1, eq, ha='left', va='center',
-                   fontsize=6, style='italic', color='#7f7f7f')
-
-    except Exception as e:
-        # Fallback 2D visualization
-        ax_coord = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Draw 2D representation of tetrahedral coordinates
-        ax_coord.plot([0, 1, 0.5, 0], [0, 0, np.sqrt(3)/2, 0], 'b-o', linewidth=2)
-        ax_coord.plot([0.5, 0.5], [np.sqrt(3)/2, 0], 'r--', linewidth=1)
-
-        # Label points
-        ax_coord.text(0, 0, '(1,0,0,0)', ha='center', va='top', fontsize=7)
-        ax_coord.text(1, 0, '(0,1,0,0)', ha='center', va='top', fontsize=7)
-        ax_coord.text(0.5, np.sqrt(3)/2, '(0,0,1,0)', ha='center', va='bottom', fontsize=7)
-        ax_coord.text(0.5, 0, '(0,0,0,1)', ha='center', va='top', fontsize=7)
-
-        ax_coord.set_xlim(-0.2, 1.2)
-        ax_coord.set_ylim(-0.2, 1.0)
-        ax_coord.set_xticks([])
-        ax_coord.set_yticks([])
-        ax_coord.set_title('Quadray Coordinate System', fontsize=9)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    """Actual scale-1 quadray embedding and common-offset gauge equivalence."""
+    import numpy as np
+    from ..core.coordinates import QuadrayCoordinate
+    from .geometry import _fit_3d
+    ax.text(0.5, 0.92, 'QUADRAYS — FOUR LABELS, THREE PHYSICAL DIMENSIONS',
+            ha='center', fontsize=11, fontweight='bold')
+    view = ax.inset_axes([0.02, 0.23, 0.6, 0.58], projection='3d')
+    basis = [QuadrayCoordinate(*(int(i == j) for j in range(4))) for i in range(4)]
+    vertices = np.array([q.to_xyz() for q in basis])
+    for name, vertex, color in zip('ABCD', vertices, ['red', 'green', 'blue', 'orange']):
+        view.plot(*np.array([np.zeros(3), vertex]).T, color=color)
+        view.scatter(*vertex, color=color, s=30)
+        view.text(*vertex, name, fontsize=8)
+    examples = [QuadrayCoordinate(1, 1, 0, 0), QuadrayCoordinate(1, 1, 1, 0),
+                QuadrayCoordinate(1, 1, 1, 1)]
+    for q in examples:
+        xyz = q.to_xyz()
+        view.scatter(*xyz, color='purple', s=25)
+        view.text(*xyz, str(q.as_tuple()), fontsize=6)
+    _fit_3d(view, [*vertices, (0, 0, 0), *(q.to_xyz() for q in examples)])
+    view.tick_params(labelsize=6)
+    equations = ('x = a − b − c + d\n'
+                 'y = a + b − c − d\n'
+                 'z = a − b + c − d\n\n'
+                 '(a,b,c,d) ∼ (a+k,b+k,c+k,d+k)\n'
+                 '(1,1,1,1) is the physical origin.\n\n'
+                 'No sum-to-one constraint;\nnot normalized barycentric weights.')
+    ax.text(0.64, 0.72, equations, fontsize=7, va='top')
+    ax.text(0.5, 0.08, 'All plotted examples use QuadrayCoordinate.to_xyz() at scale 1.',
+            ha='center', fontsize=8)
     ax.axis('off')
 
 
-def _create_polyhedral_relationships_panel(ax):
-    """Create panel showing polyhedral relationships."""
-    ax.text(0.5, 0.8, 'POLYHEDRAL RELATIONS', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#bcbd22')
-    ax.text(0.5, 0.6, 'Volume Ratios', ha='center', va='center',
-            fontsize=10, color='#17becf')
-
-    # Try to get real polyhedral volume data
-    try:
-        from ..geometry.polyhedra import Cube, Octahedron, Tetrahedron
-
-        tetra_vol = Tetrahedron().volume()
-        octa_vol = Octahedron().volume()
-        cube_vol = Cube().volume()
-
-        ratios = [
-            f'Tetrahedron: {float(tetra_vol):.1f}',
-            f'Octahedron: {float(octa_vol):.1f}',
-            f'Cube: {float(cube_vol):.1f}',
-            'Integer volume relationships'
-        ]
-    except Exception:
-        # Fallback to static examples
-        ratios = [
-            'Tetrahedron: 1.0',
-            'Octahedron: 4.0',
-            'Cube: 3.0',
-            'Icosahedron: 18.51'
-        ]
-
-    for i, ratio in enumerate(ratios):
-        ax.text(0.5, 0.4 - i*0.1, ratio, ha='center', va='center',
-                fontsize=8, family='monospace')
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.axis('off')
 
 
 def _create_continued_fractions_panel(ax):
-    """Create panel showing continued fraction analysis with visualizations."""
-    ax.text(0.5, 0.9, 'CONTINUED FRACTIONS', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#1f77b4')
-    ax.text(0.5, 0.8, 'π ≈ [3;7,15,1,292,...]', ha='center', va='center',
-            fontsize=10, color='#ff7f0e')
+    """Compute convergents from the actual finite-reference expansion."""
+    import math
+    from ..utils.conversion import continued_fraction_approximation
 
-    try:
-        import math
-
-        import numpy as np
-
-        # Create visualization showing continued fraction convergents
-        ax_cf = ax.inset_axes([0.05, 0.3, 0.9, 0.4])
-
-        # Generate continued fraction convergents for π
-        pi_cf_terms = [3, 7, 15, 1, 292, 1, 1, 1, 2, 1]  # First few terms of π's continued fraction
-
-        # Calculate convergents
-        convergents = []
-        h_prev, k_prev = 1, 0
-        h_curr, k_curr = pi_cf_terms[0], 1
-
-        convergents.append((h_curr, k_curr))
-
-        for term in pi_cf_terms[1:]:
-            h_next = term * h_curr + h_prev
-            k_next = term * k_curr + k_prev
-            convergents.append((h_next, k_next))
-            h_prev, k_prev = h_curr, k_curr
-            h_curr, k_curr = h_next, k_next
-
-        # Plot convergence to π
-        x_vals = np.arange(len(convergents))
-        pi_values = [h/k for h, k in convergents]
-        errors = [abs(val - math.pi) for val in pi_values]
-
-        # Create dual-axis plot
-        ax_cf.plot(x_vals, pi_values, 'bo-', linewidth=2, markersize=6, label='Convergent')
-        ax_cf.axhline(y=math.pi, color='red', linestyle='--', alpha=0.8, label='True π')
-
-        ax_cf.set_xlabel('Number of Terms', fontsize=8)
-        ax_cf.set_ylabel('π Approximation', fontsize=8)
-        ax_cf.set_title('Continued Fraction Convergence to π', fontsize=9)
-        ax_cf.legend(loc='upper right', fontsize=6)
-        ax_cf.grid(True, alpha=0.3)
-
-        # Add mathematical expressions
-        expressions = [
-            r'$\pi = [3; 7, 15, 1, 292, 1, 1, 1, 2, 1, \dots]$',
-            r'$\frac{h_n}{k_n} \rightarrow \pi$ as $n \rightarrow \infty$',
-            r'$\text{Best rational approximations of irrational numbers}$'
-        ]
-
-        for i, expr in enumerate(expressions):
-            ax.text(0.5, 0.15 - i*0.05, expr, ha='center', va='center',
-                   fontsize=6, style='italic')
-        import matplotlib.pyplot as plt
-
-    except Exception as e:
-        # Fallback visualization
-        ax_cf = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Simple continued fraction tree
-        ax_cf.text(0.5, 0.8, 'π = 3 +', ha='center', va='center', fontsize=10)
-        ax_cf.arrow(0.5, 0.75, 0, -0.1, head_width=0.05, head_length=0.05, fc='blue', ec='blue')
-        ax_cf.text(0.5, 0.6, '1 /', ha='center', va='center', fontsize=10)
-        ax_cf.arrow(0.5, 0.55, 0, -0.1, head_width=0.05, head_length=0.05, fc='blue', ec='blue')
-        ax_cf.text(0.5, 0.4, '7 + 1/(15 + 1/(1 + ...))', ha='center', va='center', fontsize=8)
-
-        # Add convergence demonstration
-        ax_cf.text(0.3, 0.2, 'Convergent 1: 3/1 = 3.000', fontsize=7, ha='left')
-        ax_cf.text(0.3, 0.1, 'Convergent 2: 22/7 ≈ 3.143', fontsize=7, ha='left')
-        ax_cf.text(0.3, 0.0, 'Convergent 3: 333/106 ≈ 3.142', fontsize=7, ha='left')
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    terms = continued_fraction_approximation(math.pi, max_terms=8)
+    previous_h, current_h, previous_k, current_k = 0, 1, 1, 0
+    convergents = []
+    for term in terms:
+        previous_h, current_h = current_h, term * current_h + previous_h
+        previous_k, current_k = current_k, term * current_k + previous_k
+        convergents.append(current_h / current_k)
+    chart = ax.inset_axes([0.14, 0.39, 0.8, 0.38])
+    chart.plot(range(1, len(convergents) + 1), convergents, '-o', label='Convergent')
+    chart.axhline(math.pi, color='#d62728', linestyle='--', label='Binary-float π reference')
+    chart.set(xlabel='Number of terms', ylabel='Rational value')
+    chart.legend(fontsize=7)
+    chart.grid(True, alpha=0.3)
+    ax.text(0.5, 0.94, 'CONTINUED FRACTIONS', ha='center',
+            fontsize=14, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.07, 'Finite float-reference expansion, not a proof of all π coefficients.',
+            ha='center', fontsize=8, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _create_palindrome_analysis_panel(ax):
-    """Create panel showing palindrome analysis with visualizations."""
-    ax.text(0.5, 0.92, 'PALINDROME ANALYSIS', ha='center', va='center',
-            fontsize=15, fontweight='bold', color='#2ca02c')
-    ax.text(0.5, 0.84, 'Symmetric Number Patterns', ha='center', va='center',
-            fontsize=13, color='#d62728')
+    """Digit profiles centered between the two physical end positions."""
+    import numpy as np
+    from ..computation.palindromes import is_palindromic
 
-    try:
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        # Create visualization showing palindrome symmetry
-        ax_pal = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Generate palindrome data
-        palindrome_nums = ['121', '12321', '123454321', '1001']
-        x_positions = np.arange(len(palindrome_nums))
-
-        # Create symmetry visualization
-        for i, num in enumerate(palindrome_nums):
-            digits = [int(d) for d in num]
-            center = len(digits) / 2
-
-            # Plot digit values with symmetry
-            x_vals = np.arange(len(digits)) - center
-            ax_pal.plot(x_vals, digits, 'o-', linewidth=2, markersize=6, alpha=0.8,
-                       label=f'{num}', color=plt.cm.viridis(i/len(palindrome_nums)))
-
-        # Add symmetry line
-        ax_pal.axvline(x=0, color='red', linestyle='--', alpha=0.7, label='Symmetry Axis')
-
-        ax_pal.set_xlabel('Position from Center', fontsize=8)
-        ax_pal.set_ylabel('Digit Value', fontsize=8)
-        ax_pal.set_title('Palindrome Symmetry Patterns', fontsize=9)
-        ax_pal.legend(loc='upper right', fontsize=6)
-        ax_pal.grid(True, alpha=0.3)
-
-        # Add mathematical properties below
-        properties = [
-            r'$\text{Symmetry: } d_i = d_{n+1-i}$',
-            r'$\text{Scheherazade: } 1001^3 = 1003003001$',
-            r'$\text{Pattern Density: } \rho = \frac{\text{palindromes}}{\text{total numbers}}$'
-        ]
-
-        for i, prop in enumerate(properties):
-            ax.text(0.5, 0.15 - i*0.05, prop, ha='center', va='center',
-                   fontsize=6, style='italic')
-
-    except Exception as e:
-        import matplotlib.pyplot as plt
-        # Fallback visualization
-        ax_pal = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Simple symmetry demonstration
-        ax_pal.text(0.2, 0.7, '1 2 3 2 1', ha='center', va='center', fontsize=12, fontweight='bold')
-        ax_pal.text(0.8, 0.7, '1 2 3 2 1', ha='center', va='center', fontsize=12, fontweight='bold')
-        ax_pal.arrow(0.35, 0.7, 0.3, 0, head_width=0.05, head_length=0.05, fc='red', ec='red')
-        ax_pal.arrow(0.65, 0.7, -0.3, 0, head_width=0.05, head_length=0.05, fc='red', ec='red')
-        ax_pal.text(0.5, 0.5, 'SYMMETRY', ha='center', va='center', fontsize=10, color='red', fontweight='bold')
-        ax_pal.text(0.5, 0.3, 'Palindrome Pattern', ha='center', va='center', fontsize=8)
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    chart = ax.inset_axes([0.14, 0.39, 0.8, 0.38])
+    for number in ('121', '12321', '123454321', '1001'):
+        if not is_palindromic(number):
+            raise ValueError(f'Expected a palindrome: {number}')
+        digits = [int(digit) for digit in number]
+        positions = np.arange(len(digits)) - (len(digits) - 1) / 2
+        chart.plot(positions, digits, '-o', label=number)
+    chart.axvline(0, color='#d62728', linestyle='--', alpha=0.7)
+    chart.set(xlabel='Digit position relative to midpoint', ylabel='Digit value')
+    chart.legend(fontsize=7)
+    chart.grid(True, alpha=0.3)
+    ax.text(0.5, 0.94, 'PALINDROME REFLECTION SYMMETRY', ha='center',
+            fontsize=13, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.06, 'Odd and even digit counts reflect about the same x=0 axis.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _create_primorial_distribution_panel(ax):
-    """Create panel showing primorial distribution with visualizations."""
-    ax.text(0.5, 0.9, 'PRIMORIAL DISTRIBUTION', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#9467bd')
-    ax.text(0.5, 0.8, 'Product of First n Primes', ha='center', va='center',
-            fontsize=10, color='#8c564b')
+    """Use the actual prime-bound primorial API rather than a second sieve."""
+    from ..computation.primorials import primorial
 
-    try:
-        import numpy as np
-
-        # Create visualization showing primorial growth
-        ax_prime = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Generate primorial data
-        n_values = np.arange(1, 11)
-        primorials = []
-
-        # Calculate primorials
-        primes = []
-        num = 2
-        while len(primorials) < len(n_values):
-            if all(num % p != 0 for p in primes):
-                primes.append(num)
-                primorial = 1
-                for p in primes:
-                    primorial *= p
-                primorials.append(primorial)
-            num += 1
-
-        # Plot primorial growth on log scale
-        ax_prime.semilogy(n_values, primorials, linewidth=3, markersize=8,
-                         label='Primorial Values', color='#9467bd', marker='o', linestyle='-')
-
-        # Add prime factor information
-        prime_factors = ['2', '2×3', '2×3×5', '2×3×5×7', '2×3×5×7×11']
-        for i, factors in enumerate(prime_factors[:5]):
-            ax_prime.annotate(factors, (n_values[i], primorials[i]),
-                            xytext=(10, 10), textcoords='offset points',
-                            fontsize=7, ha='left')
-
-        ax_prime.set_xlabel('Number of Primes (n)', fontsize=8)
-        ax_prime.set_ylabel('Primorial Value (log scale)', fontsize=8)
-        ax_prime.set_title('Primorial Growth Pattern', fontsize=9)
-        ax_prime.grid(True, alpha=0.3)
-        ax_prime.set_xticks(n_values)
-
-        # Add mathematical expressions
-        expressions = [
-            r'$P_n = \prod_{k=1}^n p_k = 2 \times 3 \times 5 \times \dots \times p_n$',
-            r'$\text{Growth: } P_n \sim e^{n \ln n}$ (asymptotic behavior)',
-            r'$\text{Applications: } \text{cryptography, number theory}$'
-        ]
-
-        for i, expr in enumerate(expressions):
-            ax.text(0.5, 0.15 - i*0.05, expr, ha='center', va='center',
-                   fontsize=6, style='italic')
-
-    except Exception as e:
-        # Fallback visualization
-        ax_prime = ax.inset_axes([0.1, 0.3, 0.8, 0.4])
-
-        # Simple primorial demonstration
-        primorials = ['P₁ = 2', 'P₂ = 2×3 = 6', 'P₃ = 2×3×5 = 30', 'P₄ = 2×3×5×7 = 210']
-        for i, prim in enumerate(primorials):
-            ax_prime.text(0.5, 0.8 - i*0.2, prim, ha='center', va='center',
-                         fontsize=10, fontweight='bold', color='#9467bd')
-
-        # Add growth arrows
-        ax_prime.arrow(0.3, 0.6, 0, -0.3, head_width=0.05, head_length=0.05,
-                      fc='#9467bd', ec='#9467bd', alpha=0.7)
-        ax_prime.text(0.2, 0.45, 'Rapid\nGrowth', ha='center', va='center',
-                     fontsize=8, color='#9467bd', fontweight='bold')
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    primes = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29)
+    values = [int(primorial(prime).value) for prime in primes]
+    chart = ax.inset_axes([0.14, 0.39, 0.8, 0.38])
+    chart.semilogy(primes, values, '-o', color='#9467bd')
+    chart.set(xlabel='Prime bound p', ylabel='p# = product of primes ≤ p')
+    chart.grid(True, alpha=0.3)
+    ax.text(0.5, 0.94, 'PRIMORIAL GROWTH', ha='center',
+            fontsize=14, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.06, 'Actual integer products; ln(p#) ~ p asymptotically.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _create_ivm_lattice_panel(ax):
-    """Create panel showing IVM lattice visualization."""
-    ax.text(0.5, 0.8, 'IVM LATTICE', ha='center', va='center',
-            fontsize=12, fontweight='bold', color='#e377c2')
-    ax.text(0.5, 0.6, 'Isotropic Vector Matrix', ha='center', va='center',
-            fontsize=10, color='#7f7f7f')
+    """Render the actual radius-two FCC ball, not a textual lattice placeholder."""
+    import numpy as np
+    from ..core.coordinates import enumerate_ivm_sites
+    from .geometry import _fit_3d
 
-    lattice_info = [
-        'Sphere Packing',
-        'Tetrahedral Coordination',
-        'Quantum Structure Basis',
-        'Synergetic Geometry'
-    ]
-
-    for i, info in enumerate(lattice_info):
-        ax.text(0.5, 0.4 - i*0.1, info, ha='center', va='center',
-                fontsize=8, family='monospace')
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    sites = enumerate_ivm_sites(2)
+    points = np.asarray([site.to_xyz() for site in sites])
+    view = ax.inset_axes([0.08, 0.18, 0.84, 0.64], projection='3d')
+    view.scatter(*points.T, c=np.linalg.norm(points, axis=1), cmap='viridis', s=20)
+    _fit_3d(view, points)
+    view.tick_params(labelsize=6)
+    ax.text(0.5, 0.94, 'CANONICAL FCC GRAPH BALL', ha='center',
+            fontsize=14, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.05, f'{len(sites)} physical sites through graph radius 2; scale-one XYZ.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _create_pattern_discovery_summary_panel(ax):
-    """Create panel showing pattern discovery summary."""
-    ax.text(0.5, 0.8, 'PATTERN DISCOVERY SUMMARY', ha='center', va='center',
-            fontsize=14, fontweight='bold', color='#bcbd22')
+    """Enumerate a declared finite population rather than imply an open search."""
+    from ..computation.palindromes import is_palindromic
 
-    # Try to get real pattern discovery statistics
-    try:
-        from ..computation.palindromes import is_palindromic
-        from ..computation.primorials import primorial
-        from ..utils.conversion import continued_fraction_approximation
-
-        # Real pattern examples
-        palindromic_count = sum(1 for i in range(100, 1000) if is_palindromic(str(i)))
-        primorial_val = primorial(5)
-        continued_frac = continued_fraction_approximation(3.14159, 5)
-
-        discoveries = [
-            f'• {palindromic_count}+ palindromic numbers found',
-            f'• Primorial(5) = {int(primorial_val.value)}',
-            f'• π continued fraction: {continued_frac}',
-            '• Geometric ratios in polyhedra',
-            '• Tetrahedral coordinate relationships',
-            '• All-integer accounting precision'
-        ]
-    except Exception:
-        # Fallback to static examples
-        discoveries = [
-            '• Palindromic sequences in powers',
-            '• Geometric ratios in polyhedra',
-            '• Primorial patterns in primes',
-            '• Continued fraction convergents',
-            '• Tetrahedral coordinate relationships',
-            '• All-integer accounting precision'
-        ]
-
-    for i, discovery in enumerate(discoveries):
-        ax.text(0.05, 0.6 - i*0.08, discovery, ha='left', va='center',
-                fontsize=8, family='monospace')
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    ranges = (range(1, 10), range(10, 100), range(100, 1000))
+    counts = [sum(is_palindromic(str(number)) for number in values) for values in ranges]
+    chart = ax.inset_axes([0.14, 0.35, 0.8, 0.42])
+    chart.bar([1, 2, 3], counts, color='#bcbd22')
+    chart.set_xticks([1, 2, 3], ['1 digit', '2 digits', '3 digits'])
+    chart.set_ylabel('Palindrome count')
+    ax.text(0.5, 0.94, 'FINITE PALINDROME ENUMERATION', ha='center',
+            fontsize=13, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.06, 'All positive base-10 integers 1–999; no leading zeros.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
 
 
-def _create_statistical_overview_panel(ax):
-    """Create panel showing statistical overview."""
-    ax.text(0.5, 0.8, 'STATISTICAL OVERVIEW', ha='center', va='center',
-            fontsize=14, fontweight='bold', color='#17becf')
 
-    stats = [
-        '• 573 comprehensive tests',
-        '• 77% test coverage',
-        '• 544 tests passing',
-        '• 12 tests skipped',
-        '• 17-panel mega abstract',
-        '• 32×24 inch visualization',
-        '• Natural language expressions',
-        '• Decimal-to-sphere connections'
+
+def _create_geometry_precision_panel(ax):
+    """Computed geometry examples; never embed invented test/coverage metadata."""
+    from ..core.coordinates import QuadrayCoordinate, urner_embedding
+    from ..geometry.polyhedra import Cube, integer_tetra_volume
+
+    q = QuadrayCoordinate(2**60 + 1, 2**60, 0, 0)
+    alias = QuadrayCoordinate(*(value + 2**80 for value in q.as_tuple()), normalize=False)
+    origin = QuadrayCoordinate(0, 0, 0, 0)
+    basis = [QuadrayCoordinate(*(int(i == j) for j in range(4))) for i in range(3)]
+    rows = [
+        ('Huge-gauge squared separation', str(q.squared_distance_exact(alias))),
+        ('Resolved cancellation dot', str(q.dot_exact(QuadrayCoordinate(1, 0, 1, 0)))),
+        ('Primitive tetrahedron, IVM', str(integer_tetra_volume(origin, *basis))),
+        ('Cube area, XYZ scale 1e−162', str(Cube().surface_area(urner_embedding(1e-162)))),
     ]
-
-    for i, stat in enumerate(stats):
-        ax.text(0.05, 0.6 - i*0.08, stat, ha='left', va='center',
-                fontsize=8, family='monospace')
-
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    table = ax.table(cellText=rows, colLabels=['Actual API example', 'Computed result'],
+                     cellLoc='center', bbox=[0.04, 0.2, 0.92, 0.58])
+    table.auto_set_font_size(False)
+    table.set_fontsize(11)
+    ax.text(0.5, 0.94, 'EXACT AND FLOATING BOUNDARIES', ha='center',
+            fontsize=14, fontweight='bold', transform=ax.transAxes)
+    ax.text(0.5, 0.06, 'Exact rational metrics and volumes; area rounds once to float.\n'
+            'Examples are not a test-suite or universal-correctness certificate.',
+            ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+
+
 
 
 def _add_contextualizing_text(fig):
-    """Add contextualizing text to the mega graphical abstract."""
-    # Add main description
-    fig.text(0.02, 0.02,
-             'This mega graphical abstract showcases the comprehensive capabilities of the Symergetics package,\n'
-             'demonstrating symbolic operations on all-integer accounting based upon geometric ratios from\n'
-             'high-frequency shapes in Synergetics geometry and Quadray/4D coordinates.',
-             fontsize=10, ha='left', va='bottom', alpha=0.8)
-
-    # Add author and date
+    """State the actual figure scope and generation date, without quality claims."""
     from datetime import datetime
-    current_date = datetime.now().strftime('%Y-%m-%d')
 
-    fig.text(0.98, 0.02,
-             'Symergetics Package - Research-Grade Precision\n'
-             f'Generated: {current_date}',
-             fontsize=10, ha='right', va='bottom', alpha=0.8)
+    fig.text(0.05, 0.025,
+             'Computed rational arithmetic, declared geometric units and finite sequence examples.\n'
+             'Continuous irrational quantities remain approximations; mesh validity has explicit preconditions.',
+             fontsize=10, ha='left', va='bottom')
+    fig.text(0.97, 0.025, f'Generated: {datetime.now():%Y-%m-%d}',
+             fontsize=10, ha='right', va='bottom')
