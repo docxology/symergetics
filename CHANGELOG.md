@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Publication flow and literal mathematical code
+
+- Preserve ordinary H1 through H4 headings with a readable hierarchy and keep each heading with substantive content, including generated code labels, rather than an intervening spacer.
+- Protect inline code before emphasis/link processing so identifiers, literal operators and link-looking code retain their actual text and monospaced rendering.
+- Recognize pipe-table delimiters with or without outer pipes, preserve escaped pipes and empty cells, and leave invalid short-dash rows literal.
+- Document the renderer's bounded Markdown grammar and real publication workflow; verify pagination, code text and table placement in actual PDFs rather than pinning incidental style values.
+
 ### Readable, computed graphical abstracts
 
 - Add keyword-only `section` selection to `create_mega_graphical_abstract`: readable `overview` by default, focused `geometry`, `arithmetic` and `patterns`, or all seventeen topics with `all`. Preserve explicit caller titles and return actual panel identities, computed values and units.

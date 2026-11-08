@@ -1,11 +1,11 @@
-"""Real-image regressions for scientific figure identity, geometry and captions."""
+"""Real-PDF regressions for readable text, pagination, tables and source figures."""
 import tempfile
 import unittest
 from pathlib import Path
 
 from PIL import Image as RasterImage
 from pypdf import PdfReader
-from reportlab.platypus import Image, Paragraph
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate
 
 from pdf_renderer import ScientificPaperRenderer
 
@@ -30,6 +30,98 @@ class TestScientificPaperRenderer(unittest.TestCase):
     def render_source(self, filename, content):
         (self.paper / "markdown" / filename).write_text(content, encoding="utf-8")
         return PdfReader(self.renderer.generate_pdf("preview.pdf"))
+
+    def test_pdf_prints_distinct_h1_through_h4_headings(self):
+        document = self.render_source(
+            "04_system_architecture.md",
+            "\n\n".join(
+                "#" * level + f" Heading Level {level}\n\nSubstantive body."
+                for level in range(1, 5)
+            ),
+        )
+        sizes = {}
+
+        def record_text(text, transform, text_matrix, font, size):
+            if text.strip().startswith("Heading Level"):
+                sizes[text.strip()] = size
+
+        document.pages[0].extract_text(visitor_text=record_text)
+        self.assertEqual(set(sizes), {f"Heading Level {level}" for level in range(1, 5)})
+        ordered = [sizes[f"Heading Level {level}"] for level in range(1, 5)]
+        self.assertTrue(all(first > second for first, second in zip(ordered, ordered[1:])))
+
+    def test_pdf_headings_stay_with_body_not_a_spacer(self):
+        body = "Opening body continues with substantive detail for the reader. " * 4
+        sources = [
+            ("#" * level + f" Boundary Heading {level}\n\n" + body,
+             f"Boundary Heading {level}", "Opening body")
+            for level in range(1, 5)
+        ]
+        sources.append(("```python\nvalue = 7\n```", "Python Code:", "value = 7"))
+        for index, (source, heading, opening) in enumerate(sources):
+            with self.subTest(heading=heading):
+                path = self.root / f"boundary-{index}.pdf"
+                story = [
+                    Paragraph("<br/>".join(["Preface"] * 9), self.renderer.styles["Normal"]),
+                    *self.renderer.process_markdown_content(source),
+                ]
+                SimpleDocTemplate(
+                    str(path), pagesize=(300, 240),
+                    leftMargin=24, rightMargin=24, topMargin=24, bottomMargin=24,
+                ).build(story)
+                pages = [page.extract_text() for page in PdfReader(path).pages]
+                self.assertEqual(len(pages), 2)
+                self.assertIn("Preface", pages[0])
+                self.assertNotIn(heading, pages[0])
+                self.assertIn(heading, pages[1])
+                self.assertIn(opening, pages[1])
+
+    def test_pdf_inline_code_preserves_literal_identifiers_and_link_syntax(self):
+        document = self.render_source(
+            "04_system_architecture.md",
+            "Literal identifiers: `__init__`, `a*b*c`, `x < y` and `[name](url)`.\n",
+        )
+        text = document.pages[0].extract_text()
+        for literal in ("__init__", "a*b*c", "x < y", "[name](url)"):
+            self.assertIn(literal, text)
+        self.assertEqual(len(document.pages[0].get("/Annots", [])), 0)
+
+    def test_pdf_table_keeps_escaped_pipes_and_literal_code_in_their_column(self):
+        for outer_pipes in (True, False):
+            with self.subTest(outer_pipes=outer_pipes):
+                lines = [
+                    "| Name | Optional | Literal |",
+                    "| :--- | :---: | ---: |",
+                    "| entry | | `__init__` |",
+                    "| other | | `a\\|b` |",
+                ]
+                if not outer_pipes:
+                    lines = [line[1:-1] for line in lines]
+                document = self.render_source(
+                    "04_system_architecture.md", "\n".join(lines) + "\n",
+                )
+                anchors = {}
+
+                def record_text(text, transform, text_matrix, font, size):
+                    if text.strip() in ("Literal", "__init__", "a|b"):
+                        anchors[text.strip()] = (
+                            text_matrix[4] * transform[0]
+                            + text_matrix[5] * transform[2] + transform[4]
+                        )
+
+                text = document.pages[0].extract_text(visitor_text=record_text)
+                self.assertIn("__init__", text)
+                self.assertIn("a|b", text)
+                self.assertNotIn("---", text)
+                self.assertAlmostEqual(anchors["Literal"], anchors["__init__"], places=3)
+                self.assertAlmostEqual(anchors["Literal"], anchors["a|b"], places=3)
+
+    def test_pdf_short_dash_rows_remain_literal_not_table_delimiters(self):
+        document = self.render_source(
+            "04_system_architecture.md",
+            "| Name | Value |\n| - | - |\n| entry | 2 |\n",
+        )
+        self.assertIn("| - | - |", document.pages[0].extract_text())
 
     def test_pdf_preserves_coordinate_operators_and_volume_units(self):
         document = self.render_source(

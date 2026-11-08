@@ -54,13 +54,19 @@ immutable publication outputs.
 - [Test evidence](TEST_EVIDENCE.md): historical source inventories and execution
   receipts, not current suite counts or universal correctness claims.
 
-## Visualization Integration
+## Figure Resolution and Readable PDFs
 
 The renderer resolves referenced figures; it does not automatically turn every
 output file into a verified finding. See the [integration guide](INTEGRATION_GUIDE.md)
 for exact source-relative lookup, aspect-preserving raster fitting and artifact provenance.
 Use [style guidance](STYLE_GUIDE.md) for informative titles, units and bounded
 captions. A generated validation report is a dated artifact, not current proof.
+
+The [renderer contract](render/README.md#pdf-heading-pagination-unicode-and-pipe-tables)
+describes H1–H4 heading/body pagination, Unicode fonts, literal inline code and
+bounded pipe tables. Review an actual PDF for heading orphans and column
+placement; supported Markdown is deliberately narrower than a browser's layout
+engine or a scholarly LaTeX publishing system.
 
 ## Dependencies
 

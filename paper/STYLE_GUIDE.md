@@ -7,13 +7,27 @@ implemented behavior, historical receipts, proposed applications and empirical
 results. A precise sentence with a source is preferable to “comprehensive,”
 “revolutionary,” “universal,” “perfect” or “research-grade” without evidence.
 
-## Markdown Formatting Standards
+## Heading Levels, Literal Code and Pipe Tables
 
 Use one H1 title in `00_title.md`, an H2 for each numbered section and descriptive
-H3/H4 subsections. Preserve explicit anchors and update incoming heading links
-when renaming. Use inline code for actual identifiers, not as a substitute for
-mathematical definitions. Use descriptive link text without requiring decorative
-symbols. Tables must identify units and comparison conventions.
+H3/H4 subsections. The title module has a separate metadata layout; H1 headings
+in ordinary sections are printed, not discarded. H1–H4 have distinct sizes and
+stay with the following content rather than a decorative spacer. A long body
+can still split across pages; this does not keep a whole subsection on one page.
+H5/H6 currently render as body-sized paragraphs, not additional heading styles.
+Preserve explicit anchors and update incoming heading links when renaming.
+
+Use inline code for actual identifiers, not mathematical definitions. Matching
+backtick spans preserve literal underscores, asterisks, angle brackets and link
+syntax in the embedded monospaced font. Use descriptive links elsewhere.
+
+Separate pipe tables from surrounding paragraphs with blank lines. Match header
+and delimiter column counts; each delimiter needs at least three dashes, with
+optional edge colons. Outer pipes are optional; retain pipes around empty cells.
+Escape a literal cell pipe as `\\|`, including inside inline code. Cells wrap and
+headers repeat, but colspan/rowspan, nested blocks and per-column alignment from
+colons are not implemented. Extra body cells are omitted and short rows padded
+to the header width. Tables must identify units and comparison conventions.
 
 ## Image Integration Guidelines
 
@@ -88,11 +102,12 @@ and limitations. “Results” must not silently mix known identities, source re
 test execution and empirical efficacy. Cross-link prerequisites rather than
 repeating incompatible mathematical tables across sections.
 
-## Quality Assurance
+## PDF Readability and Evidence Review
 
 Before publication, the integration owner should check structural validation,
 actual reference targets and a freshly rendered PDF in isolation. Review
-legibility, aspect, units, caption numbering and supported image formats.
+legibility, heading/body page placement, literal identifiers, table columns,
+aspect, units, caption numbering and supported image formats.
 These checks do not validate scientific claims. Historical coverage/test counts
 remain dated, revision-bound receipts; see [test evidence](TEST_EVIDENCE.md).
 No visual or documentation edit alone proves current green tests.
