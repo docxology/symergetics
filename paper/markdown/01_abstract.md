@@ -1,24 +1,28 @@
 ## Abstract
 
-Floating-point arithmetic introduces systematic approximation errors that obscure fundamental mathematical relationships in geometric calculations, producing results like 3.999999999999999 instead of the exact integer 4. These compounding and confounding precision losses stymie a full-featured implementation of Buckminster Fuller's Synergetics framework, which requires symbolic operations on all-integer accounting using ratios geometrically based upon high-frequency shapes.
+Symergetics is an open-source Python package for selected mathematical topics
+inspired by Buckminster Fuller's Synergetics: rational arithmetic, integer
+quadray coordinates, tetrahedral/polyhedral volume and integer digit-pattern
+analysis. `SymergeticsNumber` wraps Python's `fractions.Fraction`; rational
+operations preserve exact values, while irrational roots, constants and
+float-derived inputs have explicit approximation boundaries. Quadrays represent
+three-dimensional space with four components modulo a common offset, not four
+independent spatial dimensions.
 
-Here we present Symergetics (Symbolic Synergetics), an open source Python package which provides exact rational arithmetic methods framed within the vectorial geometry of the Synergetics framework. The package implements a Quadray coordinate system for tetrahedral geometry within the Isotropic Vector Matrix (IVM) lattice, exact volume calculations for Platonic solids using IVM units (tetrahedron = 1, octahedron = 4, cube = 3, cuboctahedron = 20), and pattern analysis algorithms for Scheherazade numbers (1001^n) and primorial sequences using exact arithmetic.
+The geometry implementation computes native tetrahedral volumes as exact
+fractions and measures declared indexed polyhedral surfaces. Default
+constructors yield tetrahedron/cube/octahedron/cuboctahedron native volumes
+1/3/4/20 at their specified relative sizes. The computational modules include
+prime products, powers of 1001 and representation-dependent palindrome analysis.
+Visualization converts computed quantities to finite-precision display data;
+a figure is not independent mathematical validation.
 
-The computational implementation includes tests for exact rational arithmetic and geometric operations. Source-function inventories, collected test cases and dated execution/coverage receipts are distinguished in the accompanying test evidence; they do not establish universal precision preservation. Applications include active inference modeling, crystallographic analysis, materials science, and computational geometry. Complete implementation details are available in the [core modules](https://github.com/docxology/symergetics/tree/main/symergetics/core) and [computation modules](https://github.com/docxology/symergetics/tree/main/symergetics/computation). The package is distributed under Apache 2.0 license at the [Symergetics repository](https://github.com/docxology/symergetics). Towards a symbolic and Synergetic future, together we go!
-
-... -.-- -- . .-. --. . - .. -.-. ...
-
-Synergetics 223.89: Energy has shape. Energy transforms and trans-shapes in an evoluting
-way. Planck's contemporary scientists were not paying any attention to that.
-Science has been thinking shapelessly. The predicament occurred that way. It's
-not the size of the bucket - size is special case - they had the wrong shape. If they
-had had the right shape, they would have found a whole-rational-number constant.
-And if the whole number found was greater than unity, or a rational fraction of
-unity, they would simply have had to divide or multiply to find unity itself.
-
-Synergetics 310.12: The minor aberrations of otherwise elegantly matching phenomena of
-nature, such as the microweight aberrations of the 92 regenerative chemical
-elements in respect to their atomic numbers, were not explained until isotopes and
-their neutrons were discovered a few decades ago. Such discoveries numerically
-elucidate the whole-integer rationalization of the unique isotopal system’s
-structural-proclivity agglomeratings.
+This manuscript describes software and mathematical examples, not empirical
+success in cognition, biology, materials, climate, finance or quantum physics.
+Proposed applications are separated from implemented interfaces. Test inventories,
+collected cases and historical execution receipts are distinguished in
+[Test evidence and count semantics](../TEST_EVIDENCE.md); none proves universal
+correctness or a speed advantage. The development source is available in the
+[repository](https://github.com/docxology/symergetics), under its Apache 2.0
+[license](../../LICENSE). These editable sources are not a revision of an
+immutable published deposit.

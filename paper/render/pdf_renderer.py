@@ -20,6 +20,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 # Third-party imports
+from matplotlib import get_data_path
+
 try:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import letter, A4
@@ -29,6 +31,8 @@ try:
         SimpleDocTemplate, Paragraph, Spacer, PageBreak,
         Image, Table, TableStyle, Flowable
     )
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
     # Hyperlink support is built into ReportLab's HTML-like markup
     from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT, TA_JUSTIFY
 except ImportError:
@@ -48,6 +52,10 @@ try:
 except ImportError:
     print("Error: pyyaml not installed. Install with: pip install pyyaml")
     sys.exit(1)
+
+
+_PAGE_MARGIN = inch
+_FRAME_PADDING = 6
 
 
 @dataclass
@@ -78,7 +86,6 @@ class ScientificPaperRenderer:
 
         # Track document-level figure numbering
         self.document_figure_counter = 1
-        self.processed_figures = set()  # Track processed images to prevent duplicates
 
         # Paper metadata
         self.metadata = {
@@ -92,11 +99,26 @@ class ScientificPaperRenderer:
         }
 
     def _setup_styles(self) -> Dict:
-        """Setup ReportLab styles for scientific formatting"""
+        """Set up embedded Unicode fonts and scientific page styles."""
+        font_dir = Path(get_data_path()) / "fonts" / "ttf"
+        font_names = {}
+        registered = set(pdfmetrics.getRegisteredFontNames())
+        for builtin, family in (("Helvetica", "DejaVuSans"), ("Courier", "DejaVuSansMono")):
+            for suffix in ("", "-Bold", "-Oblique", "-BoldOblique"):
+                name = family + suffix
+                if name not in registered:
+                    pdfmetrics.registerFont(TTFont(name, str(font_dir / f"{name}.ttf")))
+                font_names[builtin + suffix] = name
+            pdfmetrics.registerFontFamily(
+                family, normal=family, bold=family + "-Bold",
+                italic=family + "-Oblique", boldItalic=family + "-BoldOblique",
+            )
+
         styles = getSampleStyleSheet()
 
         # Modify the existing Normal style for better paragraph spacing
         styles['Normal'].fontSize = 11
+        styles['Normal'].leading = 14
         styles['Normal'].spaceAfter = 12
         styles['Normal'].spaceBefore = 6
         styles['Normal'].alignment = TA_JUSTIFY
@@ -262,6 +284,18 @@ class ScientificPaperRenderer:
             spaceAfter=20,
             fontStyle='italic'
         ))
+
+        styles.add(ParagraphStyle(
+            name='TableCell', parent=styles['Normal'], fontSize=9, leading=12,
+            alignment=TA_LEFT, spaceBefore=0, spaceAfter=0,
+        ))
+        styles.add(ParagraphStyle(
+            name='TableHeader', parent=styles['TableCell'],
+            fontName='Helvetica-Bold', textColor=colors.whitesmoke,
+        ))
+        for style in styles.byName.values():
+            if isinstance(style, ParagraphStyle):
+                style.fontName = font_names.get(style.fontName, style.fontName)
 
         return styles
 
@@ -449,21 +483,34 @@ class ScientificPaperRenderer:
                 continue
 
             # Tables (basic support)
-            elif '|' in line and i + 1 < len(lines) and '|' in lines[i + 1]:
-                table_lines = [line]
-                i += 1
+            elif ('|' in line and i + 1 < len(lines)
+                  and re.fullmatch(r"\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*",
+                                   lines[i + 1])):
+                table_lines = [line, lines[i + 1]]
+                i += 2
                 while i < len(lines) and '|' in lines[i].strip():
                     table_lines.append(lines[i])
                     i += 1
 
                 table_data = self._parse_markdown_table(table_lines)
                 if table_data:
-                    table = Table(table_data)
+                    rows = [
+                        [Paragraph(self._process_inline_formatting(cell),
+                                   self.styles['TableHeader' if index == 0 else 'TableCell'])
+                         for cell in row]
+                        for index, row in enumerate(table_data)
+                    ]
+                    width = A4[0] - 2 * (_PAGE_MARGIN + _FRAME_PADDING)
+                    table = Table(
+                        rows, colWidths=[width / len(table_data[0])] * len(table_data[0]),
+                        repeatRows=1, hAlign='LEFT',
+                    )
                     table.setStyle(TableStyle([
                         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTNAME', (0, 0), (-1, -1), 'DejaVuSans'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'DejaVuSans-Bold'),
                         ('FONTSIZE', (0, 0), (-1, 0), 14),
                         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                         ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
@@ -480,66 +527,43 @@ class ScientificPaperRenderer:
                     alt_text = img_match.group(1)
                     img_path = img_match.group(2)
 
-                    # Check if this image has already been processed to prevent duplicates
-                    if img_path in self.processed_figures:
-                        print(f"Skipping duplicate figure: {img_path}")
-                        i += 1
-                        continue
-
-                    # Mark this image as processed
-                    self.processed_figures.add(img_path)
-
-                    # Look for detailed caption immediately following the image
-                    detailed_caption = None
-                    if i + 1 < len(lines):
-                        next_line = lines[i + 1].strip()
-                        # Look for pattern like "**Figure X**: Detailed description..."
-                        caption_match = re.match(r'^\*\*Figure\s+(\d+):\*\*\s*(.+)$', next_line)
-                        if caption_match:
-                            detailed_caption = caption_match.group(2).strip()
-
-                    # Try to find image in output directory
-                    full_img_path = self._find_image_path(img_path)
-                    if full_img_path:
-                        try:
-                            # Scale image appropriately based on type
-                            if full_img_path.suffix.lower() in ['.svg']:
-                                # SVG images - use smaller size
-                                img = Image(full_img_path, width=4*inch, height=3*inch)
-                            elif full_img_path.suffix.lower() in ['.pdf']:
-                                # PDF images - use medium size
-                                img = Image(full_img_path, width=5*inch, height=3.5*inch)
-                            else:
-                                # PNG/JPG images - use standard size
-                                img = Image(full_img_path, width=5*inch, height=3.5*inch)
-
-                            img.hAlign = 'CENTER'
-                            flowables.append(img)
-
-                            # Create figure caption using detailed caption if available
-                            if detailed_caption:
-                                figure_caption = f"Figure {self.document_figure_counter}: {detailed_caption}"
-                            elif alt_text and not alt_text.lower().startswith('figure'):
-                                # Use alt text if it's descriptive and doesn't already start with "Figure"
-                                figure_caption = f"Figure {self.document_figure_counter}: {alt_text}"
-                            else:
-                                figure_caption = f"Figure {self.document_figure_counter}"
-
-                            flowables.append(Paragraph(figure_caption, self.styles['FigureCaption']))
-
-                            # Increment document figure counter for next figure
-                            self.document_figure_counter += 1
-
-                            # Skip the detailed caption line if it was processed
-                            if detailed_caption:
-                                i += 1  # Skip the next line (the detailed caption)
-
-                        except Exception as e:
-                            print(f"Warning: Could not load image {img_path}: {e}")
-                            flowables.append(Paragraph(f"[Image: {alt_text}]", self.styles['Normal']))
+                    # Captions may follow blank lines; both bold-colon forms are valid.
+                    caption_index = i + 1
+                    while caption_index < len(lines) and not lines[caption_index].strip():
+                        caption_index += 1
+                    caption_match = None
+                    if caption_index < len(lines):
+                        caption_match = re.match(
+                            r'^\*\*Figure\s+(\d+)(?:\*\*:|:\*\*)\s+(.+)$',
+                            lines[caption_index].strip(),
+                        )
+                    alt_match = re.match(r'^Figure\s+(\d+):\s*(.*)$', alt_text)
+                    if caption_match:
+                        number = int(caption_match.group(1))
+                        description = caption_match.group(2)
+                    elif alt_match:
+                        number = int(alt_match.group(1))
+                        description = alt_match.group(2)
                     else:
-                        print(f"Warning: Image not found: {img_path}")
-                        flowables.append(Paragraph(f"[Image: {alt_text}]", self.styles['Normal']))
+                        number = self.document_figure_counter
+                        description = alt_text
+
+                    full_img_path = self._find_image_path(img_path)
+                    if full_img_path is None:
+                        raise FileNotFoundError(f"Image not found relative to Markdown source: {img_path}")
+                    # Fit the box without changing geometric proportions. Unsupported
+                    # or unreadable images propagate their real ReportLab/Pillow error.
+                    img = Image(str(full_img_path), width=5*inch, height=3.5*inch, kind="proportional")
+                    img.hAlign = 'CENTER'
+                    flowables.append(img)
+                    figure_caption = f"Figure {number}: {description}" if description else f"Figure {number}"
+                    flowables.append(Paragraph(
+                        self._process_inline_formatting(figure_caption),
+                        self.styles['FigureCaption'],
+                    ))
+                    self.document_figure_counter = max(self.document_figure_counter, number + 1)
+                    if caption_match:
+                        i = caption_index
 
             # Horizontal rules
             elif line.startswith('---') or line.startswith('***') or line.startswith('___'):
@@ -619,9 +643,6 @@ class ScientificPaperRenderer:
         # Process strikethrough ~~text~~
         text = re.sub(r'~~([^~\n]+)~~', r'<strike>\1</strike>', text)
         
-        # Remove emoji characters that cause PDF rendering issues
-        text = re.sub(r'[^\x00-\x7F]+', '', text)
-
         return text
 
     def _parse_markdown_table(self, table_lines: List[str]) -> List[List[str]]:
@@ -629,15 +650,13 @@ class ScientificPaperRenderer:
         if len(table_lines) < 2:
             return None
 
-        # Split table lines into cells
         table_data = []
         for line in table_lines:
-            if '|' in line:
-                cells = [cell.strip() for cell in line.split('|') if cell.strip()]
-                if cells:
-                    table_data.append(cells)
-
-        return table_data if len(table_data) > 1 else None
+            row = line.strip().removeprefix('|').removesuffix('|')
+            table_data.append([cell.strip() for cell in row.split('|')])
+        if not all(re.fullmatch(r':?-+:?', cell) for cell in table_data[1]):
+            return None
+        return [table_data[0], *table_data[2:]]
 
     def _truncate_code_block(self, code_content: str, max_lines: int = 15) -> str:
         """Truncate code blocks that are too long for PDF display."""
@@ -824,37 +843,11 @@ class ScientificPaperRenderer:
             return None
 
     def _find_image_path(self, img_path: str) -> Optional[Path]:
-        """Find image file in output directory and project directories"""
-        # Remove any leading path components
-        img_filename = Path(img_path).name
-
-        # Search locations in order of priority
-        search_paths = [
-            # Main output directory
-            self.paper_dir.parent / 'output',
-            # Paper output directory
-            self.paper_dir / 'output',
-            # Mermaid images directory (for generated diagrams)
-            self.paper_dir / 'mermaid_images',
-            # Docs directory (for documentation images)
-            self.paper_dir.parent / 'docs',
-            # Project root
-            self.paper_dir.parent
-        ]
-
-        for search_path in search_paths:
-            if search_path.exists():
-                # Search recursively in each path
-                for pattern in ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.svg', '**/*.pdf']:
-                    try:
-                        matches = list(search_path.glob(pattern))
-                        for match in matches:
-                            if match.name == img_filename:
-                                return match
-                    except Exception:
-                        continue
-
-        return None
+        """Resolve exactly against the Markdown directory, never by basename."""
+        if Path(img_path).is_absolute():
+            raise ValueError("Image references must be relative to the Markdown source")
+        candidate = (self.markdown_dir / img_path).resolve()
+        return candidate if candidate.is_file() else None
 
     def create_front_matter(self) -> List[Flowable]:
         """Create scientific front matter"""
@@ -1012,10 +1005,10 @@ class ScientificPaperRenderer:
         doc = SimpleDocTemplate(
             str(output_path),
             pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=72,
+            rightMargin=_PAGE_MARGIN,
+            leftMargin=_PAGE_MARGIN,
+            topMargin=_PAGE_MARGIN,
+            bottomMargin=_PAGE_MARGIN,
             title=self.metadata['title'],
             author=self.metadata['author']
         )

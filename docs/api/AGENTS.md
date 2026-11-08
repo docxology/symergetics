@@ -1,4 +1,7 @@
-# api/ — Agent Notes
+# Maintaining api contracts
 
-Single `index.md` API entry page (verified 2026-08-29). Hand-written, not
-generated — keep in sync with the `symergetics/` package's public API.
+Maintain [index.md](index.md) against the actual package source and consumers.
+Actual signatures, coordinate/inverse/units, solid measurement and visualization output contracts.
+Follow [documentation rules](../AGENTS.md); keep examples complete, distinguish
+unreleased main from release-wheel APIs and repair inbound heading links.
+Do not duplicate the canonical [API contracts](../api/index.md) in this area.

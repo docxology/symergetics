@@ -1,3 +1,5 @@
-# examples/
+# Runnable demos
 
-Index of runnable example demos (scripts live in `../../examples/`).
+Start at [the examples index](index.md). Real scripts under the repository examples directory and links to isolated recipes.
+
+[Documentation map](../index.md) · [Maintenance notes](AGENTS.md)

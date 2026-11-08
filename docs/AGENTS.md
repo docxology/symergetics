@@ -1,24 +1,33 @@
-# Agent guide — docs/ (symergetics)
+# Maintaining implementation and conceptual documentation
 
 ## Layout
 
-- `index.md` — human entry; links the major areas below.
-- Topic guides at the top level (concept, math foundations, glossary, testing,
-  performance, troubleshooting, contributor guide, case studies, and more).
-- Subdirectories: `api/`, `examples/`, `research/`, `architecture/` (each with
-  its own `index.md`), plus `tutorials/`.
+[index.md](index.md) is the navigation hub. Implementation contracts live in
+[api/index.md](api/index.md); architecture, examples and tutorials link to those
+contracts. Mathematical guides define the quotient/metric/units. Research,
+application and learning/philosophy pages discuss context, not extra APIs.
+The separate paper pipeline lives under `../paper/`; manuscript status is under
+`manuscript/`. Generated `output/` and `paper/output/` files are not hand-edited docs.
 
-## Conventions observed
+## Source-bound examples
 
-- Docs are hand-written prose guides; no generated pages live here.
-- The paper pipeline lives outside docs/, under `../paper/` with its own
-  `STYLE_GUIDE.md` and validation.
-- CI snippets inside guide pages (e.g. GitHub Actions YAML with `${{ }}`)
-  are code-fence examples, not template tokens.
+Read actual source signatures and callers before editing recipes. Complete
+imports and real return shapes matter. Do not invent methods, exception trees,
+performance results or scientific validity. Use checkout/downloaded-wheel
+installation, not PyPI; select Python 3.13 for scientific commands without
+changing repository pins. Distinguish unreleased main APIs from 1.3.0 artifacts.
 
-## Maintenance
+## Canonical contracts and navigation
 
-- Keep `index.md` as the single navigation hub; when adding a new guide, add
-  it to the map there.
-- Verify any relative link target exists before committing (use the same
-  link-audit pass used across the fleet).
+Link to the API reference instead of repeating incompatible unit, inverse,
+centroid or output contracts. Preserve explicit anchors and update inbound
+fragment links after heading changes. Keep READMEs linked to their area index.
+If an inbound link belongs to another owner, report the needed target change.
+Dates/counts in receipts are historical, not live collection or green status.
+
+## Evidence discipline
+
+Report only exercised checks and actual artifact paths. Follow the current
+assignment's verification restrictions; do not run parallel build/test/lint
+passes during coordinated edits. A successful arithmetic example does not
+validate a conceptual application or an entire backend matrix.

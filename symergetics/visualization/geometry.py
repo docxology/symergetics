@@ -14,6 +14,7 @@ Features:
 Author: Symergetics Team
 """
 
+from fractions import Fraction
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -77,9 +78,34 @@ def _plotly_scene(points, *, relative=False, elevation=20, azimuth=45):
     return scene
 
 
+def _bounded_exact(value, max_chars=60):
+    """Bound display text without rounding or converting enormous integers."""
+    omitted = 'omitted; exact value in metadata'
+    if isinstance(value, int):
+        if value.bit_length() > max_chars * 3:
+            return omitted
+        text = str(value)
+    elif isinstance(value, Fraction):
+        numerator = _bounded_exact(value.numerator, max_chars)
+        denominator = _bounded_exact(value.denominator, max_chars)
+        if omitted in (numerator, denominator):
+            return omitted
+        text = numerator if value.denominator == 1 else f'{numerator}/{denominator}'
+    elif isinstance(value, (tuple, list)):
+        components = [_bounded_exact(item, max_chars) for item in value]
+        if omitted in components:
+            return omitted
+        text = '(' + ', '.join(components) + ')'
+    else:
+        text = str(value)
+    return text if len(text) <= max_chars else omitted
+
+
 def _geometry_metadata(polyhedron, anchor):
     return dict(coordinate_frame='anchor-relative XYZ (scale 1)',
                 origin_quadray_exact=anchor.as_tuple(),
+                vertices_quadray_exact=tuple(vertex.as_tuple() for vertex in polyhedron.vertices),
+                declared_edges=tuple(_edge_indices(polyhedron)),
                 geometry_analysis=polyhedron.analyze_geometry())
 
 
@@ -116,8 +142,8 @@ def _render_polyhedron_matplotlib(polyhedron, *, suffix, kind, show_edges=True,
                          show_faces=show_faces, show_vertices=show_vertices, alpha=alpha)
         _fit_3d(ax, vertices, relative=True)
         ax.view_init(elev=elevation, azim=azimuth)
-        ax.set_title(f'{type(polyhedron).__name__} — {polyhedron.volume()} IVM units\n'
-                     f'XYZ relative to quadray anchor {anchor.as_tuple()}')
+        ax.set_title(f'{type(polyhedron).__name__} — {_bounded_exact(polyhedron.volume())} IVM\n'
+                     f'Scale-1 XYZ; anchor {_bounded_exact(anchor.as_tuple())}')
         files = []
         for fmt in config['formats']:
             if fmt == 'html':
@@ -227,8 +253,8 @@ def _render_polyhedron_plotly(polyhedron, *, enhanced=False, show_edges=True,
         fig.add_trace(go.Scatter3d(x=x, y=y, z=z, mode='markers',
                                   marker=dict(size=8, color=colors['primary']), name='Vertices'))
     fig.update_layout(
-        title=f'{type(polyhedron).__name__} — {polyhedron.volume()} IVM units<br>'
-              f'XYZ relative to quadray anchor {anchor.as_tuple()}',
+        title=f'{type(polyhedron).__name__} — {_bounded_exact(polyhedron.volume())} IVM<br>'
+              f'Scale-1 XYZ; anchor {_bounded_exact(anchor.as_tuple())}',
         scene=_plotly_scene(vertices, relative=True, elevation=elevation, azimuth=azimuth),
         width=get_config()['figure_size'][0] * 100,
         height=get_config()['figure_size'][1] * 100)
@@ -763,6 +789,16 @@ def plot_polyhedron_graphical_abstract(polyhedron: Union[str, SymergeticsPolyhed
 
     Returns:
         Dict: Visualization metadata and file paths
+
+    Views use equal scale-1 XYZ metric axes relative to the first vertex.
+    The XY view is an orthographic projection of declared edges, not a hull;
+    hidden and overlapping edges are retained. Coordinate annotations distinguish
+    the vertex mean from the uniform-solid mass centroid of the triangle-fan
+    surface. Large exact values are omitted from display, never rounded and
+    presented as exact; full coordinates and analysis remain in metadata.
+    Disabled optional sections are removed from the layout. ``show_edges``,
+    ``show_faces`` and ``show_vertices`` keyword arguments control geometry
+    layers; the XY projection has edges/vertices but no filled faces.
     """
     if isinstance(polyhedron, str):
         poly_classes = {
@@ -790,136 +826,167 @@ def plot_polyhedron_graphical_abstract(polyhedron: Union[str, SymergeticsPolyhed
         raise ValueError(f"Graphical abstract requires matplotlib backend, got: {backend}")
 
 
+def _draw_polyhedron_projection(ax, polyhedron, vertices, *,
+                                show_edges=True, show_vertices=True):
+    """Project declared topology, retaining coincident/occluded edge images."""
+    colors = get_config()['colors']
+    if show_edges:
+        for a, b in _edge_indices(polyhedron):
+            edge = vertices[[a, b], :2]
+            line, = ax.plot(*edge.T, color=colors['secondary'], linewidth=1.6, alpha=0.8)
+            line.set_gid(f'projected-edge-{a}-{b}')
+    if show_vertices:
+        ax.scatter(*vertices[:, :2].T, color=colors['primary'], s=36, zorder=3)
+    bounds = _display_bounds(vertices)
+    ax.set_xlim(*bounds[0])
+    ax.set_ylim(*bounds[1])
+    ax.set_aspect('equal', adjustable='box')
+    ax.set_xlabel('ΔX (scale-1 XYZ)')
+    ax.set_ylabel('ΔY (scale-1 XYZ)')
+    ax.grid(True, alpha=0.2)
+
+
 def _plot_polyhedron_graphical_abstract_matplotlib(polyhedron: SymergeticsPolyhedron,
                                                 show_volume_ratios: bool = True,
                                                 show_coordinates: bool = True,
                                                 **kwargs) -> Dict[str, Any]:
-    """Create graphical abstract using matplotlib."""
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        raise ImportError("matplotlib is required for matplotlib backend")
-
-    # Create a 2x2 subplot layout
-    _validate_canvas((16, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
+    """Compose only enabled sections, with exact data separate from display."""
+    import matplotlib.pyplot as plt
 
     vertices, anchor = _polyhedron_frame(polyhedron)
-    analysis = polyhedron.analyze_geometry()
-
-    # Subplot 1: 3D View
-    ax1.remove()
-    ax1 = fig.add_subplot(221, projection='3d')
-    _draw_polyhedron(ax1, polyhedron, vertices)
-    _fit_3d(ax1, vertices, relative=True)
-    ax1.set_title('Anchor-relative XYZ structure', fontsize=12, fontweight='bold')
-
-    # Subplot 2: 2D Projections
-    ax2.scatter(vertices[:, 0], vertices[:, 1], color=get_config()["colors"]["secondary"], s=50, alpha=0.8)
-    ax2.set_title('XY Projection', fontsize=12, fontweight='bold')
-    ax2.set_xlabel('ΔX (anchor-relative)')
-    ax2.set_ylabel('ΔY (anchor-relative)')
-    ax2.grid(True, alpha=0.3)
-    ax2.set_aspect('equal')
-
-    if show_coordinates:
-        # Exact centroid displacement first, including independent input gauges.
-        for centroid, label, marker, color in (
-            (analysis['vertex_centroid_exact'], 'Vertex centroid', 'x', 'black'),
-            (analysis['volume_centroid_exact'], 'Solid centroid', '*', 'crimson'),
-        ):
-            if centroid is None:
-                continue
-            a, b, c, d = (value - origin for value, origin in
-                          zip(centroid, anchor.as_tuple()))
-            point = np.array([float(a - b - c + d), float(a + b - c - d),
-                              float(a - b + c - d)])
-            ax1.scatter(*point, marker=marker, color=color, s=90, label=label)
-            ax2.scatter(*point[:2], marker=marker, color=color, s=90, label=label)
-        ax1.legend(fontsize=7)
-        ax2.legend(fontsize=7)
-
-    # Subplot 3: Volume Information
+    geometry = _geometry_metadata(polyhedron, anchor)
+    analysis = geometry['geometry_analysis']
+    config = get_config()
+    show_edges = kwargs.get('show_edges', True)
+    show_faces = kwargs.get('show_faces', True)
+    show_vertices = kwargs.get('show_vertices', True)
+    panels = ['structure', 'xy_projection']
     if show_volume_ratios:
-        models = [Tetrahedron(), Octahedron(), Cube(), Cuboctahedron()]
-        names = [type(model).__name__ for model in models] + ['Current shape']
-        volumes = [float(model.volume()) for model in models] + [float(polyhedron.volume())]
-        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
-
-        bars = ax3.bar(names, volumes, color=colors, alpha=0.7)
-        ax3.set_title('Canonical reference and live volume', fontsize=12, fontweight='bold')
-        ax3.tick_params(axis='x', labelrotation=20)
-        ax3.set_ylabel('Volume (IVM units)')
-
-        # Add value labels on bars
-        for bar, volume in zip(bars, volumes):
-            ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1,
-                    f'{volume}', ha='center', va='bottom', fontweight='bold')
-
-    # Subplot 4: Coordinate Information
+        panels.append('volume_comparison')
     if show_coordinates:
-        vertex_centroid = '(' + ', '.join(map(str, analysis['vertex_centroid_exact'])) + ')'
-        solid_centroid = (None if analysis['volume_centroid_exact'] is None else
-                          '(' + ', '.join(map(str, analysis['volume_centroid_exact'])) + ')')
-        coord_text = (
-            f"Polyhedron: {type(polyhedron).__name__}\n"
-            f"Volume: {analysis['volume_ivm']} IVM; {float(analysis['volume_xyz']):.6g} XYZ³\n"
-            f"Surface area: {analysis['surface_area']:.6g} XYZ² (triangle fan)\n"
-            f"Vertices: {len(vertices)} declared; {analysis['physical_vertex_count']} physical\n"
-            f"Affine rank: {analysis['affine_rank']}; closed topology: {analysis['closed']}\n"
-            f"Convex: {analysis['is_convex']}; nonplanar faces: {analysis['nonplanar_faces']}\n"
-            f"Exact vertex centroid (quadray):\n{vertex_centroid}\n"
-            f"Exact solid centroid (quadray):\n{solid_centroid}\n"
-            f"Display origin (exact quadray): {anchor.as_tuple()}\n"
-            "Closed, non-self-intersecting triangulated-surface interpretation."
-        )
-
-        ax4.text(0.1, 0.5, coord_text, transform=ax4.transAxes,
-                fontsize=9, verticalalignment='center',
-                bbox=dict(boxstyle="round,pad=0.3", facecolor='lightblue', alpha=0.5))
-        ax4.set_title('Geometric Properties', fontsize=12, fontweight='bold')
-        ax4.set_xlim(0, 1)
-        ax4.set_ylim(0, 1)
-        ax4.axis('off')
-
-    # Overall title
-    fig.suptitle(f'{type(polyhedron).__name__} - Graphical Abstract',
-                fontsize=16, fontweight='bold', y=0.98)
-
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
-
-    # Save the graphical abstract
-    base_filename = f"{type(polyhedron).__name__.lower()}_graphical_abstract"
+        panels.append('properties')
+    figsize = (14, 10.5) if len(panels) > 2 else (13, 6)
+    _validate_canvas(figsize, max(config['dpi'], float(plt.rcParams['figure.dpi'])))
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
     files = []
+    references = []
+    try:
+        grid = fig.add_gridspec(2 if len(panels) > 2 else 1, 2)
+        ax1 = fig.add_subplot(grid[0, 0], projection='3d')
+        ax2 = fig.add_subplot(grid[0, 1])
+        ax1.set_gid('solid-structure')
+        ax2.set_gid('solid-xy-projection')
+        _draw_polyhedron(ax1, polyhedron, vertices, show_edges=show_edges,
+                         show_faces=show_faces, show_vertices=show_vertices)
+        _draw_polyhedron_projection(ax2, polyhedron, vertices,
+                                    show_edges=show_edges, show_vertices=show_vertices)
+        fitted = list(vertices)
+        if show_coordinates:
+            # Subtract exact quadrays before float embedding, including gauges.
+            for centroid, label, marker, color in (
+                (analysis['vertex_centroid_exact'], 'Vertex mean', 'x', 'black'),
+                (analysis['volume_centroid_exact'], 'Uniform-solid mass centroid', '*', 'crimson'),
+            ):
+                if centroid is None:
+                    continue
+                a, b, c, d = (value - origin for value, origin in
+                              zip(centroid, anchor.as_tuple()))
+                point = np.array([float(a - b - c + d), float(a + b - c - d),
+                                  float(a - b + c - d)])
+                fitted.append(point)
+                ax1.scatter(*point, marker=marker, color=color, s=85, label=label)
+                ax2.scatter(*point[:2], marker=marker, color=color, s=85, label=label, zorder=4)
+            ax1.legend(fontsize=8, loc='upper left')
+            ax2.legend(fontsize=8, loc='upper left')
+        _fit_3d(ax1, fitted, relative=True)
+        # 3D text extents are not fully handled by constrained_layout.
+        # Leave room inside the axes instead of relying on tight-bbox cropping.
+        ax1.set_box_aspect((1, 1, 1), zoom=0.9)
+        for setter, name in zip((ax1.set_xlabel, ax1.set_ylabel, ax1.set_zlabel), 'XYZ'):
+            setter(f'Δ{name} (XYZ)')
+        bounds = _display_bounds(fitted)
+        ax2.set_xlim(*bounds[0])
+        ax2.set_ylim(*bounds[1])
+        ax1.view_init(elev=kwargs.get('elevation', 20), azim=kwargs.get('azimuth', 45))
+        ax1.set_title('Scale-1 XYZ · indexed solid geometry', fontsize=11, pad=15)
+        projection_title = ('Orthographic XY · declared topology\n'
+                            'Overlapping / hidden edges retained' if show_edges else
+                            'Orthographic XY · vertex / centroid positions')
+        ax2.set_title(projection_title, fontsize=11)
+        if not (show_edges or show_faces or show_vertices):
+            ax1.text2D(0.5, 0.45, 'Geometry layers hidden', transform=ax1.transAxes, ha='center')
+        if not (show_edges or show_vertices):
+            ax2.text(0.5, 0.45, 'Projected edges / vertices hidden',
+                     transform=ax2.transAxes, ha='center')
 
-    for fmt in get_config()["formats"]:
-        if fmt == "html":
-            continue
+        optional = {}
+        for index, panel in enumerate(panels[2:]):
+            slot = grid[1, :] if len(panels) == 3 else grid[1, index]
+            optional[panel] = fig.add_subplot(slot)
+            optional[panel].set_gid(f'solid-{panel.replace("_", "-")}')
+        if show_volume_ratios:
+            chart = optional['volume_comparison']
+            models = [Tetrahedron(), Octahedron(), Cube(), Cuboctahedron()]
+            references = [(type(model).__name__, model.volume()) for model in models]
+            values = references + [('Current shape', analysis['volume_ivm'])]
+            bars = chart.barh([name for name, _ in values],
+                              [float(volume) for _, volume in values],
+                              color=[config['colors']['secondary']] * 4 + [config['colors']['primary']],
+                              alpha=0.8)
+            chart.invert_yaxis()
+            chart.set_title('Canonical references vs live solid · IVM volume', fontsize=11)
+            chart.set_xlabel('IVM units (linear scale; XYZ³ = 8/3 × IVM)')
+            chart.margins(x=0.3)
+            for bar, (_, volume) in zip(bars, values):
+                label = _bounded_exact(volume, max_chars=16)
+                if label == 'omitted; exact value in metadata':
+                    label = f'≈{float(volume):.4g}'
+                chart.annotate(label, (bar.get_width(), bar.get_y() + bar.get_height()/2),
+                               xytext=(5, 0), textcoords='offset points', va='center', fontsize=9)
+        if show_coordinates:
+            properties = optional['properties']
+            properties.set_title('Vertex mean vs uniform-solid mass centroid', fontsize=11)
+            lines = [
+                f"Volume: {_bounded_exact(analysis['volume_ivm'])} IVM",
+                f"XYZ volume: {_bounded_exact(analysis['volume_xyz'])} XYZ³",
+                f"Surface area: {analysis['surface_area']:.6g} XYZ² (triangle fan)",
+                f"Vertices: {len(vertices)} declared; {analysis['physical_vertex_count']} physical",
+                f"Affine rank: {analysis['affine_rank']}; closed: {analysis['closed']}",
+                f"Convex: {analysis['is_convex']}; nonplanar faces: {analysis['nonplanar_faces']}",
+                "Exact vertex mean (quadray):",
+                _bounded_exact(analysis['vertex_centroid_exact']),
+                "Exact uniform-solid mass centroid (quadray):",
+                _bounded_exact(analysis['volume_centroid_exact']),
+                "Exact display anchor (quadray):",
+                _bounded_exact(anchor.as_tuple()),
+                "Full exact values / vertices are in returned metadata.",
+                "Mass centroid: undefined for zero enclosed volume.",
+                "Nonintersecting surface is a precondition, not tested.",
+            ]
+            properties.text(0.02, 0.98, '\n'.join(lines), transform=properties.transAxes,
+                            fontsize=9, va='top', linespacing=1.5)
+            properties.axis('off')
 
-        filename = f"{base_filename}.{fmt}"
-        filepath = get_organized_output_path('geometric', 'polyhedra', filename)
-        fig.savefig(filepath,
-                    dpi=get_config()["dpi"],
-                    facecolor=get_config()["png_options"]["facecolor"],
-                    bbox_inches=get_config()["png_options"]["bbox_inches"],
-                    pad_inches=get_config()["png_options"]["pad_inches"])
-        files.append(str(filepath))
+        fig.suptitle(f'{type(polyhedron).__name__} · solid geometry abstract\n'
+                     'Anchor-relative scale-1 XYZ · equal metric axes · exact data in metadata',
+                     fontsize=14, fontweight='bold')
+        base_filename = f'{type(polyhedron).__name__.lower()}_graphical_abstract'
+        for fmt in config['formats']:
+            if fmt == 'html':
+                continue
+            filepath = get_organized_output_path('geometric', 'polyhedra', f'{base_filename}.{fmt}')
+            fig.savefig(filepath, dpi=config['dpi'], **config['png_options'])
+            files.append(str(filepath))
+    finally:
+        plt.close(fig)
 
-    plt.close(fig)
-
-    return {
-        'files': files,
-        'metadata': {
-            'type': 'polyhedron_graphical_abstract',
-            'polyhedron': type(polyhedron).__name__,
-            'vertices': len(polyhedron.vertices),
-            'volume': polyhedron.volume(),
-            'show_volume_ratios': show_volume_ratios,
-            'show_coordinates': show_coordinates,
-            'backend': 'matplotlib',
-            **_geometry_metadata(polyhedron, anchor)
-        }
-    }
+    return dict(files=files, metadata=dict(
+        type='polyhedron_graphical_abstract', polyhedron=type(polyhedron).__name__,
+        vertices=len(vertices), volume=analysis['volume_ivm'],
+        show_volume_ratios=show_volume_ratios, show_coordinates=show_coordinates,
+        show_edges=show_edges, show_faces=show_faces, show_vertices=show_vertices,
+        panels=panels, projection='orthographic XY; all declared edges, no occlusion removal',
+        reference_volumes_ivm_exact=tuple(references), backend='matplotlib', **geometry))
 
 
 def plot_polyhedron_wireframe(polyhedron: Union[str, SymergeticsPolyhedron],

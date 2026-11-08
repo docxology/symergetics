@@ -1,33 +1,57 @@
-# Symergetics — documentation index
+# Symergetics documentation: implementation, mathematics and research context
 
-Documentation for the `symergetics` package: exact rational arithmetic
-implementing Buckminster Fuller's Synergetics (all-integer accounting,
-Quadray/4D coordinates, polyhedral volumes). Published with repo DOI
-[10.5281/zenodo.17114383](https://zenodo.org/records/17114383) and paper DOI
-[10.5281/zenodo.17114390](https://zenodo.org/records/17114390).
+The development checkout supplies rational arithmetic, integer quadray geometry,
+finite number-pattern analysis and visualization. Four labels represent three
+spatial dimensions, not four independent axes. Conceptual applications are
+separated below from implemented package APIs.
+
+Repository archive DOI: [10.5281/zenodo.17114383](https://zenodo.org/records/17114383).
+Paper archive DOI: [10.5281/zenodo.17114390](https://zenodo.org/records/17114390).
+These identify archived records, not evidence that current main is a release.
 
 ## Start here
 
-- New to the package: [core-concept-guide.md](core-concept-guide.md)
-- API usage: [api/index.md](api/index.md) and [api-cookbook-recipes.md](api-cookbook-recipes.md)
-- Worked examples: [examples/index.md](examples/index.md)
-- Cross-project coordinates, units and executable integration: [Synergetics suite](synergetics-suite.md)
-- Research applications: [research/index.md](research/index.md)
-- Architecture: [architecture/index.md](architecture/index.md)
-- Problems: [troubleshooting-faq.md](troubleshooting-faq.md)
-- Contributing: [contributor-development-guide.md](contributor-development-guide.md)
+1. [Install a checkout or release wheel](../README.md#install-and-run) — not PyPI;
+   scientific commands explicitly select Python 3.13.
+2. [Core concepts](core-concept-guide.md) and [first calculations](tutorials/index.md).
+3. [API contracts](api/index.md), [cookbook](api-cookbook-recipes.md) and [runnable demos](examples/index.md).
+4. [Scientific poster sections](api/index.md#scientific-poster-sections-unreleased-main)
+   — focused default versus all seventeen topics; new selector requires unreleased main.
+5. [Suite conventions and executable integration](synergetics-suite.md).
 
-## Map
+## Mathematics and implementation
 
-| Area | Files |
-|---|---|
-| Concepts & math | `core-concept-guide.md`, `mathematical-foundations-synergetics.md`, `geometric-patterns-spatial-relationships.md`, `glossary-terminology.md` |
-| Usage | `api/`, `api-cookbook-recipes.md`, `examples/`, `integration-guides-platforms.md`, `synergetics-suite.md` |
-| Operations | `testing-guide.md`, `test-architecture-summary.md`, `performance-optimization-guide.md`, `troubleshooting-faq.md` |
-| Context | `architecture/`, `research/`, case-studies, interdisciplinary and learning-theory guides, future-directions |
+- [Quadray quotient, metrics and volume](mathematical-foundations-synergetics.md).
+- [FCC neighborhoods and scale-declared polyhedra](geometric-patterns-spatial-relationships.md).
+- [Glossary: API versus conceptual terms](glossary-terminology.md).
+- [Advanced numerical and surface boundaries](advanced-topics-deep-dive.md).
+- [Package architecture](architecture/index.md).
+- [Arrays, notebooks and external consumers](integration-guides-platforms.md).
+
+## Operations and contribution
+
+- [Performance measurement](performance-optimization-guide.md).
+- [Troubleshooting](troubleshooting-faq.md).
+- [Test commands and coverage](testing-guide.md), [test responsibilities](test-architecture-summary.md).
+- [Contributor workflow](contributor-development-guide.md).
+- [Capabilities and dated receipts](../STATUS.md), [backlog/history](../TODO.md).
+- [Documentation maintenance](AGENTS.md).
+
+## Conceptual applications and research
+
+These guides discuss motivations or proposals, not additional installed APIs:
+
+- [Research overview](research/index.md).
+- [Case studies](case-studies-real-world-applications.md).
+- [Interdisciplinary applications](interdisciplinary-applications-synergetics.md).
+- [Learning theory](learning-theory-synergetics.md).
+- [Philosophy and education](synergetics-philosophy-education.md).
+- [Future research directions](future-implications-research-directions.md).
 
 ## Related
 
-- Paper pipeline and style guide: `../paper/` (see `docs/manuscript/MANUSCRIPT_STATUS.md`
-  for why the paper lives there rather than in a top-level `manuscript/`).
-- Package entry point: root `README.md` and `run.py`.
+The separate [paper pipeline](../paper/) and
+[manuscript status](manuscript/MANUSCRIPT_STATUS.md) describe manuscript work.
+The root [README](../README.md) and [orchestrator](../run.py) describe package
+entry points and their output side effects. Generated output is not current-run
+evidence merely because a file exists.

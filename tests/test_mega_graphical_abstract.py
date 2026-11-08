@@ -1,5 +1,8 @@
 """Numerical meaning and resource ownership of the scientific poster."""
 import math
+from fractions import Fraction
+import json
+from xml.etree import ElementTree
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -96,3 +99,76 @@ def test_poster_releases_owned_figure_after_save_failure(tmp_path):
 def test_poster_rejects_an_unsupported_backend():
     with pytest.raises(ValueError):
         create_mega_graphical_abstract(backend='invalid')
+
+
+@pytest.mark.parametrize('section', ['', 'unknown', None, ['geometry']])
+def test_invalid_section_fails_before_allocating_a_figure(tmp_path, section):
+    before = plt.get_fignums()
+    with pytest.raises(ValueError, match='section'):
+        create_mega_graphical_abstract(output_path=tmp_path / 'invalid.svg', section=section)
+    assert plt.get_fignums() == before
+    assert not list(tmp_path.iterdir())
+
+
+def test_topic_selection_preserves_computed_data_and_owned_resources(tmp_path):
+    before = plt.get_fignums()
+    complete = create_mega_graphical_abstract(
+        output_path=tmp_path / 'all.svg', section='all',
+    )
+    grouped_data = {}
+    for section in ('geometry', 'arithmetic', 'patterns'):
+        result = create_mega_graphical_abstract(
+            output_path=tmp_path / f'{section}.svg', section=section,
+        )
+        assert not grouped_data.keys() & result['data'].keys()
+        grouped_data.update(result['data'])
+        assert plt.get_fignums() == before
+    assert set(grouped_data) == {
+        'symbolic_operations', 'geometric_ratios', 'mathematical_patterns',
+        'decimal_to_sphere_packing', 'frequency_ratios', 'natural_language',
+        'sphere_packing', 'ivm_lattice', 'vector_equilibrium',
+        'decimal_to_symbolic', 'continued_fractions', 'quadray_coordinates',
+        'palindrome_analysis', 'primorial_distribution', 'pattern_discovery_summary',
+        'synergetics_sphere_frequency', 'geometry_precision',
+    }
+    assert grouped_data == complete['data']
+    assert complete['metadata']['panel_ids'] == list(complete['data'])
+    assert complete['metadata']['panels'] == len(complete['data'])
+    json.dumps(complete, allow_nan=False)
+    cuboctahedron = complete['data']['vector_equilibrium']
+    assert Fraction(cuboctahedron['volume_xyz_cubed_exact']) == (
+        Fraction(cuboctahedron['volume_ivm_exact']) * Fraction(8, 3)
+    )
+    fibonacci = complete['data']['mathematical_patterns']
+    for ratio, a, b in zip(fibonacci['consecutive_ratios_exact'],
+                           fibonacci['fibonacci_integers'],
+                           fibonacci['fibonacci_integers'][1:]):
+        assert Fraction(ratio) == Fraction(b, a)
+    np.testing.assert_allclose(
+        complete['data']['sphere_packing']['contact_distances_xyz'], 2,
+    )
+    assert plt.get_fignums() == before
+
+
+def test_explicit_positional_title_is_rendered_when_switching_sections(tmp_path):
+    title = 'Caller-selected scientific title'
+    destination = tmp_path / 'custom.svg'
+    with plt.rc_context({'svg.fonttype': 'none'}):
+        result = create_mega_graphical_abstract(
+            title, destination, 'matplotlib', section='patterns',
+        )
+    root = ElementTree.parse(destination).getroot()
+    rendered_text = [''.join(node.itertext())
+                     for node in root.iter('{http://www.w3.org/2000/svg}text')]
+    assert title in rendered_text
+    assert result['metadata']['title'] == title
+
+
+@pytest.mark.parametrize('section', ['geometry', 'arithmetic', 'patterns', 'all'])
+def test_selected_poster_releases_figure_after_save_failure(tmp_path, section):
+    destination = tmp_path / 'blocked.svg'
+    destination.mkdir()
+    before = plt.get_fignums()
+    with pytest.raises(IsADirectoryError):
+        create_mega_graphical_abstract(output_path=destination, section=section)
+    assert plt.get_fignums() == before

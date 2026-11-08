@@ -169,8 +169,17 @@ def plan(math_root: Path, symer_root: Path, craft_root: Path, scratch: Path,
               "--check"), math_root, math_common),
         Check("QuadMath manuscript validation", (mp, "quadmath/scripts/validate_markdown.py",
               "--strict"), math_root, math_common),
-        Check("QuadMath documentation links", (mp, "docs/development/check_links.py"),
+        Check("Suite authored-documentation links", (mp, str(math_root / "docs/development/check_links.py"),
+              str(math_root), str(symer_root), str(craft_root)),
               math_root, math_common),
+        Check("symergetics manuscript assets and structure", (sp, "-I",
+              str(symer_root / "paper/validation/validate_paper.py"), "--paper-dir",
+              str(symer_root / "paper"), "--output", str(scratch / "paper-validation.md")),
+              symer_root, symer_common),
+        Check("symergetics manuscript image integration", (sp, "-I",
+              str(symer_root / "paper/validation/check_images.py"), "--paper-dir",
+              str(symer_root / "paper"), "--output", str(scratch / "paper-images.md")),
+              symer_root, symer_common),
     ]
     if npm is not None:
         checks.append(Check(

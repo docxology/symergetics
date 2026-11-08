@@ -126,19 +126,14 @@ class PaperValidator:
             for i, line in enumerate(lines, 1):
                 matches = re.findall(image_pattern, line)
                 for alt_text, img_path in matches:
-                    # Check if image path starts with output/
-                    if not img_path.startswith('output/'):
+                    if Path(img_path).is_absolute():
                         self.results.append(ValidationResult(
-                            "image_path",
-                            False,
-                            f"Image path should start with 'output/': {img_path}",
-                            "error",
-                            str(md_file),
-                            i
+                            "image_path", False,
+                            f"Image path must be source-relative: {img_path}",
+                            "error", str(md_file), i
                         ))
-                    
-                    # Manuscript paths are rooted at the project, including output/.
-                    full_path = (self.paper_dir.parent / img_path).resolve()
+                        continue
+                    full_path = (md_file.parent / img_path).resolve()
                     try:
                         full_path.relative_to(self.output_dir.resolve())
                     except ValueError:

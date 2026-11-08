@@ -1134,52 +1134,106 @@ def _plot_platonic_relationships(ax, relationships):
 
 
 def create_mega_graphical_abstract(
-    title: str = "Symergetics Mega Graphical Abstract",
+    title: Optional[str] = None,
     output_path: Optional[str] = None,
     backend: Optional[str] = None,
+    *,
+    section: str = "overview",
 ) -> Dict[str, Any]:
-    """Render 17 computed arithmetic, geometry and finite-sequence panels.
+    """Render a focused scientific overview or a computed topic group.
 
-    Uses a nominal 32-by-24-inch canvas at 300 DPI. Irrational references are
-    floating approximations; mesh units and finite enumeration domains are
-    explicit. No test counts, coverage claims or synthetic sequence substitutes
-    are embedded. Required computation errors propagate, closing the figure.
+    ``section`` is keyword-only: ``overview`` (six representative topics),
+    ``geometry``, ``arithmetic``, ``patterns``, or ``all`` (all 17 topics).
+    An omitted title follows the selected section; explicit titles are retained.
+    The first three positional arguments and canonical default PNG path remain
+    supported. This selector is unreleased-main behavior, not a 1.3.0 API claim.
+
+    Returns file paths, actual panel identities/layout metadata, and JSON-safe
+    ``data`` keyed by panel identity. Exact rational results are full strings;
+    floating references and geometric units are identified alongside their data.
+    Required computation/save errors propagate and the owned figure is closed.
     """
+    groups = {
+        'geometry': (
+            'geometric_ratios', 'quadray_coordinates', 'sphere_packing',
+            'ivm_lattice', 'vector_equilibrium', 'frequency_ratios',
+        ),
+        'arithmetic': (
+            'symbolic_operations', 'decimal_to_symbolic', 'continued_fractions',
+            'decimal_to_sphere_packing', 'natural_language', 'geometry_precision',
+        ),
+        'patterns': (
+            'mathematical_patterns', 'palindrome_analysis', 'primorial_distribution',
+            'pattern_discovery_summary', 'synergetics_sphere_frequency',
+        ),
+    }
+    sections = {
+        'overview': (
+            'symbolic_operations', 'quadray_coordinates', 'sphere_packing',
+            'frequency_ratios', 'decimal_to_symbolic', 'mathematical_patterns',
+        ),
+        **groups,
+        'all': tuple(name for group in groups.values() for name in group),
+    }
+    if not isinstance(section, str) or section not in sections:
+        raise ValueError(f"section must be one of {', '.join(sections)}")
+    titles = {
+        'overview': 'Symergetics — Exact Numbers, Physical Geometry, Finite Patterns',
+        'geometry': 'Symergetics Geometry — Quadrays, FCC Contacts and Physical Scale',
+        'arithmetic': 'Symergetics Arithmetic — Exact Results and Approximation Boundaries',
+        'patterns': 'Symergetics Patterns — Integer Recurrences and Finite Enumeration',
+        'all': 'Symergetics — All 17 Arithmetic, Geometry and Pattern Topics',
+    }
+    renderers = {
+        'symbolic_operations': _create_symbolic_operations_panel,
+        'geometric_ratios': _create_geometric_ratios_panel,
+        'mathematical_patterns': _create_mathematical_patterns_panel,
+        'decimal_to_sphere_packing': _create_decimal_to_sphere_packing_panel,
+        'frequency_ratios': _create_frequency_ratios_panel,
+        'natural_language': _create_natural_language_panel,
+        'sphere_packing': _create_sphere_packing_panel,
+        'ivm_lattice': _create_ivm_lattice_panel,
+        'vector_equilibrium': _create_vector_equilibrium_panel,
+        'decimal_to_symbolic': _create_decimal_to_symbolic_panel,
+        'continued_fractions': _create_continued_fractions_panel,
+        'quadray_coordinates': _create_quadray_coordinate_panel,
+        'palindrome_analysis': _create_palindrome_analysis_panel,
+        'primorial_distribution': _create_primorial_distribution_panel,
+        'pattern_discovery_summary': _create_pattern_discovery_summary_panel,
+        'synergetics_sphere_frequency': _create_synergetics_sphere_frequency_panel,
+        'geometry_precision': _create_geometry_precision_panel,
+    }
     plt, _ = _ensure_matplotlib_numpy()
     backend = backend or get_config()["backend"]
     if backend != "matplotlib":
         raise ValueError("Mega graphical abstract requires matplotlib backend")
-    _validate_canvas((32, 24), 300)
-    fig = plt.figure(figsize=(32, 24), dpi=150)
+    panel_ids = sections[section]
+    columns = 3 if section == 'all' else 2
+    rows = (len(panel_ids) + columns - 1) // columns
+    size = (8 * columns, 4.5 * rows + 1)
+    dpi = 300
+    _validate_canvas(size, dpi)
+    title = titles[section] if title is None else title
+    fig = plt.figure(figsize=size, dpi=150)
     try:
-        fig.suptitle(title, fontsize=32, fontweight='bold', y=0.97)
+        fig.suptitle(title, fontsize=21, fontweight='bold', y=0.98)
         gs = fig.add_gridspec(
-            6, 6, hspace=0.4, wspace=0.35,
-            left=0.05, right=0.97, bottom=0.09, top=0.92,
+            rows, columns, hspace=0.18, wspace=0.12,
+            left=0.035, right=0.975, bottom=0.06, top=0.93,
         )
-        panels = [
-            (0, 0, 2, _create_symbolic_operations_panel),
-            (0, 2, 4, _create_geometric_ratios_panel),
-            (0, 4, 6, _create_mathematical_patterns_panel),
-            (1, 0, 2, _create_decimal_to_sphere_packing_panel),
-            (1, 2, 4, _create_frequency_ratios_panel),
-            (1, 4, 6, _create_natural_language_panel),
-            (2, 0, 2, _create_sphere_packing_panel),
-            (2, 2, 4, _create_ivm_lattice_panel),
-            (2, 4, 6, _create_vector_equilibrium_panel),
-            (3, 0, 2, _create_decimal_to_symbolic_panel),
-            (3, 2, 4, _create_continued_fractions_panel),
-            (3, 4, 6, _create_quadray_coordinate_panel),
-            (4, 0, 2, _create_palindrome_analysis_panel),
-            (4, 2, 4, _create_primorial_distribution_panel),
-            (4, 4, 6, _create_pattern_discovery_summary_panel),
-            (5, 0, 3, _create_synergetics_sphere_frequency_panel),
-            (5, 3, 6, _create_geometry_precision_panel),
-        ]
-        for row, first, last, draw in panels:
-            ax = fig.add_subplot(gs[row, first:last])
+        data = {}
+        panel_titles = {}
+        for index, name in enumerate(panel_ids):
+            ax = fig.add_subplot(gs[index // columns, index % columns])
             ax.set(xlim=(0, 1), ylim=(0, 1))
-            draw(ax)
+            data[name] = renderers[name](ax)
+            panel_titles[name] = ax.texts[0].get_text()
+            for text in ax.texts:
+                text.set_fontsize(max(9, text.get_fontsize()))
+            for child in ax.child_axes:
+                child.tick_params(labelsize=8)
+                for text in child.texts:
+                    text.set_fontsize(max(8, text.get_fontsize()))
         _add_contextualizing_text(fig)
         if output_path is None:
             from . import get_organized_output_path
@@ -1187,14 +1241,18 @@ def create_mega_graphical_abstract(
                 'mathematical', 'mega_graphical_abstract', 'mega_graphical_abstract.png',
             )
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        fig.savefig(output_path, dpi=dpi, bbox_inches='tight', facecolor='white')
         return {
             'files': [str(output_path)],
             'metadata': {
                 'type': 'mega_graphical_abstract', 'title': title,
-                'panels': len(panels), 'dimensions': '32x24 inches at 300 DPI',
+                'section': section, 'panels': len(panel_ids),
+                'panel_ids': list(panel_ids), 'panel_titles': panel_titles,
+                'figure_size_inches': list(size), 'dpi': dpi,
+                'dimensions': f'{size[0]:g}x{size[1]:g} inches at {dpi} DPI',
                 'description': 'Computed rational arithmetic, scale-declared geometry and finite sequence examples',
             },
+            'data': data,
         }
     finally:
         plt.close(fig)
@@ -1222,6 +1280,8 @@ def _create_symbolic_operations_panel(ax):
     ax.text(0.5, 0.05, 'Integer/Fraction operations; no floating intermediate.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'operations': [{'expression': expression, 'exact_result': result}
+                           for expression, result in rows]}
 
 
 
@@ -1237,21 +1297,29 @@ def _create_geometric_ratios_panel(ax):
     all_vertices = []
     models = [Tetrahedron(), Cube(), Octahedron()]
     descriptions = []
+    model_data = []
     for i, model in enumerate(models):
         vertices = np.array(model.to_xyz_vertices(), dtype=float)
         vertices += np.array([(i - 1) * 6, 0, 0])
         _draw_polyhedron(view, model, vertices, alpha=0.25)
         all_vertices.extend(vertices)
         center = vertices.mean(axis=0)
-        view.text(*center, f'{type(model).__name__}\n{model.volume()} IVM', fontsize=7)
-        descriptions.append(f'{type(model).__name__}:\nV={model.volume()} IVM\nA={model.surface_area():.4g} XYZ²')
+        volume, area = model.volume(), model.surface_area()
+        view.text(*center, f'{type(model).__name__}\n{volume} IVM', fontsize=8)
+        descriptions.append(f'{type(model).__name__}:\nV={volume} IVM\nA={area:.4g} XYZ²')
+        model_data.append({
+            'model': type(model).__name__, 'volume_ivm_exact': str(volume),
+            'area_xyz_squared': area, 'display_vertices_xyz': vertices.tolist(),
+            'translation_xyz': [(i - 1) * 6, 0, 0],
+        })
     _fit_3d(view, all_vertices)
     view.tick_params(labelsize=6)
-    ax.text(0.76, 0.7, '\n\n'.join(descriptions), va='top', fontsize=7)
+    ax.text(0.76, 0.7, '\n\n'.join(descriptions), va='top', fontsize=9)
     ax.text(0.5, 0.08, 'Scale-1 XYZ; solids translated, never individually normalized.\n'
             '1 IVM volume = 8/3 XYZ³. Areas use the declared triangle fan.',
             ha='center', fontsize=8)
     ax.axis('off')
+    return {'xyz_scale': 1, 'xyz_cubed_per_ivm_exact': '8/3', 'models': model_data}
 
 
 def _create_sphere_packing_panel(ax):
@@ -1277,11 +1345,14 @@ def _create_sphere_packing_panel(ax):
         view.plot(*np.array([np.zeros(3), center]).T, color='#e377c2', linewidth=1)
     _fit_3d(view, np.vstack([centers - radius, centers + radius]))
     view.tick_params(labelsize=6)
-    ax.text(0.75, 0.73, 'Sphere radius r=1\n\n12 center contacts\nAll distances = 2r\n\nFCC packing fraction\nπ/(3√2) ≈ 0.74048\n(infinite packing)',
+    ax.text(0.75, 0.73, 'Sphere radius r=1\n\n12 center contacts\nCenter→neighbor = 2r\n\nFCC packing fraction\nπ/(3√2) ≈ 0.74048\n(infinite packing)',
             fontsize=8, va='top')
     ax.text(0.5, 0.08, 'Centers from the local 12 IVM neighbors, uniformly scaled to contact.',
             ha='center', fontsize=8)
     ax.axis('off')
+    return {'radius_xyz': radius, 'centers_xyz': centers.tolist(),
+            'contact_distances_xyz': np.linalg.norm(neighbors, axis=1).tolist(),
+            'infinite_fcc_packing_fraction': float(np.pi / (3 * np.sqrt(2)))}
 
 
 def _create_frequency_ratios_panel(ax):
@@ -1316,6 +1387,9 @@ def _create_frequency_ratios_panel(ax):
     ax.text(0.5, 0.06, 'One cube: edge ×f; surface area ×f²; volume ×f³.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'dilations': frequencies.tolist(), 'ratios_edge_area_volume': ratios,
+            'reference_edge_xyz': edge, 'reference_area_xyz_squared': area,
+            'reference_volume_ivm_exact': str(volume)}
 
 
 
@@ -1347,6 +1421,9 @@ def _create_decimal_to_symbolic_panel(ax):
             'Approximation is not symbolic equality to an irrational constant.',
             ha='center', fontsize=8, transform=ax.transAxes)
     ax.axis('off')
+    return {'names': names, 'binary_float_references': references,
+            'max_denominator': 1000, 'rational_approximations_exact': [
+                str(value) for value in approximations], 'absolute_errors': errors}
 
 
 
@@ -1375,6 +1452,13 @@ def _create_vector_equilibrium_panel(ax):
     ax.text(0.5, 0.08, 'Native scale-1 model; no separate circumradius normalization.',
             ha='center', fontsize=8)
     ax.axis('off')
+    return {'xyz_scale': 1, 'vertices_xyz': vertices.tolist(),
+            'edge_indices': [list(pair) for pair in edges],
+            'face_indices': [list(face) for face in model.face_indices()],
+            'volume_ivm_exact': str(model.volume()),
+            'volume_xyz_cubed_exact': str(model.volume() * 8 / 3),
+            'edge_length_xyz': float(edge_length),
+            'area_xyz_squared': model.surface_area()}
 
 
 def _create_decimal_to_sphere_packing_panel(ax):
@@ -1398,6 +1482,10 @@ def _create_decimal_to_sphere_packing_panel(ax):
             'These are counts of congruent units, not scaled tetrahedra.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'counts': counts, 'unit_tetrahedron_volume_ivm_exact': str(unit),
+            'total_volumes_ivm_exact': [str(value) for value in volumes],
+            'volume_ratio_exact': str(volumes[0] / volumes[1]),
+            'binary_float_reference': math.pi}
 
 
 
@@ -1419,6 +1507,7 @@ def _create_natural_language_panel(ax):
                 transform=ax.transAxes,
                 bbox=dict(boxstyle='round,pad=0.5', facecolor='#f8f9fa', alpha=0.9))
     ax.axis('off')
+    return {'statements': explanations}
 
 
 
@@ -1434,9 +1523,11 @@ def _create_synergetics_sphere_frequency_panel(ax):
             ha='center', fontsize=12)
     chart = ax.inset_axes([0.08, 0.43, 0.85, 0.32])
     chart.semilogy(layers, counts, '-o', color='#8c564b', label='Tetrahedral cluster sites')
-    for n, total in zip(layers, counts):
+    for index in (0, 4, 7, 9):
+        n, total = layers[index], counts[index]
         chart.annotate(f'n={n}\nT={total}', (n, total), xytext=(4, 4),
-                       textcoords='offset points', fontsize=7)
+                       textcoords='offset points', fontsize=8)
+    chart.margins(y=0.25)
     chart.set_xlabel('Tetrahedral cluster layer index n', fontsize=9)
     chart.set_ylabel('Sphere count T(n)', fontsize=9)
     chart.tick_params(labelsize=8)
@@ -1446,11 +1537,14 @@ def _create_synergetics_sphere_frequency_panel(ax):
     ax.text(0.5, 0.08, 'Finite tetrahedral clusters — not FCC graph shells or subdivision volumes.',
             ha='center', fontsize=9)
     ax.axis('off')
+    return {'layer_indices': layers, 'sphere_counts': counts,
+            'count_formula': 'n(n+1)(n+2)/6'}
 
 
 def _create_mathematical_patterns_panel(ax):
     """Actual consecutive Fibonacci ratios, not a synthetic convergence curve."""
     import math
+    from fractions import Fraction
     fibonacci = [1, 1]
     for _ in range(13):
         fibonacci.append(fibonacci[-1] + fibonacci[-2])
@@ -1467,6 +1561,9 @@ def _create_mathematical_patterns_panel(ax):
     ax.text(0.5, 0.06, 'F(n+2) = F(n+1) + F(n), starting at 1, 1.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'fibonacci_integers': fibonacci, 'consecutive_ratios_exact': [
+                str(Fraction(b, a)) for a, b in zip(fibonacci, fibonacci[1:])],
+            'plotted_ratios': ratios, 'binary_float_phi_reference': (1 + math.sqrt(5)) / 2}
 
 
 
@@ -1486,7 +1583,7 @@ def _create_quadray_coordinate_panel(ax):
         view.scatter(*vertex, color=color, s=30)
         view.text(*vertex, name, fontsize=8)
     examples = [QuadrayCoordinate(1, 1, 0, 0), QuadrayCoordinate(1, 1, 1, 0),
-                QuadrayCoordinate(1, 1, 1, 1)]
+                QuadrayCoordinate(1, 1, 1, 1, normalize=False)]
     for q in examples:
         xyz = q.to_xyz()
         view.scatter(*xyz, color='purple', s=25)
@@ -1503,6 +1600,11 @@ def _create_quadray_coordinate_panel(ax):
     ax.text(0.5, 0.08, 'All plotted examples use QuadrayCoordinate.to_xyz() at scale 1.',
             ha='center', fontsize=8)
     ax.axis('off')
+    return {'xyz_scale': 1, 'basis_quadrays': [list(q.as_tuple()) for q in basis],
+            'basis_xyz': vertices.tolist(),
+            'examples': [{'quadray': list(q.as_tuple()), 'xyz': list(q.to_xyz())}
+                         for q in examples],
+            'common_offset_kernel': [1, 1, 1, 1]}
 
 
 
@@ -1510,14 +1612,17 @@ def _create_quadray_coordinate_panel(ax):
 def _create_continued_fractions_panel(ax):
     """Compute convergents from the actual finite-reference expansion."""
     import math
+    from fractions import Fraction
     from ..utils.conversion import continued_fraction_approximation
 
     terms = continued_fraction_approximation(math.pi, max_terms=8)
     previous_h, current_h, previous_k, current_k = 0, 1, 1, 0
     convergents = []
+    exact_convergents = []
     for term in terms:
         previous_h, current_h = current_h, term * current_h + previous_h
         previous_k, current_k = current_k, term * current_k + previous_k
+        exact_convergents.append(str(Fraction(current_h, current_k)))
         convergents.append(current_h / current_k)
     chart = ax.inset_axes([0.14, 0.39, 0.8, 0.38])
     chart.plot(range(1, len(convergents) + 1), convergents, '-o', label='Convergent')
@@ -1530,6 +1635,8 @@ def _create_continued_fractions_panel(ax):
     ax.text(0.5, 0.07, 'Finite float-reference expansion, not a proof of all π coefficients.',
             ha='center', fontsize=8, transform=ax.transAxes)
     ax.axis('off')
+    return {'binary_float_pi_reference': math.pi, 'terms': terms,
+            'convergents_exact': exact_convergents, 'plotted_convergents': convergents}
 
 
 
@@ -1540,12 +1647,15 @@ def _create_palindrome_analysis_panel(ax):
     from ..computation.palindromes import is_palindromic
 
     chart = ax.inset_axes([0.14, 0.39, 0.8, 0.38])
+    profiles = []
     for number in ('121', '12321', '123454321', '1001'):
         if not is_palindromic(number):
             raise ValueError(f'Expected a palindrome: {number}')
         digits = [int(digit) for digit in number]
         positions = np.arange(len(digits)) - (len(digits) - 1) / 2
         chart.plot(positions, digits, '-o', label=number)
+        profiles.append({'number': number, 'digits': digits,
+                         'midpoint_positions': positions.tolist()})
     chart.axvline(0, color='#d62728', linestyle='--', alpha=0.7)
     chart.set(xlabel='Digit position relative to midpoint', ylabel='Digit value')
     chart.legend(fontsize=7)
@@ -1555,6 +1665,7 @@ def _create_palindrome_analysis_panel(ax):
     ax.text(0.5, 0.06, 'Odd and even digit counts reflect about the same x=0 axis.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'base': 10, 'profiles': profiles}
 
 
 
@@ -1574,6 +1685,7 @@ def _create_primorial_distribution_panel(ax):
     ax.text(0.5, 0.06, 'Actual integer products; ln(p#) ~ p asymptotically.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'prime_bounds': list(primes), 'primorials_exact': values}
 
 
 
@@ -1595,6 +1707,9 @@ def _create_ivm_lattice_panel(ax):
     ax.text(0.5, 0.05, f'{len(sites)} physical sites through graph radius 2; scale-one XYZ.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'graph_radius': 2, 'xyz_scale': 1, 'physical_site_count': len(sites),
+            'site_quadrays': [list(site.as_tuple()) for site in sites],
+            'sites_xyz': points.tolist()}
 
 
 
@@ -1614,6 +1729,9 @@ def _create_pattern_discovery_summary_panel(ax):
     ax.text(0.5, 0.06, 'All positive base-10 integers 1–999; no leading zeros.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'base': 10, 'positive_integer_ranges_inclusive': [
+                [values.start, values.stop - 1] for values in ranges],
+            'palindrome_counts': counts, 'leading_zeros': False}
 
 
 
@@ -1643,6 +1761,12 @@ def _create_geometry_precision_panel(ax):
             'Examples are not a test-suite or universal-correctness certificate.',
             ha='center', fontsize=9, transform=ax.transAxes)
     ax.axis('off')
+    return {'computed_results': [{'example': example, 'result': value}
+                                 for example, value in rows],
+            'metric_units': 'scale-1 XYZ squared',
+            'primitive_volume_unit': 'IVM', 'area_unit': 'XYZ squared',
+            'area_embedding_scale': 1e-162,
+            'quadray': list(q.as_tuple()), 'gauge_alias': list(alias.as_tuple())}
 
 
 

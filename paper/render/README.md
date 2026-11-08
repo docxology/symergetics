@@ -1,321 +1,106 @@
-# Synergetics Paper PDF Renderer
-
-A comprehensive PDF generation system for the Synergetics research paper, providing scientific formatting with integrated visualizations from the `output/` directory.
+# Paper PDF Renderer: Entry Points and Presentation Limits
 
 ## Overview
 
-This rendering system converts modular markdown sections into a professionally formatted PDF with:
-
-- **Scientific front matter** with author information and ORCID
-- **Proper academic formatting** following research paper conventions
-- **Integrated visualizations** from the `output/` directory
-- **Code syntax highlighting** and proper mathematical notation
-- **Table of contents** and cross-references
-- **High-quality image handling** with automatic scaling
-
-## Features
-
-### Document Structure
-- Modular markdown sections with automatic ordering
-- Scientific front matter with complete author metadata
-- Proper section numbering and cross-references
-- Automatic table of contents generation
-
-### Visual Integration
-- Automatic discovery and inclusion of images from `output/`
-- Support for PNG, SVG, PDF, and JPEG formats
-- Intelligent image scaling and positioning
-- Figure captions and numbering
-
-### Code and Mathematics
-- Syntax highlighting for code blocks
-- Proper formatting for mathematical expressions
-- Support for LaTeX math (when integrated)
-- Code block styling with background and borders
-
-### Output Quality
-- High-resolution PDF generation (PDF 1.5+)
-- Embedded fonts for consistent rendering
-- Optimized for print and digital viewing
-- Compression options for smaller file sizes
+[ScientificPaperRenderer](pdf_renderer.py) reads the twelve numbered source
+modules under `paper/markdown/` and creates a ReportLab PDF. Source figures are
+resolved from existing artifacts. Rendering is presentation, not mathematical
+proof, empirical validation or automatic regeneration of all examples.
 
 ## Installation
 
-### Prerequisites
-
-```bash
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Optional: Install LaTeX for advanced math rendering
-# sudo apt-get install texlive-latex-extra  # Ubuntu/Debian
-# brew install mactex                         # macOS
-```
-
-### Setup
-
-1. Ensure the paper structure exists:
-   ```
-   paper/
-   ├── markdown/     # Markdown sections
-   ├── render/       # This rendering system
-   └── output/       # Generated PDFs
-   ```
-
-2. Verify markdown sections are present in `paper/markdown/`
-
-3. Check that visualizations exist in the main `output/` directory
+Use the [Python 3.13 environment setup](../QUICK_START.md#set-up-an-isolated-environment)
+from repository root. [requirements.txt](requirements.txt) includes renderer and
+development dependencies. The renderer is part of a checkout, not a separately
+published PyPI package. Do not change the repository interpreter pin.
 
 ## Usage
 
-### Basic PDF Generation
+From repository root in a disposable checkout:
 
 ```bash
-# From the paper/render directory
-python pdf_renderer.py
-
-# Or specify custom paths
-python pdf_renderer.py --paper-dir ../paper --output my_paper.pdf
+.venv-paper/bin/python paper/render/run_render.py --paper-dir paper --output-dir /tmp/symergetics-paper-preview --output preview.pdf --verbose
 ```
 
-### Command Line Options
+`run_render.py` supports `--paper-dir`, `--output`, `--output-dir` and `--verbose`.
+Keep the paper path explicit; relative paths supplied by the caller are relative
+to that caller's working directory. The CLI in `pdf_renderer.py` also supports
+paper/output paths but not the wrapper's verbose flag. Default output is under
+`paper/output/`; choose an isolated directory to preserve existing artifacts.
 
-```bash
-python pdf_renderer.py [options]
-
-Options:
-  --paper-dir DIR      Paper directory containing markdown sections (default: paper)
-  --output FILE        Output PDF filename (default: auto-generated)
-  --output-dir DIR     Output directory for PDF (default: paper/output)
-  --help               Show help message
-```
-
-### Configuration
-
-Edit `config.yaml` to customize:
-
-- Author information and metadata
-- PDF formatting and styling
-- Image handling preferences
-- Section ordering and TOC settings
-- Quality assurance options
+Do not substitute `generate_paper.py` for a render-only command: that orchestration
+can clear outputs, run tests and regenerate examples.
 
 ## File Structure
 
-```
-paper/render/
-├── __init__.py           # Package initialization
-├── pdf_renderer.py       # Main PDF generation engine
-├── config.yaml          # Configuration settings
-├── test_renderer.py     # Test suite
-├── requirements.txt     # Python dependencies
-└── README.md           # This documentation
-```
+- [pdf_renderer.py](pdf_renderer.py): section loading, formatting, figure lookup
+  and PDF construction.
+- [run_render.py](run_render.py): command-line wrapper.
+- [config.yaml](config.yaml): renderer configuration; inspect actual consumers
+  before assuming every setting is applied.
+- [figure_manager.py](figure_manager.py): separate figure registry utilities.
+- [scan_and_register_figures.py](scan_and_register_figures.py): registry scanner.
+- [test_renderer.py](test_renderer.py): source tests, not a current pass receipt.
 
-## Markdown Format
+## Unicode Mathematics and Bounded Markdown Tables
 
-### Supported Elements
+Use [manuscript style](../STYLE_GUIDE.md) for headings, real code examples,
+references and bounded captions. The renderer embeds DejaVu Sans and Mono fonts
+bundled with Matplotlib rather than discarding non-ASCII text. Coordinate minus
+signs, square roots, inequalities and cubic units must survive in the PDF.
 
-#### Headers
-```markdown
-# Main Title (handled by front matter)
-## Section Header
-### Subsection Header
-#### Sub-subsection Header
-```
+Simple pipe tables wrap within the page frame, preserve empty columns, omit the
+alignment row and repeat headers across pages. Cell links use the same inline
+formatting as body text. Relative links retain their source context; use the
+Markdown sources for repository navigation.
 
-#### Text Formatting
-```markdown
-*Italic text*
-**Bold text**
-`Inline code`
-```
+This is not a full scholarly Markdown, LaTeX or bibliography processor. Long code
+blocks can be truncated; a printed excerpt is not the complete implementation.
+Inspect mathematical glyphs, tables, links and page layout in the actual output.
 
-#### Code Blocks
-```markdown
-```python
-def example_function():
-    return "Hello, Synergetics!"
-```
-```
+## Image Integration
 
-#### Lists
-```markdown
-- Item 1
-- Item 2
-  - Nested item
-```
+References resolve exactly from `paper/markdown/`, not through recursive
+basename search. Both validators use the same source-relative path convention;
+publication assets must remain under repository `output/`. See the
+[integration contract](../INTEGRATION_GUIDE.md#image-discovery-process).
 
-#### Images
-```markdown
-![Figure 1: Tetrahedron visualization](output/geometric/polyhedra/tetrahedron_3d.png)
-```
+Raster figures fit within the display box without changing aspect ratio.
+Authored figure numbers and detailed captions survive optional separating blank
+lines, and a repeated reference is rendered rather than silently discarded.
+The paper itself cross-references its repeated sequence summary instead of
+printing the same panel twice.
 
-#### Links and References
-```markdown
-[Link text](url)
-[@citation_key]
-```
+Missing, unreadable or unsupported image inputs fail rendering; there are no
+image placeholders or guessed same-basename substitutes. SVG/PDF need a real
+conversion stage or raster counterpart; filename recognition is not conversion.
+Mermaid remains separate: `mmdc` can create `paper/mermaid_images/`, and missing
+diagram conversion can yield an explicitly textual representation.
 
-### Image Integration
+## Real-PDF and Image Regression Checks
 
-Images are automatically discovered from the `output/` directory. Use relative paths in markdown:
-
-```markdown
-![Figure 1: IVM Lattice](output/geometric/lattice/ivm_lattice_size_3.png)
-![Mathematical Pattern](output/mathematical/pattern_discovery/pattern_analysis.png)
-```
-
-## Configuration Options
-
-### Metadata Configuration
-
-```yaml
-metadata:
-  title: "Paper Title"
-  author: "Daniel Ari Friedman"
-  email: "daniel@activeinference.institute"
-  orcid: "0000-0001-6232-9096"
-  affiliation: "Active Inference Institute"
-```
-
-### PDF Formatting
-
-```yaml
-pdf:
-  pagesize: "A4"
-  margins:
-    left: 72
-    right: 72
-    top: 72
-    bottom: 72
-```
-
-### Image Settings
-
-```yaml
-images:
-  max_width: 6.0    # inches
-  max_height: 4.0   # inches
-  dpi: 300
-  formats: ["png", "jpg", "svg", "pdf"]
-```
-
-## Testing
-
-### Run Test Suite
+From repository root after installing the renderer requirements:
 
 ```bash
-# Run all tests
-python -m pytest test_renderer.py -v
-
-# Run with coverage
-python -m pytest test_renderer.py --cov=pdf_renderer --cov-report=html
+.venv-paper/bin/python -m unittest discover -s paper/render -p test_renderer.py
 ```
 
-### Test Coverage
-
-The test suite covers:
-- PDF generation pipeline
-- Markdown processing
-- Image integration
-- Style configuration
-- Error handling
-- Integration testing
+Regressions build real PDFs and inspect mathematical text and text-placement
+coordinates, alongside image identity, aspect, repetition and failure controls.
+Run the structural/image diagnostics linked from
+[quick start](../QUICK_START.md#validate-paper), then inspect an isolated render.
+These checks do not establish every mathematical interpretation or publication
+quality, and this guide does not pin a timeless pass count.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Missing Images
-- Ensure `output/` directory exists with visualizations
-- Check image file formats are supported
-- Verify relative paths in markdown are correct
-
-#### Import Errors
-```bash
-pip install -r requirements.txt
-```
-
-#### PDF Generation Errors
-- Check write permissions in output directory
-- Ensure sufficient disk space
-- Verify markdown files are properly formatted
-
-#### Font Issues
-- Install additional fonts if needed
-- Check font embedding settings in config
-- Ensure system fonts are available
-
-### Debug Mode
-
-Enable debug logging:
-
-```python
-# In pdf_renderer.py or via config
-development:
-  debug_mode: true
-  log_level: "DEBUG"
-```
-
-## Integration with Build System
-
-### Automated PDF Generation
-
-Integrate with the main project build:
-
-```bash
-# Add to run.py or CI/CD pipeline
-python -m paper.render.pdf_renderer --output symergetics_paper.pdf
-```
-
-### Continuous Integration
-
-Example GitHub Actions workflow:
-
-```yaml
-- name: Generate Paper PDF
-  run: |
-    cd paper/render
-    python pdf_renderer.py --output ${{ github.sha }}_paper.pdf
-```
-
-## Contributing
-
-### Code Style
-
-```bash
-# Format code
-black *.py
-
-# Lint code
-ruff *.py
-
-# Type checking
-mypy *.py
-```
-
-### Adding Features
-
-1. Add functionality to `pdf_renderer.py`
-2. Update configuration in `config.yaml`
-3. Add tests to `test_renderer.py`
-4. Update documentation in `README.md`
+Use the same environment for installation and execution, explicit source/output
+paths and logs from the actual failed command. Inspect duplicate filenames,
+unsupported image formats and final-page clipping before changing source claims.
+Do not create fake images or suppress warnings to obtain a nominal success.
 
 ## License
 
-This rendering system is part of the Synergetics project and follows the same MIT license.
+This repository uses [Apache 2.0](../../LICENSE), not MIT.
 
-## Support
-
-For issues and questions:
-- Check the test suite for examples
-- Review configuration options
-- Examine the main Synergetics documentation
-
----
-
-**Author:** Daniel Ari Friedman
-**Email:** daniel@activeinference.institute
-**ORCID:** 0000-0001-6232-9096
-
+[Paper overview](../README.md) · [Figure integration](../INTEGRATION_GUIDE.md)

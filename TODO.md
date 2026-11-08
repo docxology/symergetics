@@ -1,33 +1,32 @@
-# TODO — symergetics agent backlog
+# TODO — backlog scope and historical maintenance
 
-Created 2026-08-31 by the agent-ergonomics fleet pass (point-in-time review log
-removed in commit 2c7edcf; receipts live in STATUS.md and git history).
-One line per entry + file path(s). Mark done items `x`.
+## Current backlog policy
 
-## Minor
+No new feature backlog is inferred from an old receipt. Track an actionable
+issue with its affected paths and observable acceptance criterion; completion
+requires evidence for that issue, not a saved package-wide test count.
+[STATUS.md](STATUS.md) records dated evidence and
+[the testing guide](docs/testing-guide.md) supplies current commands.
 
-- [x] tests/TEST_INDEX.md claimed "977 test functions across 41 test modules" with no
-  verification command — updated 2026-09-05 to 1013 functions / 42 modules, verified by
-  `uv run pytest tests/ --collect-only -q` (1013 collected); per-file counts regenerated;
-  added missing entries for `*_real.py`, `tests/core/` twins, and
-  `test_review_regressions.py`. (tests/TEST_INDEX.md, tests/README.md)
-- [x] `output/test_custom_dir/` residue: the generating test
-  (`tests/test_visualization_methods.py::test_output_directory_configuration`)
-  now renders into `tmp_path` and resets config, so it never creates the
-  directory; existing residue deleted 2026-09-05. (tests/test_visualization_methods.py)
+## Historical completed maintenance — 2026-08/09
 
-## Medium
+These entries describe the earlier maintenance pass, not unfinished work or
+current gate status:
 
-- [x] Document the per-file coverage-floor gotcha: `uv run pytest
-  tests/core/test_coordinates.py` alone FAILS ("Required test coverage of 85% not
-  reached. Total coverage: 8.19%") even when all 25 tests pass, because pyproject
-  sets an 85% floor against the whole package. Run full `uv run pytest tests/ -q`
-  (measured 2026-08-31: full collection exceeds 5 min on external-drive cold I/O)
-  or pass `--no-cov` for quick checks. (AGENTS.md, STATUS.md)
-- [x] No backlog file existed; TODO.md created 2026-08-31. (TODO.md)
-- [x] No status surface existed; STATUS.md created with verification commands. (STATUS.md)
+- [x] Added root status/backlog surfaces and orientation guidance.
+- [x] Documented why a focused pytest run can fail package-wide coverage and
+  when to use `--no-cov` for diagnostics.
+- [x] Updated test navigation after the earlier module consolidation. Its old
+  per-file totals are historical; collect current cases when an inventory is needed.
+- [x] Changed the output-directory test to isolate its generated files rather
+  than leaving repository output residue.
+- [x] Recorded the then-current full-suite result. Consult dated status/history
+  rather than interpreting that outcome as evidence for the present checkout.
 
-- [x] Full test suite had no recorded pass/fail receipt — recorded 2026-09-05:
-  `uv run pytest tests/ -q` → 993 passed, 20 skipped, coverage 86.13%
-  (85% floor reached), 536 s. Pre-fix baseline: 954 passed, 20 skipped
-  (`--no-cov`, 279 s). See STATUS.md. (STATUS.md)
+## Unreleased documentation and visualization scope
+
+Main documentation distinguishes focused scientific-poster selections from the
+all-topic view, exact native measurements from floating display, and implemented
+APIs from conceptual applications. Published 1.3.0 artifacts remain immutable.
+The active integration process owns current gates and receipts; this page does
+not mark an unexecuted gate complete or advertise historical counts as current.

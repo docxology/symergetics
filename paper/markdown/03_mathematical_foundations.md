@@ -1,109 +1,95 @@
 ## Mathematical Foundations
 
-
 ### The Synergetics Framework
 
-Synergetics establishes exact mathematical relationships through geometric ratios derived from regular polyhedra. The core principle requires "symbolic operations on all-integer accounting based upon ratios geometrically based upon high-frequency shapes" ([Fuller and Applewhite](https://www.rwgrayprojects.com/synergetics/)), demanding exact rational arithmetic that floating-point systems cannot provide. This framework recognizes that natural systems operate through precise geometric relationships expressed as exact rational ratios.
-
-The mathematical foundation rests on the tetrahedron as the fundamental geometric unit, with all other polyhedra defined through exact volume relationships. The tetrahedron's volume of 1 IVM unit establishes the basis for all geometric calculations, with the octahedron equaling exactly 4 tetrahedra and the cube equaling exactly 3 tetrahedra. These relationships form the mathematical language for describing universal patterns from molecular to cosmic scales.
-
+Fuller and Applewhite's [Synergetics](https://www.rwgrayprojects.com/synergetics/)
+is historical context for ratio-based geometric exploration. This manuscript
+uses explicit mathematical definitions; philosophical claims about universal
+natural patterns are not empirical conclusions of the software.
 
 ### Exact Rational Arithmetic
 
+`SymergeticsNumber` is a wrapper around `fractions.Fraction`, not its subclass.
+Rational addition, subtraction, multiplication, nonzero division and integer
+powers preserve rational values. Reduced fractions represent the same exact
+number; 3/4 + 1/6 = 11/12.
 
-**Precision Problem:** Floating-point arithmetic produces 0.9166666666666666 for 3/4 + 1/6 instead of the exact rational 11/12. The IEEE 754 standard cannot represent many rational numbers exactly—1/3 requires infinite binary digits (0.01010101...), leading to truncation errors that compound in geometric calculations.
-
-**Solution:** Symergetics implements exact rational arithmetic using Python's `fractions.Fraction` through the `SymergeticsNumber` wrapper. The class maintains exact fractional representations throughout all computations, ensuring operations like 3/4 + 1/6 = 11/12 preserve complete mathematical precision.
-
-**Automatic Simplification:** The system uses the Euclidean algorithm to find the greatest common divisor (GCD) and reduces fractions to canonical form. For example, 6/8 automatically simplifies to 3/4, maintaining mathematical accuracy while optimizing computational efficiency.
-
-**Implementation Details:** The `SymergeticsNumber` class extends `fractions.Fraction` with specialized functionality for synergetic calculations, including automatic simplification, comprehensive error handling, and seamless integration with geometric analysis components. All arithmetic operations maintain exact precision while providing an intuitive interface for researchers.
-
+A float constructor preserves the float's binary rational value; `from_float`
+approximates it with a bounded denominator. Perfect rational roots stay exact;
+irrational roots and powers are approximated. `PI`, `E` and `PHI` are rational
+approximations, not exact transcendental or algebraic values. See
+[numbers.py](../../symergetics/core/numbers.py) and
+[constants.py](../../symergetics/core/constants.py).
 
 ### Quadray Coordinate System
 
+Four components q = (a,b,c,d) encode three-dimensional positions modulo
+q ~ q + k(1,1,1,1). Subtracting the minimum selects a nonnegative, minimum-zero
+representative; it does not impose a zero or constant component sum. The
+implemented coordinate class stores integers and rounds fractional constructor
+inputs with exact halves away from zero.
 
-**Tetrahedral Geometry:** The Quadray system uses four axes arranged in tetrahedral symmetry, extending traditional Cartesian coordinates to handle four-dimensional tetrahedral relationships. Each axis points from the center to one of the four vertices of a regular tetrahedron, providing inherent tetrahedral symmetry for analyzing geometric relationships in synergetic systems.
-
-**Mathematical Definition:** A point in Quadray coordinates is represented as (a, b, c, d) where at least one coordinate is zero after normalization. The coordinates are non-negative integers in the IVM lattice, with the constraint that the sum remains constant after normalization. The normalization process subtracts the minimum coordinate from all four coordinates, ensuring at least one is zero while maintaining tetrahedral symmetry.
-
-**Coordinate Transformations:** The system supports exact conversion between Quadray and Cartesian coordinates using the Urner embedding matrix. These transformations preserve all geometric relationships exactly, enabling seamless integration with traditional geometric analysis tools. Complete implementation details are available in the [coordinate transformation module](https://github.com/docxology/symergetics/tree/main/symergetics/core/coordinates).
-
+At scale 1, XYZ = (a−b−c+d, a+b−c−d, a−b+c−d). The embedding has rank three
+and common-offset kernel. Its full integer image is BCC; the selected FCC/IVM
+neighbor graph is distinct. `from_xyz` solves nearest integer-site selection,
+not a lossless inverse for arbitrary continuous positions. Exact squared metrics
+are available; length and float-returning coordinate views have representability
+limits. See [coordinates.py](../../symergetics/core/coordinates.py).
 
 ### Isotropic Vector Matrix (IVM) Units
 
+Project each displacement to (a−d,b−d,c−d). The tetrahedral native volume is
+abs(det)/4, returned as a `Fraction`; the primitive corner tetrahedron has volume
+1/4 despite the function name `integer_tetra_volume`. In the default scale-1
+embedding, Cartesian cubic volume = (8/3) × native volume. A uniform scale s
+multiplies Cartesian volume by |s|³.
 
-**Volume Calculations:** The IVM coordinate system provides exact volume calculations for Platonic solids using rational arithmetic. The fundamental unit is the tetrahedron with volume 1 IVM unit, establishing the basis for all geometric calculations.
+The default regular tetrahedron has native volume 1 and Cartesian edge 2√2.
+Default cube, octahedron and cuboctahedron volumes are 3, 4 and 20, respectively,
+at their declared relative sizes. These are not equal-edge comparisons for all
+solids. The cuboctahedron is not Platonic; there are no corresponding implemented
+icosahedron/dodecahedron classes in
+[polyhedra.py](../../symergetics/geometry/polyhedra.py).
 
-**Platonic Solid Volumes:**
-- **Tetrahedron**: 1 IVM unit (fundamental unit)
-- **Octahedron**: 4 IVM units (exactly 4 × tetrahedron)
-- **Cube**: 3 IVM units (exactly 3 × tetrahedron)
-- **Cuboctahedron**: 20 IVM units (exactly 20 × tetrahedron)
-- **Icosahedron**: 5φ² IVM units (where φ = (1 + √5)/2 is the golden ratio)
-- **Dodecahedron**: 15φ IVM units (where φ = (1 + √5)/2 is the golden ratio)
-
-**Note**: The icosahedron and dodecahedron volumes involve the golden ratio φ, representing the fundamental geometric relationships that emerge from Fuller's synergetic analysis. These exact relationships demonstrate the mathematical coherence underlying natural geometric forms.
-
-**Mathematical Relationships:** The octahedron equals exactly 4 tetrahedra, the cube equals exactly 3 tetrahedra, and the cuboctahedron equals exactly 20 tetrahedra. The icosahedron and dodecahedron volumes involve the golden ratio φ, demonstrating the relationship between geometry and fundamental mathematical constants.
-
-**Exact Calculations:** All volume calculations maintain exact precision using rational arithmetic, enabling precise analysis of geometric relationships. The exact nature of these calculations is essential for understanding the fundamental relationships between different geometric forms and their role in natural systems.
-
-**Mathematical Verification:** The volume relationships have been verified against the original Synergetics calculations and confirmed through independent mathematical analysis. The tetrahedron-to-octahedron ratio of 1:4 and tetrahedron-to-cube ratio of 1:3 are exact mathematical relationships that emerge from the geometric properties of these solids in the IVM coordinate system.
-
+Solid volume is determined by live vertices and declared indexed triangle fans,
+not by a named constant or an inferred convex hull. Closed orientable shells
+without self/mutual intersections are a precondition. Disjoint solids add;
+nested shells alternate solid and cavity by even–odd enclosure. Exact vertex
+mean and exact uniform-solid centroid are separate quantities.
 
 ### Scheherazade Number Analysis
 
-
-**Definition:** Scheherazade numbers are powers of 1001 (10³ + 1), which factor into 7 × 11 × 13, creating rich mathematical structures that reveal embedded patterns when analyzed with exact arithmetic.
-
-**Mathematical Properties:** These numbers exhibit palindromic sequences and coefficients from Pascal's triangle that become visible only with exact precision. For example, 1001² = 1,002,001 contains palindromic patterns, while 1001³ = 1,003,003,001 reveals more complex structures.
-
-**Pattern Discovery:** The analysis of Scheherazade numbers (1001^n) reveals embedded patterns through exact arithmetic operations, enabling discovery of intricate mathematical structures that would be obscured by floating-point approximations. The palindromic properties reflect fundamental symmetries characteristic of natural systems, while Pascal triangle coefficients reveal connections to combinatorial mathematics and geometric relationships central to synergetic analysis.
-
-Detailed pattern analysis algorithms are implemented in the [Scheherazade analysis module](https://github.com/docxology/symergetics/tree/main/symergetics/computation/patterns).
-
+The computational family is 1001^n = (10³+1)^n, with 1001 = 7×11×13. The
+binomial theorem gives coefficients C(n,k) in base-1000 blocks while every
+coefficient is below 1000; carries invalidate the naive block reading beyond
+that condition. This is a known identity, not evidence of a physical law or a
+pattern inaccessible to other integer software.
 
 ### Primorial Sequences
 
-
-**Definition:** Primorial sequences represent the cumulative product of prime numbers up to a given value n. The primorial function n# equals the product of all prime numbers ≤ n. For example, 6# = 2×3×5×7×11×13 = 30,030.
-
-**Mathematical Significance:** These sequences have important applications in number theory and provide insights into prime number distribution and relationships. They are particularly significant in the study of the Riemann zeta function and other advanced mathematical functions central to understanding prime number distribution.
-
-**Exact Computation:** The package provides efficient algorithms for computing primorial sequences while maintaining exact precision. The computation process uses the Sieve of Eratosthenes to generate prime numbers, then multiplies them using exact rational arithmetic, ensuring mathematical accuracy throughout the calculation.
-
-**Growth Rate:** The primorial function (#) grows very rapidly: 10# = 6,469,693,230 and 20# = 5,479,503,140,000,000,000. The exact computation of these large numbers requires precise arithmetic to maintain accuracy and reveal the deep mathematical relationships that emerge from these sequences.
-
-Implementation details are available in the [primorial computation module](https://github.com/docxology/symergetics/tree/main/symergetics/computation/sequences).
-
+The implemented convention is n# = product of primes p ≤ n. Thus 6# = 30,
+10# = 210 and 13# = 30,030. The product of the first six primes is 30,030,
+but `primorial(6)` does not use that index convention. See
+[primorials.py](../../symergetics/computation/primorials.py).
 
 ### Implementation Architecture
 
+The [API reference](../../docs/api/index.md) owns callable details; the
+[research guide](../../docs/research/index.md) collects source and modeling limits.
+These definitions support mathematical examples, not universal precision or
+domain-validation claims.
 
-The mathematical foundations are implemented across specialized modules that work together to provide comprehensive synergetic analysis capabilities. The [core module](https://github.com/docxology/symergetics/tree/main/symergetics/core) handles fundamental arithmetic and coordinate system operations, while the [computation module](https://github.com/docxology/symergetics/tree/main/symergetics/computation) manages advanced pattern analysis and sequence generation. Practical examples demonstrating these mathematical concepts are available in the [examples directory](https://github.com/docxology/symergetics/tree/main/examples).
+![Figure 1: Quadray Coordinate System Origin](../../output/geometric/coordinates/quadray_coordinate_0_0_0_0.png)
 
+**Figure 1**: Quadray origin in a rank-three embedding. The four displayed slots are a gauge representation of a three-dimensional point, not four independent Euclidean coordinates; plotted positions are finite-precision views.
 
-![Figure 1: Quadray Coordinate System Origin](output/geometric/coordinates/quadray_coordinate_0_0_0_0.png)
+![Figure 2: Quadray Representative (2,1,1,0)](../../output/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
 
-**Figure 1**: Quadray Coordinate System Origin - This visualization shows the origin point (0,0,0,0) in the four-dimensional Quadray coordinate system. The Quadray system extends traditional 3D Cartesian coordinates with an additional tetrahedral dimension, enabling precise representation of complex geometric relationships that cannot be adequately captured in standard coordinate systems.
+**Figure 2**: Coordinate example for the minimum-zero representative (2,1,1,0). Under the scale-1 map its XYZ position is (0,2,2); adding a common offset to all four slots leaves that position unchanged.
 
+### Native Volume Ratios at Declared Construction Scales
 
-![Figure 2: Advanced Quadray Coordinate Analysis](output/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
-
-**Figure 2**: Advanced Quadray Coordinate Analysis - This comprehensive visualization demonstrates complex multi-point analysis in the Quadray coordinate system, showing coordinate grids, tetrahedral structures, and highlighted points including (2,1,1,0). The analysis reveals the mathematical relationships between different coordinate points and demonstrates how the four-dimensional tetrahedral system captures spatial relationships that reveal underlying geometric symmetries and structural patterns in three-dimensional space.
-
-
-### Geometric Ratios from Platonic Solids
-
-
-The fundamental geometric ratios in Synergetics are derived directly from the properties of Platonic solids, which represent the most regular and symmetrical three-dimensional forms:
-
-
-- **Tetrahedron**: 1 IVM unit volume - represents the fundamental building block of tetrahedral geometry
-- **Cube**: 3 IVM units - represents the relationship between tetrahedral and octahedral forms
-- **Octahedron**: 4 IVM units - formed by combining two tetrahedra in complementary orientation
-- **Cuboctahedron**: 20 IVM units - combines both triangular and square faces in a vector equilibrium structure
-
-
-These ratios form the basis for understanding structural patterns in nature and provide the mathematical foundation for analyzing complex geometric relationships.
+The 1:3:4:20 native volume ratios describe the default tetrahedron, cube,
+octahedron and cuboctahedron constructions. They do not imply that 3 + 4 = 20,
+that two complementary tetrahedra fill an octahedron without overlap/gaps, or
+that arbitrary physical structures share these volumes.

@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Readable, computed graphical abstracts
+
+- Add keyword-only `section` selection to `create_mega_graphical_abstract`: readable `overview` by default, focused `geometry`, `arithmetic` and `patterns`, or all seventeen topics with `all`. Preserve explicit caller titles and return actual panel identities, computed values and units.
+- Render modular demo outputs with JSON sidecars rather than squeezing every topic into one ordinary-width image.
+- Project declared solid edges faithfully; distinguish vertex means from uniform-solid mass centroids and preserve equal XYZ scale.
+- Bound enormous exact annotations without discarding exact vertices, topology, anchors or measurements from metadata. Allocate only enabled panels, honor geometry-layer controls and close owned figures after drawing/save failures.
+
+### Source-backed documentation and suite checks
+
+- Audit API recipes, mathematical conventions, installation, research papers, manuscript guides and educational claims. Separate implemented behavior from historical evidence, proposals and unmeasured outcomes.
+- Cross-reference current coordinate/unit/inverse/centroid contracts and main-only visualization APIs without claiming they exist in the immutable 1.3.0 wheel.
+- Extend suite verification to check authored Markdown throughout all three repositories, pruning dependency/generated trees without exempting linked targets. Include real manuscript asset and caption gates.
+
+### Faithful figures and mathematical PDFs
+
+- Migrate manuscript image references, renderer and both validators to ordinary source-relative paths. Remove basename guessing and fail missing/unreadable/unsupported images instead of substituting placeholders.
+- Preserve raster aspect, authored figure numbers and captions after blank lines. Render repeated occurrences faithfully; cross-reference the paper's duplicate sequence summary instead of drawing it twice.
+- Stop discarding non-ASCII text. Embed portable DejaVu fonts so coordinate operators, radicals, inequality signs and cubic units remain intact in the actual PDF.
+- Wrap table columns within the page frame, preserve empty cells, omit alignment rows and repeat headers. Check real PDF text and placement rather than static style defaults.
+- Replace mocked/wording/default renderer tests with real-image identity, aspect, repetition and failure controls. Exercise paper validation/rendering in CI and publish the current PDF as an artifact without altering archived releases.
+
 ## 1.3.0 — 2026-11-07
 
 ### Exact metrics and live solid analysis
