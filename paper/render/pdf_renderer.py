@@ -123,6 +123,7 @@ class ScientificPaperRenderer:
         styles['Normal'].spaceBefore = 6
         styles['Normal'].alignment = TA_JUSTIFY
         styles['Normal'].textColor = colors.black
+        styles['Heading1'].keepWithNext = True
 
         # Title style
         styles.add(ParagraphStyle(
@@ -161,7 +162,8 @@ class ScientificPaperRenderer:
             fontSize=16,
             spaceBefore=20,
             spaceAfter=10,
-            textColor=colors.black
+            textColor=colors.black,
+            keepWithNext=True,
         ))
 
         # Subsection headers
@@ -171,7 +173,18 @@ class ScientificPaperRenderer:
             fontSize=14,
             spaceBefore=15,
             spaceAfter=8,
-            textColor=colors.red
+            textColor=colors.red,
+            keepWithNext=True,
+        ))
+
+        styles.add(ParagraphStyle(
+            name='DetailHeader',
+            parent=styles['SubsectionHeader'],
+            fontSize=12,
+            leading=15,
+            spaceBefore=12,
+            spaceAfter=6,
+            keepWithNext=True,
         ))
 
         # Code blocks
@@ -356,9 +369,8 @@ class ScientificPaperRenderer:
 
             # Headers
             if line.startswith('# '):
-                # Main header (skip title as it's handled separately)
-                i += 1
-                continue
+                title = self._process_inline_formatting(line[2:].strip())
+                flowables.append(Paragraph(title, self.styles['Heading1']))
             elif line.startswith('## '):
                 title = self._process_inline_formatting(line[3:].strip())
                 flowables.append(Paragraph(title, self.styles['SectionHeader']))
@@ -367,7 +379,7 @@ class ScientificPaperRenderer:
                 flowables.append(Paragraph(title, self.styles['SubsectionHeader']))
             elif line.startswith('#### '):
                 title = self._process_inline_formatting(line[5:].strip())
-                flowables.append(Paragraph(title, self.styles['SubsectionHeader']))
+                flowables.append(Paragraph(title, self.styles['DetailHeader']))
             elif line.startswith('##### ') or line.startswith('###### '):
                 title = self._process_inline_formatting(line.lstrip('#').strip())
                 flowables.append(Paragraph(title, self.styles['Normal']))
@@ -387,7 +399,6 @@ class ScientificPaperRenderer:
                     # Special handling for Python code - truncate long blocks
                     truncated_code = self._truncate_code_block(code_content, max_lines=15)
                     flowables.append(Paragraph(f"🐍 Python Code:", self.styles['SectionHeader']))
-                    flowables.append(Spacer(1, 4))
                     flowables.append(Paragraph(truncated_code, self.styles['PythonCodeBlock']))
 
                     # Add truncation note if code was truncated
@@ -397,7 +408,6 @@ class ScientificPaperRenderer:
                 elif language.lower() == 'mermaid':
                     # Special handling for Mermaid diagrams
                     flowables.append(Paragraph(f"📊 Mermaid Diagram", self.styles['SectionHeader']))
-                    flowables.append(Spacer(1, 4))
 
                     # Try to render diagram as image
                     diagram_id = f"mermaid_{len(flowables)}"  # Unique ID for this diagram
@@ -482,10 +492,8 @@ class ScientificPaperRenderer:
                 flowables.append(Paragraph(list_content, self.styles['Normal']))
                 continue
 
-            # Tables (basic support)
-            elif ('|' in line and i + 1 < len(lines)
-                  and re.fullmatch(r"\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*",
-                                   lines[i + 1])):
+            # Pipe tables require a complete, matching delimiter row.
+            elif self._is_markdown_table(lines, i):
                 table_lines = [line, lines[i + 1]]
                 i += 2
                 while i < len(lines) and '|' in lines[i].strip():
@@ -622,8 +630,17 @@ class ScientificPaperRenderer:
         text = text.replace('<', '&lt;')
         text = text.replace('>', '&gt;')
 
-        # Process inline code `code` - replace with simple text markers
-        text = re.sub(r'`([^`\n]+)`', r'[\1]', text)
+        # Code is literal: protect it from emphasis and hyperlink processing.
+        code_spans = []
+
+        def protect_code(match):
+            code = match.group(2)
+            if code.startswith(' ') and code.endswith(' ') and code.strip():
+                code = code[1:-1]
+            code_spans.append(f'<font name="DejaVuSansMono">{code}</font>')
+            return f'\x00CODE{len(code_spans) - 1}\x00'
+
+        text = re.sub(r'(`+)(.+?)\1(?!`)', protect_code, text)
 
         # Process bold **text** and __text__
         text = re.sub(r'\*\*([^*\n]+)\*\*', r'<b>\1</b>', text)
@@ -642,21 +659,54 @@ class ScientificPaperRenderer:
 
         # Process strikethrough ~~text~~
         text = re.sub(r'~~([^~\n]+)~~', r'<strike>\1</strike>', text)
+
+        for index, code in enumerate(code_spans):
+            text = text.replace(f'\x00CODE{index}\x00', code)
         
         return text
 
-    def _parse_markdown_table(self, table_lines: List[str]) -> List[List[str]]:
-        """Parse Markdown table into data structure"""
-        if len(table_lines) < 2:
-            return None
+    @staticmethod
+    def _split_table_row(line: str) -> List[str]:
+        """Split only unescaped pipes, retaining authored empty cells."""
+        row = line.strip()
+        cells = []
+        cell = []
+        escaped = False
+        for character in row:
+            if character == '|' and not escaped:
+                cells.append(''.join(cell).strip())
+                cell = []
+            else:
+                if character == '|' and escaped:
+                    cell.pop()  # The escape belongs to the table delimiter syntax.
+                cell.append(character)
+            escaped = character == '\\' and not escaped
+        cells.append(''.join(cell).strip())
+        if row.startswith('|'):
+            cells.pop(0)
+        if row.endswith('|') and cells[-1] == '':
+            cells.pop()
+        return cells
 
-        table_data = []
-        for line in table_lines:
-            row = line.strip().removeprefix('|').removesuffix('|')
-            table_data.append([cell.strip() for cell in row.split('|')])
-        if not all(re.fullmatch(r':?-+:?', cell) for cell in table_data[1]):
+    def _is_markdown_table(self, lines: List[str], index: int) -> bool:
+        if index + 1 >= len(lines) or '|' not in lines[index]:
+            return False
+        header = self._split_table_row(lines[index])
+        delimiter = self._split_table_row(lines[index + 1])
+        return (bool(header) and len(header) == len(delimiter)
+                and all(re.fullmatch(r':?-{3,}:?', cell) for cell in delimiter))
+
+    def _parse_markdown_table(self, table_lines: List[str]) -> List[List[str]]:
+        """Parse bounded pipe tables with Markdown's three-dash delimiters."""
+        if not self._is_markdown_table(table_lines, 0):
             return None
-        return [table_data[0], *table_data[2:]]
+        header = self._split_table_row(table_lines[0])
+        width = len(header)
+        rows = [header]
+        for line in table_lines[2:]:
+            row = self._split_table_row(line)
+            rows.append((row + [''] * width)[:width])
+        return rows
 
     def _truncate_code_block(self, code_content: str, max_lines: int = 15) -> str:
         """Truncate code blocks that are too long for PDF display."""

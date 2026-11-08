@@ -42,17 +42,28 @@ can clear outputs, run tests and regenerate examples.
 - [scan_and_register_figures.py](scan_and_register_figures.py): registry scanner.
 - [test_renderer.py](test_renderer.py): source tests, not a current pass receipt.
 
-## Unicode Mathematics and Bounded Markdown Tables
+## PDF Heading Pagination, Unicode and Pipe Tables
 
 Use [manuscript style](../STYLE_GUIDE.md) for headings, real code examples,
 references and bounded captions. The renderer embeds DejaVu Sans and Mono fonts
 bundled with Matplotlib rather than discarding non-ASCII text. Coordinate minus
 signs, square roots, inequalities and cubic units must survive in the PDF.
 
-Simple pipe tables wrap within the page frame, preserve empty columns, omit the
-alignment row and repeat headers across pages. Cell links use the same inline
-formatting as body text. Relative links retain their source context; use the
-Markdown sources for repository navigation.
+Ordinary H1–H4 headings are printed at distinct sizes and kept with subsequent
+content. Spacing belongs to heading styles, not an intervening spacer that could
+leave the heading alone at a page foot. Long paragraphs can still split, and each
+numbered source module begins a new page. The title module uses its own metadata
+layout; H5/H6 remain body-sized text.
+
+Simple pipe tables wrap within the page frame, preserve empty columns, omit valid
+delimiter rows and repeat headers across pages. Header/delimiter widths must
+match; delimiters need at least three dashes and may have edge colons. Colons do
+not currently set column alignment. Outer pipes are optional. Escape literal
+cell pipes as `\|`, even inside code spans; use blank lines around a table.
+Rows are padded or trimmed to the header width; merged cells and nested blocks
+are unsupported. Inline code stays literal and monospaced rather than becoming
+emphasis or links. Cell links otherwise use body inline formatting. Relative
+links retain their source context; use the Markdown sources for navigation.
 
 This is not a full scholarly Markdown, LaTeX or bibliography processor. Long code
 blocks can be truncated; a printed excerpt is not the complete implementation.
@@ -85,8 +96,9 @@ From repository root after installing the renderer requirements:
 .venv-paper/bin/python -m unittest discover -s paper/render -p test_renderer.py
 ```
 
-Regressions build real PDFs and inspect mathematical text and text-placement
-coordinates, alongside image identity, aspect, repetition and failure controls.
+Regressions build real PDFs and inspect mathematical text, heading/body page
+co-location, distinct heading sizes, literal code and table-column placement,
+alongside image identity, aspect, repetition and failure controls.
 Run the structural/image diagnostics linked from
 [quick start](../QUICK_START.md#validate-paper), then inspect an isolated render.
 These checks do not establish every mathematical interpretation or publication

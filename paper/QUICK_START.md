@@ -67,12 +67,20 @@ preserve provenance. Image paths are relative to the source Markdown file,
 for example `../../output/geometric/polyhedra/tetrahedron_3d_enhanced.png`,
 with a matching detailed caption and concrete authored figure number.
 
-## Style Reference
+## Authoring Limits and PDF Review
 
 [Style guide](STYLE_GUIDE.md) covers topic-specific headings, numeric domains,
 units and captions. Four quadray slots encode rank-three geometry; “exact
 rational approximation” means an exact stored rational approximating a different
 value, not an exact irrational constant or exact measurement.
+
+Follow the [heading/code/table rules](STYLE_GUIDE.md#heading-levels-literal-code-and-pipe-tables):
+H1–H4 stay with subsequent content, but long bodies still split. Use valid
+three-dash table delimiters and escape literal cell pipes, including in code.
+In the isolated PDF, check headings near page feet, unchanged literal identifiers,
+empty columns and wrapped table cells as well as figures. H5/H6, merged table
+cells, full LaTeX math and bibliography processing are not equivalent to a full
+publishing engine; see the [renderer limits](render/README.md#pdf-heading-pagination-unicode-and-pipe-tables).
 
 ## Troubleshooting
 
