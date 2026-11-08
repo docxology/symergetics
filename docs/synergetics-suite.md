@@ -342,11 +342,14 @@ The [previous-release Linux Chromium run](https://github.com/docxology/QuadCraft
 passed all 30 surfaces with native Doom capture active. The current methods
 pass's local Chromium run recorded actual denial, with keyboard controls
 available. A capture-denied run does not exercise the capture-only held-fire branch.
+The [merged methods-pass Linux run](https://github.com/docxology/QuadCraft/actions/runs/42431463709)
+passed all 30 scenarios with native capture active. It exercised held automatic
+fire, late input/release ownership and fresh respawn timing on the actual game.
 
 On the local macOS workstation, the normal graphical native configuration
 could not complete because system GLEW was missing. The independent headless
 build and native coordinate adapter were exercised successfully. The
-[Linux native workflow](https://github.com/docxology/QuadCraft/actions/runs/42339885598)
+[merged Linux native workflow](https://github.com/docxology/QuadCraft/actions/runs/42431463605)
 succeeded for the graphical build and Debug/Release headless jobs. Interactive
 native gameplay was not exercised.
 
