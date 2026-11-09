@@ -29,7 +29,7 @@ try:
     from reportlab.lib.units import inch
     from reportlab.platypus import (
         SimpleDocTemplate, Paragraph, Spacer, PageBreak,
-        Image, Table, TableStyle, Flowable
+        Image, KeepTogether, Table, TableStyle, Flowable
     )
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
@@ -563,12 +563,12 @@ class ScientificPaperRenderer:
                     # or unreadable images propagate their real ReportLab/Pillow error.
                     img = Image(str(full_img_path), width=5*inch, height=3.5*inch, kind="proportional")
                     img.hAlign = 'CENTER'
-                    flowables.append(img)
                     figure_caption = f"Figure {number}: {description}" if description else f"Figure {number}"
-                    flowables.append(Paragraph(
+                    caption = Paragraph(
                         self._process_inline_formatting(figure_caption),
                         self.styles['FigureCaption'],
-                    ))
+                    )
+                    flowables.append(KeepTogether([img, caption]))
                     self.document_figure_counter = max(self.document_figure_counter, number + 1)
                     if caption_match:
                         i = caption_index

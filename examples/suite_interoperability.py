@@ -38,16 +38,18 @@ console.log(JSON.stringify(cases.map(([values, otherValues]) => {
 NODE_GRAPH_ADAPTER = r"""
 const fs = require('node:fs');
 const {ConservativeGraphField} = require(process.argv[1]);
-const {size, edges, initial, alphas, steps} = JSON.parse(fs.readFileSync(0, 'utf8'));
+const {size, edges, initial, alphas, steps, active = null} = JSON.parse(fs.readFileSync(0, 'utf8'));
 const graph = new ConservativeGraphField(size, edges);
 console.log(JSON.stringify(alphas.map(alpha => {
     let values = new Float64Array(initial);
     const fields = [];
+    const negativeZeros = [];
     for (let tick = 0; tick < steps; tick++) {
-        values = graph.step(values, alpha);
+        values = graph.step(values, alpha, null, active);
         fields.push(Array.from(values));
+        negativeZeros.push(Array.from(values, value => Object.is(value, -0)));
     }
-    return {alpha, fields};
+    return {alpha, fields, negativeZeros};
 })));
 """
 
@@ -106,6 +108,142 @@ def check_row(label: str, row: Sequence[float], values: Sequence[int],
     for index, (actual, wanted) in enumerate(zip(row, expected)):
         if not math.isclose(actual, wanted, rel_tol=2e-5, abs_tol=2e-5):
             raise AssertionError(f"{label}: q={values}, field={index}, expected {wanted}, got {actual}")
+
+
+def check_transport_boundaries(node: str, graph_path: Path, lattice) -> list[dict]:
+    """Return observed Python/Node outcomes against analytic binary64 oracles."""
+    import numpy as np
+
+    from quadmath.lattice.ivm_dynamics import IVMLattice, conservative_heat_step
+    from quadmath.core.quadray import Quadray
+
+    pair_adjacency = np.array([[0, 1], [1, 0]], dtype=np.uint8)
+    pair = IVMLattice(
+        radius=0, sites=lattice.sites[:2], adjacency=pair_adjacency,
+        degrees=np.array([1, 1]), diffusion=pair_adjacency.astype(float),
+        average=pair_adjacency.astype(float),
+    )
+    tiny = math.ulp(0.0)
+    normal = sys.float_info.min
+    maximum = sys.float_info.max
+    below_maximum = math.nextafter(maximum, 0.0)
+    cases = [
+        ("identity", pair, [1e308, -1e308], 0.0, [1e308, -1e308]),
+        ("exchange", pair, [1e308, -1e308], 1.0, [-1e308, 1e308]),
+        ("cancellation", pair, [1e308, -1e308], 0.5, [0.0, 0.0]),
+        ("maximum_exchange", pair, [maximum, -maximum], 1.0, [-maximum, maximum]),
+    ]
+    masks = {}
+    effective_graphs = {}
+    for sign in (1, -1):
+        for units, rounded in ((1, 0), (3, 2), (5, 2)):
+            cases.append((
+                f"subnormal_tie_{sign}_{units}", pair, [sign * units * tiny, 0.0],
+                0.5, [math.copysign(rounded * tiny, sign)] * 2,
+            ))
+        cases.extend((
+            (f"normal_transition_{sign}", pair, [sign * (normal - tiny), sign * normal],
+             0.5, [sign * normal] * 2),
+            (f"maximum_tie_{sign}", pair, [sign * maximum, sign * below_maximum],
+             0.5, [sign * below_maximum] * 2),
+        ))
+        origin = next(i for i, q in enumerate(lattice.sites) if q.as_tuple() == (0, 0, 0, 0))
+        if lattice.degrees[origin] != 12 or lattice.degrees.max() != 12:
+            raise AssertionError("boundary transport requires an FCC degree-12 origin")
+        initial = np.zeros(lattice.size)
+        initial[origin] = sign * 1e308
+        # Power-of-two scaling is exact in this range; the final division is
+        # the only rounding. Do not divide tiny by twelve before multiplying.
+        transferred = math.ldexp(sign * 1e308, -1074) / 12
+        wanted = np.where(lattice.adjacency[origin], transferred, 0.0)
+        wanted[origin] = initial[origin]
+        cases.append((f"fcc_tiny_coupling_{sign}", lattice, initial, tiny, wanted))
+
+    # A disconnected zero-valued star retains the full maximum degree when
+    # the first star is masked. Python receives the actual enabled-edge graph;
+    # Node receives the full graph and mask, so mask parity is not a mock.
+    for degree in (11, 18):
+        size = 2 * (degree + 1) + 1
+        adjacency = np.zeros((size, size), dtype=np.uint8)
+        adjacency[0, 1:degree + 1] = adjacency[1:degree + 1, 0] = 1
+        anchor = degree + 1
+        adjacency[anchor, anchor + 1:-1] = adjacency[anchor + 1:-1, anchor] = 1
+
+        def star_graph(edges):
+            degrees = edges.sum(axis=1)
+            safe = np.maximum(degrees, 1)
+            return IVMLattice(
+                radius=0, sites=tuple(Quadray(i, 0, 0, 0) for i in range(size)),
+                adjacency=edges, degrees=degrees,
+                diffusion=edges / np.sqrt(safe[:, None] * safe[None, :]),
+                average=edges / safe[:, None],
+            )
+
+        graph = star_graph(adjacency)
+        for offset in (0.0, 2.0**970):
+            magnitude = maximum / 2 - offset
+            for sign in (1, -1):
+                for enabled in (degree, 1, 0):
+                    label = f"star_degree_{degree}_offset_{offset.hex()}_sign_{sign}_edges_{enabled}"
+                    initial = np.zeros(size)
+                    initial[0] = -sign * magnitude
+                    initial[1:degree + 1] = sign * magnitude
+                    initial[-1] = -7.0
+                    wanted = initial.copy()
+                    native = sign * Fraction(magnitude)
+                    wanted[0] = float(native * (Fraction(2 * enabled, degree) - 1))
+                    wanted[1:enabled + 1] = float(native * Fraction(degree - 2, degree))
+                    active = np.ones(size, dtype=bool)
+                    active[enabled + 1:degree + 1] = False
+                    masked = adjacency * active[:, None] * active[None, :]
+                    cases.append((label, graph, initial, 1.0, wanted))
+                    masks[label] = active.tolist()
+                    effective_graphs[label] = star_graph(masked)
+
+    # Zero coupling is an exact identity, including a stored negative zero.
+    cases.append(("signed_zero_identity", pair, [-0.0, maximum / 2], 0.0,
+                  [-0.0, maximum / 2]))
+    outcomes = []
+
+    for label, graph, initial, alpha, wanted in cases:
+        sources, targets = np.nonzero(np.triu(graph.adjacency, k=1))
+        actual = json.loads(run(
+            [node, "-e", NODE_GRAPH_ADAPTER, str(graph_path)],
+            json.dumps({
+                "size": graph.size,
+                "edges": [[int(a), int(b)] for a, b in zip(sources, targets)],
+                "initial": list(initial), "alphas": [alpha], "steps": 1,
+                "active": masks.get(label),
+            }),
+        ))
+        if len(actual) != 1 or actual[0]["alpha"] != alpha:
+            raise AssertionError(f"{label}: missing boundary transport result")
+        expected = np.asarray(wanted, dtype=float)
+        python = conservative_heat_step(
+            np.asarray(initial, dtype=float), effective_graphs.get(label, graph), alpha,
+        )
+        javascript = np.asarray(actual[0]["fields"], dtype=float)
+        if javascript.shape != (1, graph.size):
+            raise AssertionError(f"{label}: boundary transport shape mismatch")
+        if not np.array_equal(python, expected) or not np.array_equal(javascript[0], expected):
+            raise AssertionError(
+                f"{label}: expected {expected.tolist()}, "
+                f"Python={python.tolist()}, JavaScript={javascript[0].tolist()}",
+            )
+        negative_zeros = ((expected == 0) & np.signbit(expected)).tolist()
+        python_negative_zeros = ((python == 0) & np.signbit(python)).tolist()
+        if python_negative_zeros != negative_zeros or actual[0]["negativeZeros"] != [negative_zeros]:
+            raise AssertionError(f"{label}: signed underflow rounding disagreement")
+        outcomes.append({
+            "case": label, "vertices": graph.size, "alpha": alpha,
+            "masked": label in masks,
+            "python_center": float(python[0]),
+            "javascript_center": float(javascript[0, 0]),
+            "python_leaf": float(python[1]),
+            "javascript_leaf": float(javascript[0, 1]),
+            "oracle_match": True, "signed_zero_match": True,
+        })
+    return outcomes
 
 
 def main() -> None:
@@ -323,6 +461,10 @@ def main() -> None:
         if any(after > before + 1e-11 for before, after in zip(energies, energies[1:])):
             raise AssertionError("conservative transport increased graph Dirichlet energy")
 
+    boundary_cases = check_transport_boundaries(
+        args.node, craft_root / "games/4d_generic/graph_field.js", lattice,
+    )
+
     print(json.dumps({"status": "passed", "coordinate_cases_per_runtime": len(cases),
                       "runtimes": ["QuadMath", "symergetics", "QuadCraft Python",
                                    "QuadCraft JavaScript", "QuadCraft C++"],
@@ -336,6 +478,8 @@ def main() -> None:
                           "vertices": lattice.size, "edges": len(edges),
                           "couplings": alphas, "compared_steps": len(alphas) * steps,
                           "maximum_mass_drift": maximum_mass_drift,
+                          "finite_boundary_cases": len(boundary_cases),
+                          "finite_boundary_outcomes": boundary_cases,
                           "runtimes": ["QuadMath", "QuadCraft JavaScript"],
                       }}, indent=2))
 

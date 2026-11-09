@@ -15,7 +15,7 @@ Read actual source signatures and callers before editing recipes. Complete
 imports and real return shapes matter. Do not invent methods, exception trees,
 performance results or scientific validity. Use checkout/downloaded-wheel
 installation, not PyPI; select Python 3.13 for scientific commands without
-changing repository pins. Distinguish unreleased main APIs from 1.3.0 artifacts.
+changing repository pins. Document 1.4.0 interfaces without extending older artifacts.
 
 ## Canonical contracts and navigation
 

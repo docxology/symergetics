@@ -36,6 +36,11 @@ not a lossless inverse for arbitrary continuous positions. Exact squared metrics
 are available; length and float-returning coordinate views have representability
 limits. See [coordinates.py](../../symergetics/core/coordinates.py).
 
+The continuous zero-sum minimum-norm inverse is a separate operation: rational
+inversion of the effective embedding retains anisotropic units until final
+floating entries. It neither snaps to integer sites nor certifies a lossless
+floating round trip. See [transformation contracts](../../docs/api/index.md#transformations).
+
 ### Isotropic Vector Matrix (IVM) Units
 
 Project each displacement to (a−d,b−d,c−d). The tetrahedral native volume is
@@ -79,11 +84,11 @@ The [API reference](../../docs/api/index.md) owns callable details; the
 These definitions support mathematical examples, not universal precision or
 domain-validation claims.
 
-![Figure 1: Quadray Coordinate System Origin](../../output/geometric/coordinates/quadray_coordinate_0_0_0_0.png)
+![Figure 1: Quadray Coordinate System Origin](../../output/publication/1.4.0/geometric/coordinates/quadray_coordinate_0_0_0_0.png)
 
 **Figure 1**: Quadray origin in a rank-three embedding. The four displayed slots are a gauge representation of a three-dimensional point, not four independent Euclidean coordinates; plotted positions are finite-precision views.
 
-![Figure 2: Quadray Representative (2,1,1,0)](../../output/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
+![Figure 2: Quadray Representative (2,1,1,0)](../../output/publication/1.4.0/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
 
 **Figure 2**: Coordinate example for the minimum-zero representative (2,1,1,0). Under the scale-1 map its XYZ position is (0,2,2); adding a common offset to all four slots leaves that position unchanged.
 

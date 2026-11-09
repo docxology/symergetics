@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 — 2026-11-09
 
 ### Publication flow and literal mathematical code
 
@@ -15,20 +15,51 @@
 - Render modular demo outputs with JSON sidecars rather than squeezing every topic into one ordinary-width image.
 - Project declared solid edges faithfully; distinguish vertex means from uniform-solid mass centroids and preserve equal XYZ scale.
 - Bound enormous exact annotations without discarding exact vertices, topology, anchors or measurements from metadata. Allocate only enabled panels, honor geometry-layer controls and close owned figures after drawing/save failures.
+- Publish a source-backed 1.4.0 scientific snapshot without replacing historical outputs: regenerate the ten maintained manuscript figures, numeric statistical dashboard and five section SVGs through current producers, migrate current paper links and refresh the overview hero.
+- Add an explicit-new-output publication CLI with portable input/API metadata, exact rational serialization, source/toolchain/asset hashes and measured image dimensions. Keep actual UTC provenance time separate from the source-date footer; no final gate or release success is implied.
 
 ### Source-backed documentation and suite checks
 
 - Audit API recipes, mathematical conventions, installation, research papers, manuscript guides and educational claims. Separate implemented behavior from historical evidence, proposals and unmeasured outcomes.
-- Cross-reference current coordinate/unit/inverse/centroid contracts and main-only visualization APIs without claiming they exist in the immutable 1.3.0 wheel.
+- Cross-reference coordinate/unit/inverse/centroid contracts and scientific-poster selection introduced in 1.4.0; earlier release artifacts retain their own APIs.
 - Extend suite verification to check authored Markdown throughout all three repositories, pruning dependency/generated trees without exempting linked targets. Include real manuscript asset and caption gates.
 
 ### Faithful figures and mathematical PDFs
 
 - Migrate manuscript image references, renderer and both validators to ordinary source-relative paths. Remove basename guessing and fail missing/unreadable/unsupported images instead of substituting placeholders.
 - Preserve raster aspect, authored figure numbers and captions after blank lines. Render repeated occurrences faithfully; cross-reference the paper's duplicate sequence summary instead of drawing it twice.
+- Keep each raster figure and its complete bounded caption together across page breaks, with real PDF image/text-position regressions rather than fixed page-number expectations.
 - Stop discarding non-ASCII text. Embed portable DejaVu fonts so coordinate operators, radicals, inequality signs and cubic units remain intact in the actual PDF.
 - Wrap table columns within the page frame, preserve empty cells, omit alignment rows and repeat headers. Check real PDF text and placement rather than static style defaults.
 - Replace mocked/wording/default renderer tests with real-image identity, aspect, repetition and failure controls. Exercise paper validation/rendering in CI and publish the current PDF as an artifact without altering archived releases.
+
+### Stateful geometry and exact plane operations
+
+- Add `with_vertices(vertices)` as the same-concrete-type shallow-copy protocol for polyhedron transforms. Own a new vertex list while retaining topology and other state by reference; subclasses can override geometry-dependent state handling.
+- Project onto arbitrary planes and reflect in named basis-normal planes using exact represented Python/NumPy scalar ratios before one nearest-lattice snap. Quantization can move a projection off its plane; origin inversion remains exact.
+- Compute the continuous zero-sum minimum-norm inverse of the effective embedding by rational cofactors, retaining anisotropic units until final float entries; keep it distinct from exact nearest-lattice search.
+
+### Faithful mathematical figures and provenance
+
+- Preserve raw leading-zero pattern identity and decode signed base strings in their declared base. Align most-significant-first binary coefficients and weights; report numeric continued-fraction, primorial, SS-RCD and radar quantities rather than synthetic curves.
+- Define palindrome endpoint, repeated-digit and whole-sequence symmetry relations explicitly. Keep `include_matrix=True` as the dense default on every backend; explicit ASCII `include_matrix=False` returns `pattern_matrix=None` with linear text analysis. Graphical backends reject matrix omission; radar coverage is always linear.
+- Close only renderer-owned figures, including exceptional exits; reject unsupported backends rather than silently substituting another renderer.
+- Render actual correlation/mean/median/table values rather than formatting literals; display undefined constant-column correlations as `N/A`.
+- Use constrained subplot layout for numeric dashboards and continued-fraction figures so correlation labels do not collide with adjacent headings; label the unit error-ratio reference as unchanged error, not linear convergence.
+- Use `SOURCE_DATE_EPOCH` for reproducible scientific footers and relative JSON sidecar paths. Keep registry UTC export time separate from source-date display metadata.
+- Preserve registry technical details, signed redundant quadray coefficients and complete polyhedron names. Label filename-derived metadata as inference, leave unencoded backend/resolution/scale unknown, save under the scanner's project root and replace snapshot state atomically/idempotently.
+
+### Bound source and distribution verification
+
+- Emit schema-2 receipts binding requested/resolved refs, expected full revisions and before/after raw input fingerprints. All tracked assets are inputs, including generated directories; only explicitly listed untracked products and selected untracked reports are excluded.
+- Distinguish Git-canonical cleanliness (clean filters and executable policy) from raw-byte/index integrity; detect hidden tracked edits without refreshing the index. Require clean release checkouts at both boundaries without discarding local user output.
+- Fail closed on empty/duplicate execution plans and use native CTest `--no-tests=error`; preserve fail-fast core/full profile accounting.
+- Report observed Python/JavaScript finite-transport boundary outcomes, including masked extreme stars and signed-zero identity, rather than pinning a fixed case count.
+- Add per-Python original/rebuilt distribution artifacts and proof from actual installed wheel/sdist consumers, separate from editable suite receipts. Record resolved build tools; byte identity is conditional on the captured toolchain.
+
+Release-verification evidence belongs to dated release notes and exact-source
+receipts, not an inferred changelog status. Historical receipts below retain
+their dates and scope. See the [suite verification contract](docs/synergetics-suite.md#complete-suite-verification).
 
 ## 1.3.0 — 2026-11-07
 

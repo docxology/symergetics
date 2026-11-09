@@ -250,7 +250,7 @@ def demo_mathematical_png_visualizations():
         (12321, "palindrome", "Perfect palindrome"),
         (1001001, "palindrome", "Scheherazade-based palindrome"),
         (123454321, "palindrome", "Symmetric palindrome"),
-        (1234567890, "digit_sequence", "Sequential digits")
+        (1234567890, "repeated", "Sequential digits with no repeated-digit membership")
     ]
     
     for number, pattern_type, description in pattern_numbers:

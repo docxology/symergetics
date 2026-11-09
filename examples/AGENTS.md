@@ -10,6 +10,6 @@ external destination; an ignored `output_dir` keyword is not isolation.
 Keep exactness, coordinate gauges and native/XYZ units visible in explanations.
 Do not infer successful execution from a printed success message: several demos
 catch exceptions and return status/results. Poster section selection describes
-unreleased main only. The interoperability script uses real sibling packages,
+the 1.4.0 interface. The interoperability script uses real sibling packages,
 Node.js and C++17; do not replace unavailable consumers with fabricated data.
 Verification follows the active assignment; never run every demo automatically.

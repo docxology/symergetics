@@ -176,3 +176,28 @@ def test_continuous_inverse_preserves_extreme_finite_embedding_units(scale):
     inverse = xyz_to_quadray_matrix(embedding)
     np.testing.assert_allclose(embedding @ inverse, np.eye(3), rtol=2e-14, atol=2e-14)
     np.testing.assert_allclose(inverse * scale, EMBEDDING.T / 4, rtol=2e-14, atol=2e-14)
+
+
+def test_continuous_inverse_retains_independent_extremely_anisotropic_axes():
+    scales = np.array([1e308, 1e-308, 1.0])
+    embedding = scales[:, None] * EMBEDDING
+    inverse = xyz_to_quadray_matrix(embedding)
+    # Analytic Urner oracle; no SVD or production inversion helper.
+    expected = EMBEDDING.T * (1 / scales)[None, :] / 4
+    assert np.isfinite(inverse).all()
+    np.testing.assert_allclose(inverse, expected, rtol=2e-15, atol=0)
+    np.testing.assert_array_equal(inverse.sum(axis=0), np.zeros(3))
+    # Normalize Cartesian units before multiplication: a raw E @ inverse
+    # would overflow cancelling off-diagonal products even for the oracle.
+    np.testing.assert_allclose(
+        EMBEDDING @ (inverse * scales[None, :]), np.eye(3), rtol=2e-15, atol=2e-15)
+    continuous = np.array([0.75, -0.25, -0.25, -0.25])
+    xyz = embedding @ continuous
+    np.testing.assert_allclose(inverse @ xyz, continuous, rtol=2e-15, atol=2e-15)
+
+
+def test_continuous_inverse_uses_effective_first_columns_with_tolerated_fourth_roundoff():
+    embedding = EMBEDDING.copy()
+    embedding[0, 3] = np.nextafter(embedding[0, 3], np.inf)
+    inverse = xyz_to_quadray_matrix(embedding)
+    np.testing.assert_array_equal(inverse, EMBEDDING.T / 4)

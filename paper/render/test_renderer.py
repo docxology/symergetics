@@ -1,13 +1,18 @@
-"""Real-PDF regressions for readable text, pagination, tables and source figures."""
+"""Real-PDF and figure-registry regressions for publication artifact integrity."""
+from dataclasses import asdict
+from datetime import datetime, timedelta
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
 from PIL import Image as RasterImage
 from pypdf import PdfReader
-from reportlab.platypus import Image, Paragraph, SimpleDocTemplate
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import Paragraph, SimpleDocTemplate
 
 from pdf_renderer import ScientificPaperRenderer
+from figure_manager import FigureManager, FigureMetadata
 
 
 class TestScientificPaperRenderer(unittest.TestCase):
@@ -173,6 +178,70 @@ class TestScientificPaperRenderer(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.renderer._find_image_path(str(selected))
 
+    def test_pdf_keeps_image_and_complete_caption_on_the_same_page(self):
+        description = (
+            "Caption opening. "
+            + "Exact geometry retains its units and declared construction scale. " * 6
+            + "Literal `__init__` preserves a−d and |s|³. "
+            + "Caption ending."
+        )
+        for name, size, preface_lines in (
+            ("tall", (100, 400), 29),
+            ("tall", (100, 400), 27),
+            ("wide", (800, 200), 40),
+            ("wide", (800, 200), 38),
+        ):
+            with self.subTest(image=name, preface_lines=preface_lines):
+                self.raster(f"{name}.png", size, "navy")
+                path = self.root / f"caption-boundary-{name}-{preface_lines}.pdf"
+                story = [
+                    Paragraph(
+                        "<br/>".join(["Boundary preface"] * preface_lines),
+                        self.renderer.styles["Normal"],
+                    ),
+                    *self.renderer.process_markdown_content(
+                        f"![Figure 17: {name}](../../output/figures/{name}.png)\n\n"
+                        f"**Figure 17**: {description}\n"
+                    ),
+                ]
+                SimpleDocTemplate(str(path), pagesize=A4).build(story)
+                pages = list(PdfReader(path).pages)
+                images = []
+                caption_positions = []
+                page_text = []
+                for page_index, page in enumerate(pages):
+                    def record_image(operator, operands, transform, text_matrix):
+                        if operator == b"Do":
+                            images.append((page_index, tuple(transform)))
+
+                    def record_text(text, transform, text_matrix, font, size):
+                        if text.strip() and "Boundary preface" not in text:
+                            y = (text_matrix[4] * transform[1]
+                                 + text_matrix[5] * transform[3] + transform[5])
+                            caption_positions.append((page_index, y, size))
+
+                    page_text.append(page.extract_text(
+                        visitor_operand_before=record_image, visitor_text=record_text,
+                    ))
+                self.assertEqual(len(images), 1)
+                image_page, matrix = images[0]
+                complete_caption = f"Figure 17: {description}".replace("`", "")
+                caption_pages = [
+                    index for index, text in enumerate(page_text)
+                    if complete_caption in " ".join(text.split())
+                ]
+                self.assertEqual(caption_pages, [image_page])
+                self.assertTrue(any(
+                    "Boundary preface" in text for text in page_text[:image_page]
+                ), "The fixture must force the complete pair past preceding text")
+                self.assertTrue(caption_positions)
+                self.assertEqual({index for index, _, _ in caption_positions}, {image_page})
+                self.assertAlmostEqual(abs(matrix[0] / matrix[3]), size[0] / size[1])
+                image_bottom = min(matrix[5], matrix[5] + matrix[3])
+                for _, y, font_size in caption_positions:
+                    self.assertGreaterEqual(y, 72)
+                    self.assertLessEqual(y + font_size, image_bottom)
+
     def test_portrait_and_landscape_keep_intrinsic_aspect(self):
         self.raster("wide.png", (800, 200), "navy")
         self.raster("tall.png", (100, 400), "orange")
@@ -182,31 +251,42 @@ class TestScientificPaperRenderer(unittest.TestCase):
             "![Figure 2: Tall](../../output/figures/tall.png)\n"
             "**Figure 2:** Tall source.\n"
         )
-        figures = [
-            item for item in self.renderer.process_markdown_content(content)
-            if isinstance(item, Image)
-        ]
-        self.assertEqual(len(figures), 2)
-        self.assertAlmostEqual(figures[0].drawWidth / figures[0].drawHeight, 4.0)
-        self.assertAlmostEqual(figures[1].drawWidth / figures[1].drawHeight, 0.25)
+        document = self.render_source("04_system_architecture.md", content)
+        aspects = []
+
+        def record_image(operator, operands, transform, text_matrix):
+            if operator == b"Do":
+                aspects.append(abs(transform[0] / transform[3]))
+
+        for page in document.pages:
+            page.extract_text(visitor_operand_before=record_image)
+        self.assertEqual(len(aspects), 2)
+        self.assertAlmostEqual(aspects[0], 4.0)
+        self.assertAlmostEqual(aspects[1], 0.25)
 
     def test_repeated_asset_keeps_both_authored_caption_occurrences(self):
         self.raster("same.png", (300, 200), "navy")
-        first = self.renderer.process_markdown_content(
+        document = self.render_source(
+            "04_system_architecture.md",
             "![Figure 5: First](../../output/figures/same.png)\n\n"
-            "**Figure 5**: First context.\n"
-        )
-        second = self.renderer.process_markdown_content(
+            "**Figure 5**: First context.\n\n"
             "![Figure 8: Second](../../output/figures/same.png)\n\n"
-            "**Figure 8:** Second context.\n"
+            "**Figure 8:** Second context.\n",
         )
-        combined = first + second
-        self.assertEqual(sum(isinstance(item, Image) for item in combined), 2)
-        captions = [
-            item.getPlainText() for item in combined
-            if isinstance(item, Paragraph) and item.style.name == "FigureCaption"
-        ]
-        self.assertEqual(captions, ["Figure 5: First context.", "Figure 8: Second context."])
+        images = []
+        text = []
+
+        def record_image(operator, operands, transform, text_matrix):
+            if operator == b"Do":
+                images.append(operands[0])
+
+        for page in document.pages:
+            text.append(page.extract_text(visitor_operand_before=record_image))
+        self.assertEqual(len(images), 2)
+        self.assertEqual(images[0], images[1])
+        printed = "\n".join(text)
+        self.assertEqual(printed.count("Figure 5: First context."), 1)
+        self.assertEqual(printed.count("Figure 8: Second context."), 1)
 
     def test_missing_reference_is_not_replaced_by_another_same_named_image(self):
         self.raster("elsewhere/same.png", (300, 200), "navy")
@@ -214,6 +294,72 @@ class TestScientificPaperRenderer(unittest.TestCase):
             self.renderer.process_markdown_content(
                 "![Figure 1: Missing](../../output/figures/missing/same.png)\n"
             )
+
+    def test_unreadable_and_unsupported_images_fail_rendering(self):
+        for name, content in (
+            ("unreadable.png", b"not a raster image"),
+            ("vector.svg", b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>'),
+        ):
+            with self.subTest(image=name):
+                (self.assets / name).write_bytes(content)
+                with self.assertRaises(OSError):
+                    self.render_source(
+                        "04_system_architecture.md",
+                        f"![Figure 1: Invalid](../../output/figures/{name})\n",
+                    )
+
+
+class TestScientificFigureRegistry(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.manager = FigureManager()
+        self.manager.output_dir = self.root
+
+    def test_saved_snapshot_restores_numbering_categories_and_a_utc_export_time(self):
+        self.manager.register_figure(
+            "geometric", "polyhedra", "tetrahedron.svg",
+            "Tetrahedron", "Indexed solid", {"data_points": 4}, "explicit fixture",
+        )
+        path = self.manager.save_figure_registry()
+        exported = json.loads(path.read_text(encoding="utf-8"))
+        timestamp = datetime.fromisoformat(exported["generated_at"])
+        self.assertEqual(timestamp.utcoffset(), timedelta(0))
+
+        restored = FigureManager()
+        restored.output_dir = self.root
+        restored.register_figure("previous", "old", "old.svg", "Old", "Previous state")
+        self.assertTrue(restored.load_figure_registry())
+        self.assertTrue(restored.load_figure_registry())
+        self.assertEqual(dict(restored.category_counters), {"geometric": 1})
+        self.assertEqual(restored.get_figures_by_category("previous"), [])
+        following = restored.register_figure(
+            "mathematical", "patterns", "patterns.svg", "Patterns", "New state"
+        )
+        self.assertEqual(following.number, 2)
+        self.assertTrue(restored.load_figure_registry())
+        self.assertEqual(dict(restored.category_counters), {"geometric": 1})
+        self.assertEqual(restored.figure_counter, 1)
+
+    def test_invalid_or_missing_snapshot_preserves_the_existing_registry(self):
+        existing = self.manager.register_figure(
+            "previous", "old", "old.svg", "Old", "Previously registered"
+        )
+        self.assertFalse(self.manager.load_figure_registry("missing.json"))
+        incoming = FigureMetadata(
+            7, "geometric", "polyhedra", "new.svg",
+            "New", "Incoming record", {}, "explicit fixture", "unknown",
+        )
+        path = self.root / "invalid.json"
+        path.write_text(
+            json.dumps({"figures": [asdict(incoming), {}]}), encoding="utf-8"
+        )
+        with self.assertRaises(TypeError):
+            self.manager.load_figure_registry(path.name)
+        self.assertEqual(set(self.manager.figures), {existing.number})
+        self.assertEqual(dict(self.manager.category_counters), {"previous": 1})
+        self.assertEqual(self.manager.figure_counter, existing.number)
 
 
 if __name__ == "__main__":

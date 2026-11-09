@@ -81,14 +81,20 @@ cubically and circumradius/inradius linearly.
 | QuadMath `quadray_from_xyz` | Float inverse with component-wise half-up snapping. Not necessarily the XYZ-nearest site. Keep this behavior distinct from spatial nearest search. |
 | QuadMath `nearest` / `within_radius` | Queries on the IVM-center lattice, in default embedding units and within the documented shell limit. |
 | symergetics `QuadrayCoordinate.from_xyz` / `xyz_to_quadray` | Nearest integer-quadray point in the supplied compatible embedding; canonical tuple order resolves equal-distance ties. |
-| symergetics `xyz_to_quadray_matrix` | Continuous 4×3 pseudoinverse; not integer quantization or min-zero normalization. |
+| symergetics `xyz_to_quadray_matrix` | Continuous zero-sum minimum-norm 4×3 inverse of the effective embedding, using rational cofactors before final float entries; not exact nearest search, integer quantization or min-zero normalization. |
 | QuadCraft `fromCartesian` / Python `from_xyz` | Continuous inverse modulo the common-offset gauge; not an FCC nearest-neighbor operation. |
 | QuadCraft `toIVM` | Canonical component rounding; not a closest-point search on the FCC/CCP sublattice. |
 
 symergetics' fractional scaling and named plane reflections perform the
-Euclidean operation and then quantize to an integer quadray. Quantization can
-change distances and make a transform non-invertible; it is not exact
-continuous geometry. Integer scaling and origin inversion can remain exact.
+Euclidean operation and then quantize to an integer quadray. Plane projection
+uses exact represented rational normal/point values (including NumPy floating
+scalars) before a single nearest-lattice snap. A snapped result can leave the
+plane. `reflect` accepts `origin`/`a`/`b`/`c`/`d`, not an arbitrary normal.
+Quantization can change distances and make a transform non-invertible; it is
+not exact continuous geometry. Integer scaling and origin inversion remain exact.
+Polyhedron transforms call `with_vertices`: concrete type/topology survive,
+the new vertex list is owned, and other state is shallow-shared unless the
+subclass overrides that protocol.
 
 ## Exchange exact data without losing precision
 
@@ -140,10 +146,17 @@ Symmetric-normalized heat instead preserves the `sqrt(degree)`-weighted mode,
 not ordinary mass on irregular boundary graphs. Neither operator's stationary
 distribution should be relabeled as the other's.
 
+The finite binary64 implementation keeps full-graph maximum degree under masks
+and reserves headroom for accumulated incident flux **and** the old state,
+not merely individual edge differences. Larger-magnitude updates use exact
+accumulation before rounding; no exact-JavaScript or universal bit-identity
+claim follows. The boundary consumer reports its actual case outcomes rather
+than a timeless case-count constant.
+
 | Consumer | Deliberate contract |
 |---|---|
 | QuadMath `IVMField.harmonic_extension` | Hard Dirichlet values; every component must be anchored, with failure atomicity and separate component scales |
-| Existing regularized `IVMField.learn` | Soft observation penalty; not a hard-boundary solver |
+| Regularized `IVMField.learn` | Soft observation penalty via observation-response weights, not hard Dirichlet data; zero regularization evaluates the kernel target, every component needs an observation, and nonfinite/nonconvex/backward-inaccurate solves fail atomically |
 | Majority trajectory fitting | Exact integer/Fraction residuals, binary-float alpha decisions and one final mean-square conversion; noisy fractional observations stay fractional |
 | SimAnt terrain graph | Eight raw reversible axis neighbors, terrain masks and distinct occupancy aliases; not the twelve-neighbor physical FCC graph |
 | SimAnt pheromones | Conservative transport separated from deposition, evaporation, caps and Float32 storage; HUD accounts for the nonconservative terms |
@@ -155,6 +168,11 @@ distribution should be relabeled as the other's.
 The interoperability example supplies an explicit FCC graph to the generic
 JavaScript field kernel before comparing it with QuadMath. It does not pretend
 SimAnt's raw terrain graph is that FCC graph.
+
+Dense learning response weights remain double precision: a backward-error
+check is not a forward-accuracy guarantee for ill-conditioned systems. Preserve
+physical mixed-magnitude targets rather than treating small observations as
+zero after global normalization.
 
 ### Formal scope and graphical evidence
 
@@ -172,10 +190,10 @@ test counts or universal rationality claim. Irrational quantities remain
 approximations. Sparse lattice planes preserve exact native indices while
 displaying local-origin cells, rather than allocating a dense huge-span image.
 
-## Graphical abstracts: readable views and auditable quantities
+## Scientific poster sections
 
-The following visualization changes are **main/Unreleased**, not additions to
-the immutable versions in the release table below.
+These graphical-abstract interfaces are introduced in the coordinated
+0.7.0 / 1.4.0 / v0.6.0 releases. Earlier assets retain their release-specific APIs.
 
 | Surface | Appropriate use | Important boundary |
 |---|---|---|
@@ -205,9 +223,12 @@ An omitted title follows the section; an explicit custom title is retained.
 Returned metadata names the actual selected panels; returned data contains
 their computed quantities and units. The
 [comprehensive demo](../examples/comprehensive_visualizations_demo.py) writes
-separate group outputs and JSON sidecars. These APIs are not available by
-installing an imagined PyPI release; use the current checkout, or the explicitly
-versioned wheel only for its own documented interface.
+separate group outputs and JSON sidecars with paths relative to each sidecar.
+Use a checkout at the recorded revision or the explicitly versioned GitHub
+wheel; the package is not published on PyPI. Scientific footers use the UTC
+date of `SOURCE_DATE_EPOCH` when supplied, otherwise the local date. Registry
+`generated_at` instead records actual UTC export time; filename-inferred
+generator/scale/resolution hints are not verified scientific provenance.
 
 Solid abstracts honor `show_edges`, `show_faces`, `show_vertices`,
 `show_volume_ratios` and `show_coordinates`. XY projection preserves declared
@@ -225,13 +246,42 @@ states and stopping reasons, and mask infeasible categorical probabilities.
 A sampled minimum, ideal entropy-Hessian trace and numerically evaluated
 variational objective are different quantities and are labeled accordingly.
 
+## Statistical samples and scaling diagnostics
+
+QuadMath's `sample_mean(x)` accepts a nonempty finite one-dimensional sample,
+using compensated accumulation with an exact overflow-boundary fallback.
+Resampling callbacks must return finite scalars; the default bootstrap and
+jackknife statistic is this mean. Singleton descriptive standard deviation
+remains undefined (`NaN`), and truly unrepresentable descriptive spread can be
+infinite. Student-t tails, representable confidence intervals and sample
+moments are numerical contracts, not universal inference validity.
+
+`scaling_fit(sizes, times)` still returns `(slope, intercept, r2)`.
+Use `scaling_predict(sizes, times, query_sizes)` for predictions from that same
+fit: paired observed references, centered/scaled log-ratio OLS, a residual
+relative intercept and binary-exponent evaluation retain narrow extreme-size
+variation. Do not reconstruct predictions with
+`exp(intercept + slope*log(query))`; the global intercept is a reporting
+coefficient. Observed references do not force a noisy fit through one sample,
+and fitted coefficients describe measurements rather than proving complexity.
+See [QuadMath statistics](https://github.com/docxology/QuadMath/blob/main/src/quadmath/stats/statistics.py)
+for finite/positive/vector input and representability errors.
+
 ## Coordinated software releases
 
 | Project | Version | Release notes |
 |---|---|---|
-| QuadMath | 0.6.0 | [Exact methods, conservative simulation and formal quotient proofs](https://github.com/docxology/QuadMath/releases/tag/0.6.0) |
-| symergetics | 1.3.0 | [Live solid moments, indexed geometry and computed scientific figures](https://github.com/docxology/symergetics/releases/tag/1.3.0) |
-| QuadCraft | v0.5.0 | [Time-owned simulation, continuous collisions and conservative gameplay transport](https://github.com/docxology/QuadCraft/releases/tag/v0.5.0) |
+| QuadMath | 0.7.0 | [Range-safe statistics and scientific diagnostics](https://github.com/docxology/QuadMath/releases/tag/0.7.0) |
+| symergetics | 1.4.0 | [Stateful geometry, faithful figures and bound verification](https://github.com/docxology/symergetics/releases/tag/1.4.0) |
+| QuadCraft | v0.6.0 | [Owned simulation, native capture and gameplay evidence](https://github.com/docxology/QuadCraft/releases/tag/v0.6.0) |
+
+Release preparation is dated 2026-11-09. These are the intended versioned release
+destinations, not evidence that publication or this revision's CI has completed.
+Earlier GitHub assets are preserved by project policy; GitHub hosting alone
+does not make them platform-immutable. Consult the
+[suite workflow index](https://github.com/docxology/symergetics/actions/workflows/suite.yml)
+and [package workflow index](https://github.com/docxology/symergetics/actions/workflows/verify.yml)
+for actual current runs. Dated evidence below is historical.
 
 ## Complete suite verification
 
@@ -250,19 +300,64 @@ actual 30-game Chromium gate; it requires prepared tooling and never silently
 skips a missing browser. Without that flag, the explicitly labelled `core`
 profile runs the numerical/native/documentation checks only.
 
-The version-1 JSON receipt records the selected profile, all three declared
-versions and actual Git revisions, source/worktree dirty state, executed
-commands, durations, return codes and unexecuted checks. Repository, temporary
-and executable paths use logical aliases rather than personal absolute paths.
-`source_dirty` excludes only the listed generated-output prefixes;
-`worktree_dirty` still reports those changes. An enclosing repository cannot
-stand in for a missing independent checkout.
+The schema-2 JSON receipt records the selected profile, commands, durations,
+return codes and unexecuted checks. Each repository binding records
+`requested_ref`, its `requested_ref_revision`, optional `expected_revision`,
+and `before`/`after` states with actual `revision`, declared `version`,
+`source_dirty`, `worktree_dirty`, `source_paths`, `input_count` and opaque
+`input_sha256`. `--quadmath-ref`, `--symergetics-ref`, `--quadcraft-ref` must
+resolve to their checkout HEAD; the corresponding `--*-expected-revision`
+arguments require a full commit object ID equal to HEAD.
 
-The verifier stops at the first failure. A successful receipt has no unexecuted
-checks **within its selected profile**. `--require-clean` rejects uncommitted
-source changes before running stages; generated output remains visible in the
-receipt. Optional `--quadmath-root`, `--quadcraft-root` and `--python` arguments
+Raw integrity and canonical Git cleanliness are different contracts.
+`input_sha256` binds raw relative filenames, file kinds, executable bits,
+contents and staged index entries; symlinks bind link text, not target bytes.
+Cleanliness uses Git's clean filters/object format and `core.filemode`,
+checking tracked contents even when hidden by assume-unchanged. Inspection
+does not refresh the on-disk index or write Git objects. CRLF/filter-equivalent
+bytes or mode differences ignored by Git policy can be clean, but any raw
+input or HEAD drift during execution still fails. Fingerprints are opaque
+within one implementation/execution, not cross-version content-equivalence IDs.
+
+**Every tracked file is an input**, including tracked generated manuscript
+assets under output directories. Exclusions apply only to nonignored
+untracked products: QuadMath `quadmath/output/`; symergetics `output/` and
+`paper/output/`; no QuadCraft output prefix. A selected untracked report path
+is also excluded; ignored untracked builds are not inputs. Actual exclusions
+appear in `untracked_output_prefixes` and `untracked_report_exclusions`.
+`worktree_dirty` still exposes output changes; an enclosing repository cannot
+stand in for a missing independent checkout. Shared command/cwd fields use
+logical root/tool aliases, not personal absolute paths.
+
+The verifier rejects empty plans and empty/duplicate check names, then stops
+at the first failed command. A successful receipt has no unexecuted checks
+**within its selected profile** and unchanged source integrity. Native CTest
+uses `--no-tests=error`, so an empty test inventory fails rather than passing.
+`--require-clean` requires clean inputs before **and after** execution, not
+merely a clean start. Run release verification in separate exact-ref clean
+checkouts: do not discard local user outputs to satisfy the gate. Ordinary
+stable dirty checkouts remain usable without this flag but cannot certify a
+clean release. Optional `--quadmath-root`, `--quadcraft-root` and `--python`
 support non-sibling checkouts and explicit interpreters.
+
+These are **editable-source checks**, not proof of installed wheel/sdist behavior.
+The package workflows produce per-Python artifacts
+`quadmath-distributions-python-3.11` / `-3.13` and
+`symergetics-distributions-python-3.11` / `-3.13`. Their layout is:
+
+- `original/`: source-built wheel and source archive;
+- `rebuilt/`: wheel built from the extracted source archive;
+- `proof/`: runner/build-tool versions, resolved installed packages/runtime
+  constraints, SHA256 checksums and JSON results from both isolated installed
+  consumers outside checkouts.
+
+The symergetics consumers install only core runtime dependencies and use
+isolated imports; optional visualization behavior is covered separately.
+Frozen runtime locks do not pin all PEP517/publication backends: resolved
+versions are captured, not universally fixed. Checksums identify actual files;
+neither passing consumers nor `SOURCE_DATE_EPOCH` promise byte-identical builds
+across arbitrary toolchains. Release evidence must bind the final refs,
+receipts and distributed assets after those gates actually run.
 
 The [suite workflow](../.github/workflows/suite.yml) runs the full profile with
 clean-source enforcement and uploads the receipt plus browser diagnostics.
@@ -327,23 +422,38 @@ continuous rational centroids beyond binary64's range and integer precision,
 plus NumPy-backed rational ingress before fixed-width arithmetic can wrap.
 It also checks 280 native exact-metric pairs against an independent integer
 XYZ oracle and 15 conservative steps on the same explicit FCC graph in the
-Python/JavaScript kernels. The exercised run observed maximum mass drift
-`1.4210854715202004e-14`; this is floating evidence, not an exact-JavaScript claim.
+Python/JavaScript kernels. A historical exercised run observed maximum mass
+drift `1.4210854715202004e-14`; that is not a current receipt or exact-JavaScript claim.
+The current consumer additionally returns `finite_boundary_outcomes` and derives
+`finite_boundary_cases` from those records: extreme degree-11/18 stars, both
+signs, full/single/disabled masks, isolated values, subnormal/maximum ties,
+tiny coupling and signed-zero zero-coupling identity.
 Missing runtimes and mismatches fail the command; they are not silently skipped.
 It neither launches the OpenGL game nor proves browser rendering or the entire
 mathematical library.
 
-Python 3.13 is the exercised scientific environment for this review. The
-repositories' existing Python pins are unchanged. Their older locked
-scientific dependencies can require source builds under newer interpreters.
+Python 3.13 is the selected scientific environment for current reproduction;
+the historical receipts below identify previously exercised environments.
+Existing repository pins are unchanged. Locked scientific dependencies can
+require source builds under newer interpreters.
 
 For graphics-free native verification:
 
 ```bash
-cmake -S /path/to/QuadCraft -B /tmp/quadcraft-core -DQUADCRAFT_BUILD_GAME=OFF
+cmake -S /path/to/QuadCraft -B /tmp/quadcraft-core -DQUADCRAFT_BUILD_GAME=OFF -DBUILD_TESTING=ON
 cmake --build /tmp/quadcraft-core
-(cd /tmp/quadcraft-core && ctest --output-on-failure)
+ctest --test-dir /tmp/quadcraft-core --output-on-failure --no-tests=error
 ```
+
+The core/full suite profiles do not run native OpenGL gameplay.
+[QuadCraft's native workflow](https://github.com/docxology/QuadCraft/blob/main/.github/workflows/native-build.yml)
+separately builds the actual game and exercises real Mesa/Xvfb tests.
+Bounded `--frames N --capture output.ppm` runs must render through their frame
+target or fail; a separate application smoke consumer checks the exact P6
+payload and visible pixel variation. Its `native-mesa-application` artifact is
+separate from `native-mesa-framebuffers`. These current real-GL gates and
+captures remain pending verification; older build successes below do not
+establish current gameplay, capture integrity or allocation-failure coverage.
 
 See [testing](testing-guide.md) for symergetics' coverage and focused-run
 commands, [QuadMath's workflow](https://github.com/docxology/QuadMath/blob/main/WORKFLOW.md)
@@ -357,10 +467,14 @@ arithmetic, cache validity and unvisited browser surfaces. Reproductions,
 independent code review and runtime gates establish confidence in the exercised
 contracts, not universal correctness.
 
+The following review summaries and run links belong to earlier releases,
+including the 2026-11-07 methods release. They are retained as historical
+evidence, not as successful gates for 0.7.0 / 1.4.0 / v0.6.0.
+
 | Boundary | Implemented correction and evidence |
 |---|---|
 | Gauge and precision | QuadMath promotes centroid inputs before exact accumulation and widens low-precision floats before gauge subtraction. Reconstructed inverse candidates must replay the actual forward XYZ floats, so large axes cannot hide resolved off-lattice errors. Covered by its core/lattice regressions. |
-| Nearest-point projection | symergetics uses the regular BCC fast path or exact-rational LLL reduction and closest-first bounded enumeration, retaining canonical tie-breaking. Anisotropic, sheared and permuted-basis oracle regressions exercise the general path; continuous pseudoinverses are scale-normalized separately. |
+| Nearest-point projection | symergetics uses the regular BCC fast path or exact-rational LLL reduction and closest-first bounded enumeration, retaining canonical tie-breaking. Anisotropic, sheared and permuted-basis oracle regressions exercised the general path; the earlier continuous pseudoinverse was separately scale-normalized. See above for the new rational-cofactor inverse. |
 | Geometry versus labels | QuadCraft keeps physical distances separate from raw occupancy. Doom traverses raw four-index cell boundaries; Connect Four retains independent `(0,0,0,0)` and `(1,1,1,1)` slots through drop/undo. Physical boards enumerate canonical cells, and weighted pathfinding uses Dijkstra when no positive cost bound is supplied. |
 | Runtime integration | Seven renderers/controllers use the current shared projection/lifecycle APIs. Doom's ESM bridge resolves the canonical class. Tower Defense draws indexed twelve-neighbor IVM edges. The CLI discovers nested shared JS/Python suites and treats nonzero process exits as failures, even after a passing summary. |
 | Exact integer ingress | Integral scalars and `Fraction` fields, including NumPy-backed numerators/denominators, are promoted to Python integers before arithmetic and snapping. Bareiss elimination and boxed-object count inputs cannot wrap fixed-width products. Displacements are embedded before floating conversion; range-safe norms/angles and scaled huge-integer products retain finite geometry. |
@@ -370,7 +484,7 @@ contracts, not universal correctness.
 | Exact roots and centers | Perfect rational roots/powers stay exact; canonical `Fraction` centroids agree across both Python projects, including huge integers and independent gauges. Mutable vertex updates immediately affect volume. |
 | Information geometry | Integral/large/mixed-scale sample gradients retain finite second moments; statistical Fisher interpretation requires likelihood scores. Log-domain probability arithmetic preserves positive support and recoverable rare-state contributions. |
 | Complete browser inventory | All 30 actual games exercise real input/state/rendering, including 2048 pause/merge/reset, Life paused redraw/full-domain fitting, Reversi reset history and Mahjong tile fitting. |
-| Release provenance | Versioned full/core receipts identify three Git revisions/versions, distinguish generated/source changes and redact host/interpreter paths. CI accepts fixed refs and enforces clean source. |
+| Release provenance | Earlier versioned full/core receipts identified three Git revisions/versions, distinguished generated/source changes and redacted host/interpreter paths. CI accepted fixed refs and enforced its then-current clean-source policy; see above for the schema-2 raw-input contract. |
 
 Exact rational enumeration has no heuristic candidate cap. Its cost still
 depends on basis/input bit lengths; no constant-time claim is made for

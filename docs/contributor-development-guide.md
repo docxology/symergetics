@@ -18,8 +18,8 @@ uv run --python 3.13 --extra scientific --extra test --extra dev python -c "impo
 Do not rewrite the repository's `.python-version` merely to run the scientific
 environment. Core metadata supports Python >=3.11, but that is not evidence
 that all optional scientific wheels exist for every newer interpreter. See
-[installation routes](../README.md#install-and-run). The unchanged 1.3.0 version
-string alone does not identify unreleased main features; record the revision.
+[installation routes](../README.md#install-and-run). Record both the 1.4.0
+package version and the actual source revision when reproducing behavior.
 
 ## Development Workflow
 
@@ -31,7 +31,7 @@ string alone does not identify unreleased main features; record the revision.
    environment, outcomes, skipped checks and artifact paths. Never paste an old
    receipt as current evidence. Some coordinated passes intentionally defer
    integrated checks until edits settle; follow that assignment's instructions.
-5. Keep user-generated `output/` and immutable release artifacts out of changes.
+5. Keep user-generated `output/` and policy-preserved release artifacts out of changes.
 
 ## Architecture Guidelines
 
@@ -63,7 +63,7 @@ a gate green. Commands and coverage semantics are centralized in the
 - Show complete imports and actual signatures. Label application adapters and
   conceptual extensions instead of presenting them as installed methods.
 - Name coordinate gauge, scale, volume units and quantization in numerical examples.
-- Distinguish development checkout features from immutable release-wheel APIs.
+- Distinguish development checkouts from their versioned release-wheel interfaces.
 - Keep benchmark evidence tied to a command, revision, input and environment.
 - If a heading changes, update inbound fragment links; preserve explicit anchors.
 
@@ -79,8 +79,8 @@ A partial local test run does not establish the full package coverage gate.
 
 Distribution uses checkout installation or wheels downloaded from
 [GitHub Releases](https://github.com/docxology/symergetics/releases), not PyPI.
-Do not publish with `twine` or claim that a new main-only keyword is supported by
-an existing wheel. Published 1.3.0 artifacts are immutable. Release/version/tag
+Do not publish with `twine` or extend an older wheel's interface by changing
+documentation. Earlier assets are preserved by policy, not guaranteed immutable by hosting. Release/version/tag
 changes require their own maintainer-approved process; this guide does not
 authorize them. See [release notes](../CHANGELOG.md) and the
 [suite reproducibility guide](synergetics-suite.md).

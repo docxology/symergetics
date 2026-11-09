@@ -5,7 +5,7 @@
 Each Python block is an independent consumer example for a development checkout.
 Run it with the scientific Python 3.13 environment described in the root guide.
 Expected exact values below follow the source contracts; they are not benchmark
-receipts. The new poster selector requires unreleased main, not the 1.3.0 wheel.
+receipts. The poster selector was introduced in 1.4.0.
 
 ## Basic Operations
 
@@ -72,6 +72,15 @@ local_xyz = shape.to_xyz_vertices(relative_to=shape.vertices[0])
 Do not pass these rational centroid tuples through `Q(...)`: it snaps to
 integers. Solid measurement requires the [declared surface preconditions](api/index.md#indexed-surfaces-and-live-solid-analysis).
 
+Transforms use `shape.with_vertices(...)` to retain concrete type and indexed
+topology without rerunning the constructor. The new list is owned, but other
+state is shallow-shared; subclasses must override geometry-dependent caches.
+For plane projection, pass a finite nonzero XYZ normal to
+`project_to_plane(coord, normal, plane_point=None)`. The plane calculation uses
+exact represented rational inputs before one nearest-lattice snap, which may
+leave the specified plane. `reflect(coord, axis)` accepts only named axes.
+See [transformation contracts](api/index.md#transformations).
+
 ## Pattern Recognition
 
 ### Recipe 4: Analyzing Scheherazade Number Patterns
@@ -89,6 +98,13 @@ assert scheherazade_pascal_coefficients(6) == [1, 6, 15, 20, 15, 6, 1]
 `primorial` uses a prime upper bound. Pascal coefficients are recognized only
 when three-digit blocks do not carry; an empty result must not be replaced with
 an asserted discovery. Decimal symmetry is not a physical symmetry claim.
+
+For raw digit-pattern text without a quadratic matrix, use
+`plot_pattern_analysis("001100", backend="ascii", include_matrix=False)` from
+`symergetics.visualization.mathematical` after configuring an isolated output
+directory. This returns `metadata["pattern_matrix"] is None`. Omit the flag to
+retain the dense default; graphical backends require that matrix. Radar
+coverage remains linear independently. See [mathematical visualization contracts](api/index.md#mathematical-visualizations).
 
 ## Write a solid graphical abstract to an isolated directory
 
@@ -115,7 +131,7 @@ Plotting returns paths and metadata, not a Matplotlib figure. Metadata contains
 writing JSON. The figure uses an exact anchor-relative XYZ frame. See
 [output contracts](api/index.md#geometry-visualizations).
 
-## Select a scientific poster topic on unreleased main
+## Scientific poster sections
 
 ```python
 from pathlib import Path
@@ -133,4 +149,4 @@ with TemporaryDirectory(prefix="symergetics-posters-") as directory:
 
 Explicit paths prevent sections overwriting the same canonical filename.
 `overview` is the six-panel default; `all` retains all seventeen computed topics.
-See [section metadata](api/index.md#scientific-poster-sections-unreleased-main).
+See [section metadata](api/index.md#scientific-poster-sections).

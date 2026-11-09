@@ -26,9 +26,12 @@ effective d-zero map; the fourth is constrained by the kernel. See
 The regular tetrahedral embedding has a BCC fast path. General skew embeddings
 use bounded closest-vector enumeration after lattice reduction, in three
 dimensions. Exact-distance ties select canonical tuple order. The result is on
-the full integer-quadray lattice, not necessarily FCC. A continuous
-pseudoinverse has different semantics; applying it and independently rounding
-labels is not a substitute for the nearest-point API.
+the full integer-quadray lattice, not necessarily FCC. The continuous
+pseudoinverse instead uses rational cofactors to invert the effective map
+and choose its zero-sum minimum-norm representative, rounding only final entries
+to float. Anisotropic rank/units are retained without a global normalization
+that erases a small independent axis. Rounding these labels is not a substitute
+for exact nearest-point search.
 
 ## Exact roots versus rational approximations
 
@@ -66,13 +69,19 @@ application caches a result, use immutable tuple keys and include the embedding
 and other parameters in its own cache policy. No global read-thread-safety
 promise follows from rational arithmetic or NumPy usage.
 
-## Modular scientific abstracts on unreleased main
+`with_vertices` is the transformation ownership protocol: it shallow-copies the
+concrete polyhedron without rerunning constructors and owns a new list.
+Coordinates and other state remain shared; subclasses with derived caches
+must override it. Exact rational plane projection precedes a single lattice
+snap, so a projected integer site need not remain on the continuous plane.
+
+## Scientific poster sections
 
 The existing `create_mega_graphical_abstract` API now selects `overview`,
 `geometry`, `arithmetic`, `patterns` or `all` using keyword-only `section`.
-The focused default is not the old all-17-panel poster. The 1.3.0 release wheel
-does **not** acquire this interface from main documentation. Use
-[the visualization API](api/index.md#scientific-poster-sections-unreleased-main)
+The focused default is not the old all-17-panel poster. Section selection was
+introduced in 1.4.0, without changing older release interfaces. Use
+[the visualization API](api/index.md#scientific-poster-sections)
 for selection, paths and metadata.
 
 ## Conceptual extensions are not installed APIs

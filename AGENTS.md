@@ -46,6 +46,6 @@ selected interpreter. Never use demos as harmless read-only inspection.
 - API changes require reference searches and migration of every affected caller.
 - Maintain canonical contracts in [docs/api/index.md](docs/api/index.md), linking
   from recipes instead of duplicating incompatible definitions.
-- New scientific poster sections are unreleased main, not 1.3.0 wheel behavior.
-- Do not edit user-generated outputs, immutable releases or unrelated changes.
+- Scientific poster section selection was introduced in 1.4.0; earlier wheels keep their own APIs.
+- Do not edit user-generated outputs, policy-preserved release assets or unrelated changes.
 - Do not claim a green gate, current count or performance result from old prose.

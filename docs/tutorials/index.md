@@ -92,8 +92,8 @@ observations, not evidence of a universal natural pattern.
 Use the complete [isolated rendering recipe](../api-cookbook-recipes.md#write-a-solid-graphical-abstract-to-an-isolated-directory).
 `set_config` takes a dictionary. Returned `files` identifies outputs, while
 `metadata` describes the live geometry and exact display origin. Do not treat
-the return value as a figure. For modular main-only scientific posters use
-[section selection](../api/index.md#scientific-poster-sections-unreleased-main).
+the return value as a figure. For modular scientific posters introduced in 1.4.0 use
+[section selection](../api/index.md#scientific-poster-sections).
 
 ### Orchestration with run.py
 

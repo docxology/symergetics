@@ -23,10 +23,10 @@ current gate status:
 - [x] Recorded the then-current full-suite result. Consult dated status/history
   rather than interpreting that outcome as evidence for the present checkout.
 
-## Unreleased documentation and visualization scope
+## 1.4.0 documentation and visualization scope
 
-Main documentation distinguishes focused scientific-poster selections from the
-all-topic view, exact native measurements from floating display, and implemented
-APIs from conceptual applications. Published 1.3.0 artifacts remain immutable.
+Documentation distinguishes focused scientific-poster selections introduced in
+1.4.0 from the all-topic view, exact native measurements from floating display,
+and implemented APIs from conceptual applications. Earlier assets are preserved by policy.
 The active integration process owns current gates and receipts; this page does
 not mark an unexecuted gate complete or advertise historical counts as current.

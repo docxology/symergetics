@@ -22,8 +22,8 @@ uv run --python 3.13 --extra scientific python -c "import sys, symergetics; prin
 ```
 
 An editable checkout and a release-wheel environment are different consumers.
-Run wheel probes outside the checkout to avoid source shadowing. An unchanged
-`__version__` string does not prove that the wheel contains an unreleased API.
+Run wheel probes outside the checkout to avoid source shadowing. Check both
+the distribution version and import path against the intended release interface.
 Avoid naming local scripts `numpy.py`, `fractions.py` or `symergetics.py`.
 
 ## Mathematical Computation Issues
@@ -81,9 +81,9 @@ Matplotlib. See [visualization contracts](api/index.md#visualization-module).
 
 ### Missing sections, large coordinate labels or changed origins
 
-On unreleased main, a mega abstract defaults to a focused six-panel `overview`;
-request `section="all"` for seventeen topics. The 1.3.0 wheel does not support
-that new selector. Separate explicit paths prevent sections overwriting the
+Since 1.4.0, a mega abstract defaults to a focused six-panel `overview`;
+request `section="all"` for seventeen topics. Earlier wheels retain their own
+interfaces. Separate explicit paths prevent sections overwriting the
 same primary filename. Solid plots are anchor-relative at scale one; exact
 world coordinates remain in metadata. Bounded labels deliberately omit huge
 exact strings from the drawing, not from the metadata. False optional-section

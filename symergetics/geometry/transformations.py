@@ -15,13 +15,17 @@ Author: Symergetics Team
 """
 
 import math
+from fractions import Fraction
 from numbers import Integral
 
 from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from ..core.coordinates import QuadrayCoordinate, _validated_embedding, urner_embedding
+from ..core.coordinates import (
+    QuadrayCoordinate, _as_fraction, _float_metric, _validated_embedding,
+    _xyz_exact, urner_embedding,
+)
 from .polyhedra import SymergeticsPolyhedron
 
 
@@ -49,11 +53,11 @@ def translate_polyhedron(polyhedron: SymergeticsPolyhedron,
         offset: The translation vector
 
     Returns:
-        SymergeticsPolyhedron: A new polyhedron with translated vertices
+        SymergeticsPolyhedron: Same-type copy via ``with_vertices``; non-vertex
+            state is shallow-shared unless the subclass overrides that protocol.
     """
     translated_vertices = [translate(vertex, offset) for vertex in polyhedron.vertices]
-    # Create a new instance of the same type
-    return type(polyhedron)(translated_vertices)
+    return polyhedron.with_vertices(translated_vertices)
 
 
 def scale(coord: QuadrayCoordinate, factor: Union[int, float]) -> QuadrayCoordinate:
@@ -95,7 +99,7 @@ def scale_polyhedron(polyhedron: SymergeticsPolyhedron,
         SymergeticsPolyhedron: A new polyhedron with scaled vertices
     """
     scaled_vertices = [scale(vertex, factor) for vertex in polyhedron.vertices]
-    return type(polyhedron)(scaled_vertices)
+    return polyhedron.with_vertices(scaled_vertices)
 
 
 def reflect(coord: QuadrayCoordinate, axis: str = 'origin') -> QuadrayCoordinate:
@@ -104,21 +108,17 @@ def reflect(coord: QuadrayCoordinate, axis: str = 'origin') -> QuadrayCoordinate
     ``origin`` is exact integer inversion. Each of ``a``, ``b``, ``c``, ``d``
     names the plane through the origin perpendicular to that Urner basis
     vector, not a component sign change. Plane reflections happen in Euclidean
-    XYZ space and then snap to the nearest integer quadray with ``from_xyz``'s
-    deterministic ties. A reflected point off the lattice is therefore
-    quantized; distances and involution are exact only when no snapping occurs.
+    XYZ space with exact rational plane arithmetic, then snap once to the nearest
+    integer quadray with ``from_xyz``'s deterministic ties. A reflected point off
+    the lattice is quantized; distances and involution are exact only without snapping.
     """
     if axis == 'origin':
         return scale(coord, -1)
     if axis not in ('a', 'b', 'c', 'd'):
         raise ValueError(f"Unknown reflection axis: {axis}")
 
-    values = coord.as_tuple()
-    gauge = min(values)
-    point = np.array(QuadrayCoordinate(*(value - gauge for value in values)).to_xyz())
     normal = urner_embedding()[:, ('a', 'b', 'c', 'd').index(axis)]
-    reflected = point - (2 * np.dot(point, normal) / np.dot(normal, normal)) * normal
-    return QuadrayCoordinate.from_xyz(*reflected)
+    return _plane_transform(coord, normal, (0, 0, 0), 2)
 
 
 def reflect_polyhedron(polyhedron: SymergeticsPolyhedron,
@@ -134,7 +134,7 @@ def reflect_polyhedron(polyhedron: SymergeticsPolyhedron,
         SymergeticsPolyhedron: A new polyhedron with reflected vertices
     """
     reflected_vertices = [reflect(vertex, axis) for vertex in polyhedron.vertices]
-    return type(polyhedron)(reflected_vertices)
+    return polyhedron.with_vertices(reflected_vertices)
 
 
 def coordinate_transform(coord: QuadrayCoordinate,
@@ -232,6 +232,35 @@ def rotate_around_axis(coord: QuadrayCoordinate, axis: str, angle_degrees: float
     return QuadrayCoordinate.from_xyz(x, y, z)
 
 
+def _plane_fraction(value):
+    """Preserve each NumPy floating scalar's represented binary value."""
+    if isinstance(value, np.floating):
+        return Fraction(*value.as_integer_ratio())
+    return _as_fraction(value)
+
+
+def _plane_transform(coord, normal, plane_point, factor):
+    """Apply an exact Euclidean plane map before one nearest-lattice snap."""
+    try:
+        normal = tuple(_plane_fraction(value) for value in normal)
+        if len(normal) != 3 or not any(normal):
+            raise ValueError
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("Plane normal must be a finite nonzero three-vector") from exc
+    try:
+        plane_point = tuple(_plane_fraction(value) for value in plane_point)
+        if len(plane_point) != 3:
+            raise ValueError
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("Plane point must be a finite three-vector") from exc
+    point = _xyz_exact(urner_embedding(), coord)
+    distance = sum((value - origin) * weight
+                   for value, origin, weight in zip(point, plane_point, normal))
+    amount = factor * distance / sum(weight * weight for weight in normal)
+    return QuadrayCoordinate.from_xyz(*(
+        value - amount * weight for value, weight in zip(point, normal)))
+
+
 def project_to_plane(coord: QuadrayCoordinate, plane_normal: Tuple[float, float, float],
                     plane_point: Optional[Tuple[float, float, float]] = None) -> QuadrayCoordinate:
     """
@@ -243,39 +272,14 @@ def project_to_plane(coord: QuadrayCoordinate, plane_normal: Tuple[float, float,
         plane_point: A point on the plane (defaults to origin)
 
     Returns:
-        QuadrayCoordinate: Nearest integer quadray to the Euclidean projection,
-            with ``from_xyz``'s deterministic ties. Quantization may move the
-            result off the specified plane.
+        QuadrayCoordinate: Nearest integer quadray to the exact rational Euclidean
+            projection, with ``from_xyz``'s deterministic ties. Quantization may
+            move the result off the specified plane. Finite Python and NumPy
+            floating plane inputs denote their exact represented binary values.
     """
     if plane_point is None:
-        plane_point = (0.0, 0.0, 0.0)
-
-    # Convert to XYZ space
-    point = coord.to_xyz()
-    plane_normal = np.asarray(plane_normal, dtype=float)
-    if plane_normal.shape != (3,) or not np.isfinite(plane_normal).all():
-        raise ValueError("Plane normal must be a finite nonzero three-vector")
-    normal_scale = float(np.max(np.abs(plane_normal)))
-    if normal_scale == 0:
-        raise ValueError("Plane normal must be a finite nonzero three-vector")
-    # Scaling before either dot product makes equivalent planes independent
-    # of overflow/underflow in the magnitude of their supplied normal.
-    plane_normal = plane_normal / normal_scale
-    plane_point = np.array(plane_point)
-    point = np.array(point)
-    # Vector from plane point to the coordinate point
-    vec = point - plane_point
-
-    # Project vector onto plane normal
-    projection = (np.dot(vec, plane_normal) / np.dot(plane_normal, plane_normal)) * plane_normal
-
-    # Projected point
-    projected_point = point - projection
-
-    # Convert back to Quadray
-    return QuadrayCoordinate.from_xyz(
-        projected_point[0], projected_point[1], projected_point[2]
-    )
+        plane_point = (0, 0, 0)
+    return _plane_transform(coord, plane_normal, plane_point, 1)
 
 
 def apply_transform_function(coords: List[QuadrayCoordinate],
@@ -331,19 +335,31 @@ def create_rotation_matrix(axis: str, angle_degrees: float) -> np.ndarray:
 
 
 def xyz_to_quadray_matrix(embedding: Optional[np.ndarray] = None) -> np.ndarray:
-    """Return the continuous 4x3 Moore-Penrose inverse of an embedding.
+    """Return the continuous zero-sum 4x3 inverse of the effective embedding.
 
     The supplied embedding must be a finite rank-three 3x4 matrix annihilating
-    the all-ones gauge. The result chooses the zero-sum, minimum-norm quadray
-    representative and satisfies ``embedding @ inverse == identity(3)`` up to
-    floating-point error, including scaled and nonsymmetric embeddings.
-    It neither normalizes nor snaps to integer quadrays; use ``from_xyz`` for
-    nearest-lattice projection.
+    the all-ones gauge within the accepted summation-roundoff tolerance. Its
+    first three columns define the d=0 map; the fourth is their negative sum.
+    The result is that effective map's minimum-norm Moore-Penrose inverse.
+    Rational inversion preserves anisotropic rank and units, rounding only the
+    final entries to float. It neither normalizes nor snaps to integer quadrays.
     """
     embedding = _validated_embedding(embedding)
-    scale = float(np.max(np.abs(embedding)))
-    # SVD singular values can overflow even when every matrix entry is finite.
-    return np.linalg.pinv(embedding / scale, rcond=0) / scale
+    # Invert the effective d=0 map exactly, without globally scaling away a
+    # small independent axis. Cofactor columns give its 3x3 inverse.
+    a, b, c = [tuple(_as_fraction(value) for value in row[:3]) for row in embedding]
+    def cross(left, right):
+        x, y, z = left
+        u, v, w = right
+        return (y * w - z * v, z * u - x * w, x * v - y * u)
+    columns = (cross(b, c), cross(c, a), cross(a, b))
+    determinant = sum(value * cofactor for value, cofactor in zip(a, columns[0]))
+    inverse = [tuple(value / determinant for value in row) for row in zip(*columns)]
+    gauge = tuple(-sum(row[j] for row in inverse) / 4 for j in range(3))
+    return np.array([
+        [_float_metric(value + offset) for value, offset in zip(row, gauge)]
+        for row in inverse
+    ] + [[_float_metric(value) for value in gauge]])
 
 
 def compose_transforms(*transforms: Callable[[QuadrayCoordinate], QuadrayCoordinate]) -> Callable[[QuadrayCoordinate], QuadrayCoordinate]:

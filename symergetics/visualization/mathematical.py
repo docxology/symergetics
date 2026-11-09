@@ -19,19 +19,182 @@ Author: Symergetics Team
 import math
 from typing import Any, Dict, Optional, Union
 
-import numpy as np
-
-from ..computation.palindromes import (
-    analyze_scheherazade_ssrcd,
-    find_repeated_patterns,
-    find_symmetric_patterns,
-)
+from ..computation.palindromes import analyze_scheherazade_ssrcd
 from ..utils.conversion import (
     continued_fraction_approximation,
     convergents_from_continued_fraction,
     convert_between_bases,
 )
 from . import _validate_canvas, get_config, get_organized_output_path
+
+
+def _base_conversion_data(number, from_base, to_base):
+    """Decode the source once; all coefficients describe its signed value."""
+    decimal = int(convert_between_bases(number, from_base, 10))
+    result = convert_between_bases(decimal, 10, to_base)
+    source = convert_between_bases(decimal, 10, from_base)
+    coefficients = [int(d, 36) for d in result.lstrip('-')]
+    divisions = []
+    remainder_value = abs(decimal)
+    while True:
+        quotient, remainder = divmod(remainder_value, to_base)
+        divisions.append([remainder_value, quotient, remainder])
+        if quotient == 0:
+            break
+        remainder_value = quotient
+    return {
+        'decimal_value': decimal, 'result': result,
+        'source_digits': [int(d, 36) for d in source.lstrip('-')],
+        'coefficients': coefficients,
+        'powers': list(range(len(coefficients) - 1, -1, -1)),
+        'division_steps': divisions, 'sign': -1 if decimal < 0 else 1,
+    }
+
+
+def _digit_sequence(number):
+    """Preserve raw decimal sequence identity, including every leading zero."""
+    sequence = str(number)
+    if not sequence or any(d not in '0123456789' for d in sequence):
+        raise ValueError("Expected a nonempty sequence of decimal digits")
+    return sequence
+
+
+def _palindrome_radii(sequence):
+    """Return maximal odd/even radii in linear time (Manacher's algorithm).
+
+    Odd radii include the center; even radii count pairs around the gap before
+    each position. Nested palindromes need not be enumerated for coverage.
+    """
+    n = len(sequence)
+    odd = [0] * n
+    left, right = 0, -1
+    for center in range(n):
+        radius = 1 if center > right else min(odd[left + right - center], right - center + 1)
+        while center - radius >= 0 and center + radius < n and sequence[center - radius] == sequence[center + radius]:
+            radius += 1
+        odd[center] = radius
+        if center + radius - 1 > right:
+            left, right = center - radius + 1, center + radius - 1
+
+    even = [0] * n
+    left, right = 0, -1
+    for center in range(n):
+        radius = 0 if center > right else min(even[left + right - center + 1], right - center + 1)
+        while center - radius - 1 >= 0 and center + radius < n and sequence[center - radius - 1] == sequence[center + radius]:
+            radius += 1
+        even[center] = radius
+        if center + radius - 1 > right:
+            left, right = center - radius, center + radius - 1
+    return odd, even
+
+
+def _palindrome_coverage(sequence, radii=None):
+    """Mark the union of maximal non-singleton intervals in linear time."""
+    odd, even = _palindrome_radii(sequence) if radii is None else radii
+    differences = [0] * (len(sequence) + 1)
+    for center, radius in enumerate(odd):
+        if radius > 1:
+            differences[center - radius + 1] += 1
+            differences[center + radius] -= 1
+    for center, radius in enumerate(even):
+        if radius:
+            differences[center - radius] += 1
+            differences[center + radius] -= 1
+    active = 0
+    coverage = []
+    for change in differences[:-1]:
+        active += change
+        coverage.append(int(active > 0))
+    return coverage
+
+
+def _pattern_data(number, pattern_type, *, include_matrix=True):
+    """Compute mode-specific membership and position relationships.
+
+    Palindrome: membership in contiguous palindromes of length >= 2; matrix
+    entries mark their inclusive start/end positions. Repeated: digits occurring
+    more than once; matrix entries join distinct equal-digit positions.
+    Symmetric: equal mirrored pairs about the whole sequence midpoint; an odd
+    middle digit is not a pair. This is not odd-center pair density. Coverage
+    costs O(n); the optional dense matrix costs O(n²) space and time.
+    """
+    if pattern_type not in ('palindrome', 'repeated', 'symmetric'):
+        raise ValueError(f"Unknown pattern type: {pattern_type}")
+    sequence = _digit_sequence(number)
+    n = len(sequence)
+    matrix = [[0] * n for _ in sequence] if include_matrix else None
+    if pattern_type == 'palindrome':
+        radii = _palindrome_radii(sequence)
+        coverage = _palindrome_coverage(sequence, radii)
+        if matrix is not None:
+            odd, even = radii
+            for center, radius in enumerate(odd):
+                for offset in range(1, radius):
+                    matrix[center - offset][center + offset] = matrix[center + offset][center - offset] = 1
+            for center, radius in enumerate(even):
+                for offset in range(radius):
+                    matrix[center - offset - 1][center + offset] = matrix[center + offset][center - offset - 1] = 1
+        definition = 'contiguous palindrome coverage (length >= 2); matrix: inclusive endpoints'
+    else:
+        coverage = [0] * n
+        if pattern_type == 'repeated':
+            positions = {}
+            for i, digit in enumerate(sequence):
+                positions.setdefault(digit, []).append(i)
+            for indices in positions.values():
+                if len(indices) > 1:
+                    for i in indices:
+                        coverage[i] = 1
+                    if matrix is not None:
+                        for offset, i in enumerate(indices):
+                            for k in range(offset + 1, len(indices)):
+                                j = indices[k]
+                                matrix[i][j] = matrix[j][i] = 1
+        else:
+            for i in range(n // 2):
+                j = n - 1 - i
+                if sequence[i] == sequence[j]:
+                    coverage[i] = coverage[j] = 1
+                    if matrix is not None:
+                        matrix[i][j] = matrix[j][i] = 1
+        definition = ('repeated digit membership; matrix: distinct equal-digit pairs'
+                      if pattern_type == 'repeated'
+                      else 'whole-sequence mirror-pair membership; matrix: equal mirrored pairs')
+    return {'coverage': coverage, 'pattern_matrix': matrix, 'pattern_definition': definition}
+
+
+def _pattern_symmetry_score(sequence):
+    """Fraction of equal raw-string mirror pairs; singleton has no pairs."""
+    pairs = len(sequence) // 2
+    return sum(sequence[i] == sequence[-1 - i] for i in range(pairs)) / pairs if pairs else 0.0
+
+
+def _radar_data(sequence):
+    """Raw-string metrics with bounded, explicitly defined dimensionless axes."""
+    sequence = _digit_sequence(sequence)
+    counts = {d: sequence.count(d) for d in set(sequence)}
+    normalized_entropy = math.fsum(c / len(sequence) * math.log10(len(sequence) / c)
+                                   for c in counts.values())
+    entropy = normalized_entropy * math.log2(10)
+    bigrams = [sequence[i:i + 2] for i in range(len(sequence) - 1)]
+    bigram_counts = {}
+    for pair in bigrams:
+        bigram_counts[pair] = bigram_counts.get(pair, 0) + 1
+    coverage = _palindrome_coverage(sequence)
+    metrics = {
+        'digit_diversity': len(counts) / 10,
+        'normalized_entropy': normalized_entropy,
+        'repeated_digit_fraction': sum(c for c in counts.values() if c > 1) / len(sequence),
+        'repeated_bigram_fraction': sum(bigram_counts[p] > 1 for p in bigrams) / len(bigrams) if bigrams else 0.0,
+        'palindrome_coverage': sum(coverage) / len(sequence),
+        'symmetry_score': _pattern_symmetry_score(sequence),
+    }
+    return {
+        'sequence': sequence, 'sequence_length': len(sequence), 'unique_digits': len(counts),
+        'digit_entropy': entropy, 'entropy_units': 'bits per digit',
+        'radar_metrics': metrics, 'radial_range': [0, 1],
+        'radial_units': 'dimensionless fractions (entropy / log2(10))',
+    }
 
 
 def plot_continued_fraction(value: float,
@@ -77,62 +240,64 @@ def _plot_continued_fraction_matplotlib(value: float,
 
     _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
+    try:
 
-    # Plot 1: Continued fraction terms
-    term_positions = list(range(len(terms)))
-    ax1.bar(term_positions, terms, color=get_config()["colors"]["primary"], alpha=0.7)
-    ax1.set_title('Continued Fraction Terms')
-    ax1.set_xlabel('Term Index')
-    ax1.set_ylabel('Term Value')
-    ax1.set_xticks(term_positions)
-    ax1.grid(True, alpha=0.3)
+        # Plot 1: Continued fraction terms
+        term_positions = list(range(len(terms)))
+        ax1.bar(term_positions, terms, color=get_config()["colors"]["primary"], alpha=0.7)
+        ax1.set_title('Continued Fraction Terms')
+        ax1.set_xlabel('Term Index')
+        ax1.set_ylabel('Term Value')
+        ax1.set_xticks(term_positions)
+        ax1.grid(True, alpha=0.3)
 
-    # Plot 2: Convergents approximation error
-    if convergents:
-        errors = []
-        for num, den in convergents:
-            approx = num / den
-            error = abs(approx - value)
-            errors.append(error)
+        # Plot 2: Convergents approximation error
+        if convergents:
+            errors = []
+            for num, den in convergents:
+                approx = num / den
+                error = abs(approx - value)
+                errors.append(error)
 
-        ax2.semilogy(range(len(errors)), errors, 'o-', color=get_config()["colors"]["secondary"], linewidth=2)
-        ax2.set_title('Convergence to True Value (Log Scale)')
-        ax2.set_xlabel('Iteration')
-        ax2.set_ylabel('Absolute Error')
-        ax2.grid(True, alpha=0.3)
+            ax2.semilogy(range(len(errors)), errors, 'o-', color=get_config()["colors"]["secondary"], linewidth=2)
+            ax2.set_title('Convergence to True Value (Log Scale)')
+            ax2.set_xlabel('Iteration')
+            ax2.set_ylabel('Absolute Error')
+            ax2.grid(True, alpha=0.3)
 
-    # Plot 3: Fraction values over iterations
-    if convergents:
-        fraction_values = [num / den for num, den in convergents]
-        ax3.plot(range(len(fraction_values)), fraction_values, 's-', color=get_config()["colors"]["accent"], linewidth=2)
-        ax3.axhline(y=value, color='red', linestyle='--', alpha=0.7, label=f'True value: {value:.6f}')
-        ax3.set_title('Fractional Approximations')
-        ax3.set_xlabel('Iteration')
-        ax3.set_ylabel('Approximated Value')
-        ax3.legend()
-        ax3.grid(True, alpha=0.3)
+        # Plot 3: Fraction values over iterations
+        if convergents:
+            fraction_values = [num / den for num, den in convergents]
+            ax3.plot(range(len(fraction_values)), fraction_values, 's-', color=get_config()["colors"]["accent"], linewidth=2)
+            ax3.axhline(y=value, color='red', linestyle='--', alpha=0.7, label=f'True value: {value:.6f}')
+            ax3.set_title('Fractional Approximations')
+            ax3.set_xlabel('Iteration')
+            ax3.set_ylabel('Approximated Value')
+            ax3.legend()
+            ax3.grid(True, alpha=0.3)
 
-    # Plot 4: Term distribution
-    if len(terms) > 1:
-        ax4.hist(terms[1:], bins=max(5, len(set(terms[1:]))), alpha=0.7, color=get_config()["colors"]["primary"])
-        ax4.set_title('Term Value Distribution')
-        ax4.set_xlabel('Term Value')
-        ax4.set_ylabel('Frequency')
-        ax4.grid(True, alpha=0.3)
+        # Plot 4: Term distribution
+        if len(terms) > 1:
+            ax4.hist(terms[1:], bins=max(5, len(set(terms[1:]))), alpha=0.7, color=get_config()["colors"]["primary"])
+            ax4.set_title('Term Value Distribution')
+            ax4.set_xlabel('Term Value')
+            ax4.set_ylabel('Frequency')
+            ax4.grid(True, alpha=0.3)
 
-    plt.suptitle(f'Continued Fraction Analysis: {value:.6f}')
-    plt.tight_layout()
+        plt.suptitle(f'Continued Fraction Analysis: {value:.6f}')
+        plt.tight_layout()
 
-    # Save plot using organized structure
-    filename = f"continued_fraction_{value:.6f}_terms_{max_terms}.png"
-    filepath = get_organized_output_path('mathematical', 'continued_fractions', filename)
-    fig.savefig(filepath, 
-                dpi=get_config()["dpi"], 
-                facecolor=get_config()["png_options"]["facecolor"],
-                bbox_inches=get_config()["png_options"]["bbox_inches"],
-                pad_inches=get_config()["png_options"]["pad_inches"],
-                transparent=get_config()["png_options"]["transparent"])
-    plt.close(fig)
+        # Save plot using organized structure
+        filename = f"continued_fraction_{value:.6f}_terms_{max_terms}.png"
+        filepath = get_organized_output_path('mathematical', 'continued_fractions', filename)
+        fig.savefig(filepath, 
+                    dpi=get_config()["dpi"], 
+                    facecolor=get_config()["png_options"]["facecolor"],
+                    bbox_inches=get_config()["png_options"]["bbox_inches"],
+                    pad_inches=get_config()["png_options"]["pad_inches"],
+                    transparent=get_config()["png_options"]["transparent"])
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -220,11 +385,15 @@ def plot_base_conversion(number: int,
     Visualize base conversion process.
 
     Args:
-        number: Number to convert
+        number: Source-base spelling (int or string); base 10 requires an int.
         from_base: Source base
         to_base: Target base
         backend: Visualization backend
         **kwargs: Additional parameters
+
+    Every backend reports the decoded decimal value, sign, magnitude coefficients
+    (most significant first), positional powers and division steps in metadata.
+    Zero has one zero coefficient; a minus sign is never a digit.
 
     Returns:
         Dict: Visualization metadata and file paths
@@ -251,85 +420,81 @@ def _plot_base_conversion_matplotlib(number: int,
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
-    # Perform conversion and collect steps
-    result = convert_between_bases(number, from_base, to_base)
+    data = _base_conversion_data(number, from_base, to_base)
+    result = data['result']
 
     _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
+    try:
 
-    # Plot 1: Number digit distribution
-    num_str = str(number)
-    digits = [int(d) for d in num_str]
-    digit_counts = {}
+        # Plot 1: Number digit distribution
+        digits = data['source_digits']
+        digit_counts = {}
 
-    for d in digits:
-        digit_counts[d] = digit_counts.get(d, 0) + 1
+        for d in digits:
+            digit_counts[d] = digit_counts.get(d, 0) + 1
 
-    digit_values = list(digit_counts.keys())
-    digit_freqs = list(digit_counts.values())
+        digit_values = list(digit_counts.keys())
+        digit_freqs = list(digit_counts.values())
 
-    ax1.bar(digit_values, digit_freqs, color=get_config()["colors"]["primary"], alpha=0.7)
-    ax1.set_title(f'Digit Distribution in Base {from_base}')
-    ax1.set_xlabel('Digit Value')
-    ax1.set_ylabel('Frequency')
-    ax1.set_xticks(range(max(digit_values) + 1))
-    ax1.grid(True, alpha=0.3)
+        ax1.bar(digit_values, digit_freqs, color=get_config()["colors"]["primary"], alpha=0.7)
+        ax1.set_title(f'Digit Distribution in Base {from_base}')
+        ax1.set_xlabel('Digit Value')
+        ax1.set_ylabel('Frequency')
+        ax1.set_xticks(range(max(digit_values) + 1))
+        ax1.grid(True, alpha=0.3)
 
-    # Plot 2: Conversion steps (simplified visualization)
-    steps = []
-    temp = number
-    while temp > 0:
-        remainder = temp % to_base
-        steps.append(remainder)
-        temp //= to_base
+        # Plot 2: Conversion steps (simplified visualization)
+        steps = data['coefficients'][::-1]
 
-    ax2.plot(range(len(steps)), steps[::-1], 'o-', color=get_config()["colors"]["secondary"], linewidth=2)
-    ax2.set_title(f'Conversion Steps: Base {from_base} → Base {to_base}')
-    ax2.set_xlabel('Step')
-    ax2.set_ylabel('Remainder')
-    ax2.grid(True, alpha=0.3)
+        ax2.plot(range(len(steps)), steps[::-1], 'o-', color=get_config()["colors"]["secondary"], linewidth=2)
+        ax2.set_title(f'Conversion Steps: Base {from_base} → Base {to_base}')
+        ax2.set_xlabel('Target digit position (most significant first)')
+        ax2.set_ylabel('Remainder')
+        ax2.grid(True, alpha=0.3)
 
-    # Plot 3: Bit/coefficient pattern (for binary)
-    if to_base == 2:
-        ax3.bar(range(len(steps)), steps[::-1], color=get_config()["colors"]["accent"], alpha=0.7)
-        ax3.set_title('Binary Representation')
-        ax3.set_xlabel('Bit Position')
-        ax3.set_ylabel('Bit Value (0 or 1)')
-        ax3.set_xticks(range(len(steps)))
-        ax3.grid(True, alpha=0.3)
-    else:
-        # General coefficient visualization
-        coeffs = steps[::-1]
-        ax3.bar(range(len(coeffs)), coeffs, color=get_config()["colors"]["accent"], alpha=0.7)
-        ax3.set_title(f'Coefficients in Base {to_base}')
-        ax3.set_xlabel('Position')
-        ax3.set_ylabel('Coefficient Value')
-        ax3.grid(True, alpha=0.3)
+        # Plot 3: Bit/coefficient pattern (for binary)
+        if to_base == 2:
+            ax3.bar(range(len(steps)), steps[::-1], color=get_config()["colors"]["accent"], alpha=0.7)
+            ax3.set_title('Binary Representation')
+            ax3.set_xlabel('Target digit position (most significant first)')
+            ax3.set_ylabel('Bit Value (0 or 1)')
+            ax3.set_xticks(range(len(steps)))
+            ax3.grid(True, alpha=0.3)
+        else:
+            # General coefficient visualization
+            coeffs = steps[::-1]
+            ax3.bar(range(len(coeffs)), coeffs, color=get_config()["colors"]["accent"], alpha=0.7)
+            ax3.set_title(f'Coefficients in Base {to_base}')
+            ax3.set_xlabel('Target digit position (most significant first)')
+            ax3.set_ylabel('Coefficient Value')
+            ax3.grid(True, alpha=0.3)
 
-    # Plot 4: Numerical relationships
-    if to_base == 2:
-        # Show powers of 2
-        powers = [2**i for i in range(len(steps))]
-        ax4.bar(range(len(powers)), powers, color=get_config()["colors"]["primary"], alpha=0.7)
-        ax4.set_title('Powers of 2 (Binary Weights)')
-        ax4.set_xlabel('Bit Position')
-        ax4.set_ylabel('Weight Value')
-        ax4.set_yscale('log')
-        ax4.grid(True, alpha=0.3)
+        # Plot 4: Numerical relationships
+        if to_base == 2:
+            # Align weights with the shared most-significant-first coefficients.
+            powers = [to_base ** exponent for exponent in data['powers']]
+            ax4.bar(range(len(powers)), powers, color=get_config()["colors"]["primary"], alpha=0.7)
+            ax4.set_title('Powers of 2 (Binary Weights)')
+            ax4.set_xlabel('Target digit position (most significant first)')
+            ax4.set_ylabel('Weight Value')
+            ax4.set_yscale('log')
+            ax4.grid(True, alpha=0.3)
 
-    plt.suptitle(f'Base Conversion: {number} ({from_base} → {to_base})')
-    plt.tight_layout()
+        plt.suptitle(f'Base Conversion: {number} ({from_base} → {to_base}); sign {data["sign"]:+d}')
+        plt.tight_layout()
 
-    # Save plot using organized structure
-    filename = f"base_conversion_{number}_base_{from_base}_to_{to_base}.png"
-    filepath = get_organized_output_path('mathematical', 'base_conversions', filename)
-    fig.savefig(filepath, 
-                dpi=get_config()["dpi"], 
-                facecolor=get_config()["png_options"]["facecolor"],
-                bbox_inches=get_config()["png_options"]["bbox_inches"],
-                pad_inches=get_config()["png_options"]["pad_inches"],
-                transparent=get_config()["png_options"]["transparent"])
-    plt.close(fig)
+        # Save plot using organized structure
+        filename = f"base_conversion_{number}_base_{from_base}_to_{to_base}.png"
+        filepath = get_organized_output_path('mathematical', 'base_conversions', filename)
+        fig.savefig(filepath, 
+                    dpi=get_config()["dpi"], 
+                    facecolor=get_config()["png_options"]["facecolor"],
+                    bbox_inches=get_config()["png_options"]["bbox_inches"],
+                    pad_inches=get_config()["png_options"]["pad_inches"],
+                    transparent=get_config()["png_options"]["transparent"])
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -339,6 +504,7 @@ def _plot_base_conversion_matplotlib(number: int,
             'from_base': from_base,
             'to_base': to_base,
             'result': result,
+            **data,
             'steps': len(steps),
             'backend': 'matplotlib'
         }
@@ -350,7 +516,8 @@ def _plot_base_conversion_ascii(number: int,
                                to_base: int = 2,
                                **kwargs) -> Dict[str, Any]:
     """Create ASCII representation of base conversion."""
-    result = convert_between_bases(number, from_base, to_base)
+    data = _base_conversion_data(number, from_base, to_base)
+    result = data['result']
 
     lines = []
     lines.append(f"Base Conversion: {number} (base {from_base}) → {result} (base {to_base})")
@@ -364,25 +531,14 @@ def _plot_base_conversion_ascii(number: int,
     lines.append("")
 
     # Show conversion steps
-    lines.append("Conversion Steps:")
-    if from_base == 10 and to_base != 10:
-        lines.append("(Dividing by target base and collecting remainders)")
-        temp = number
-        step = 0
-        while temp > 0:
-            remainder = temp % to_base
-            quotient = temp // to_base
-            lines.append(f"  Step {step}: {temp} ÷ {to_base} = {quotient} remainder {remainder}")
-            temp = quotient
-            step += 1
-    elif to_base == 10 and from_base != 10:
-        lines.append("(Multiplying digits by powers of source base)")
-        # Simplified explanation
-        lines.append(f"  Interpreting '{number}' as base {from_base} number")
-
+    lines.append("Conversion Steps (dividing the decoded magnitude):")
+    lines.append(f"Decoded value: {data['decimal_value']}; sign: {data['sign']:+d}")
+    for step, (value, quotient, remainder) in enumerate(data['division_steps']):
+        lines.append(f"  Step {step}: {value} ÷ {to_base} = {quotient} remainder {remainder}")
+    lines.append(f"Coefficients (most significant first): {data['coefficients']}")
     lines.append("")
     lines.append("Properties:")
-    lines.append(f"- Number of digits in base {to_base}: {len(str(result))}")
+    lines.append(f"- Number of digits in base {to_base}: {len(data['coefficients'])}")
     lines.append(f"- Maximum digit value: {to_base - 1}")
 
     # Save to file using organized structure
@@ -400,6 +556,7 @@ def _plot_base_conversion_ascii(number: int,
             'from_base': from_base,
             'to_base': to_base,
             'result': result,
+            **data,
             'backend': 'ascii'
         }
     }
@@ -408,25 +565,43 @@ def _plot_base_conversion_ascii(number: int,
 def plot_pattern_analysis(number: Union[int, str],
                          pattern_type: str = 'palindrome',
                          backend: Optional[str] = None,
+                         *, include_matrix: bool = True,
                          **kwargs) -> Dict[str, Any]:
     """
     Visualize pattern analysis for numbers.
 
     Args:
-        number: Number or string to analyze
-        pattern_type: Type of pattern to analyze ('palindrome', 'repeated', 'symmetric')
+        number: Nonempty decimal-digit int or raw string; leading zeros are retained.
+        pattern_type: 'palindrome' marks positions in contiguous palindromes of
+            length >= 2, 'repeated' marks digits occurring more than once, and
+            'symmetric' marks equal mirror pairs about the whole sequence center.
+            An unpaired odd middle digit is not a symmetric pair.
         backend: Visualization backend
+        include_matrix: Return the dense relation matrix (default True).
+            False opts ASCII into linear-size metadata with pattern_matrix=None.
+            Graphical backends require True because they display the matrix.
         **kwargs: Additional parameters
 
+
+    All backends share metadata.coverage (0/1 membership), pattern_matrix and
+    pattern_definition. ASCII with include_matrix=False returns
+    pattern_matrix=None, keeping text analysis linear in sequence length.
+    The default dense matrix costs O(n²) space/time on every backend.
+    Palindrome matrices mark substring endpoints;
+    repeated matrices join distinct equal-digit positions; symmetric matrices
+    join equal mirrored positions. Unknown modes and invalid sequences raise
+    ValueError. Raw strings retain leading zeros.
     Returns:
         Dict: Visualization metadata and file paths
     """
     backend = backend or get_config()["backend"]
+    if not include_matrix and backend in ("matplotlib", "plotly"):
+        raise ValueError("Graphical pattern analysis requires include_matrix=True")
 
     if backend == "matplotlib":
         return _plot_pattern_analysis_matplotlib(number, pattern_type, **kwargs)
     elif backend == "ascii":
-        return _plot_pattern_analysis_ascii(number, pattern_type, **kwargs)
+        return _plot_pattern_analysis_ascii(number, pattern_type, include_matrix=include_matrix, **kwargs)
     elif backend == "plotly":
         return _plot_pattern_analysis_plotly(number, pattern_type, **kwargs)
     else:
@@ -442,99 +617,73 @@ def _plot_pattern_analysis_matplotlib(number: Union[int, str],
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
-    # Convert to string for analysis
-    if isinstance(number, int):
-        num_str = str(number)
-    else:
-        num_str = str(number)
+    data = _pattern_data(number, pattern_type)
+    num_str = _digit_sequence(number)
 
     digits = [int(d) for d in num_str]
 
     _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
-    ax1, ax2 = axes[0]
-    ax3, ax4 = axes[1]
+    try:
+        ax1, ax2 = axes[0]
+        ax3, ax4 = axes[1]
 
-    # Plot 1: Digit sequence
-    positions = list(range(len(digits)))
-    ax1.plot(positions, digits, 'o-', color=get_config()["colors"]["primary"], linewidth=2, markersize=6)
-    ax1.set_title(f'Number: {num_str[:20]}{"..." if len(num_str) > 20 else ""}')
-    ax1.set_xlabel('Position')
-    ax1.set_ylabel('Digit Value')
-    ax1.grid(True, alpha=0.3)
+        # Plot 1: Digit sequence
+        positions = list(range(len(digits)))
+        ax1.plot(positions, digits, 'o-', color=get_config()["colors"]["primary"], linewidth=2, markersize=6)
+        ax1.set_title(f'Number: {num_str[:20]}{"..." if len(num_str) > 20 else ""}')
+        ax1.set_xlabel('Position')
+        ax1.set_ylabel('Digit Value')
+        ax1.grid(True, alpha=0.3)
 
-    # Plot 2: Pattern highlighting based on type
-    colors = [get_config()["colors"]["primary"]] * len(digits)
+        # Plot 2: Pattern highlighting based on type
+        colors = [get_config()["colors"]["accent"] if match else get_config()["colors"]["primary"]
+                  for match in data['coverage']]
 
-    if pattern_type == 'palindrome':
-        # Highlight palindromic positions
-        for i in range(len(digits)):
-            for radius in range(1, min(i, len(digits) - 1 - i) + 1):
-                if digits[i - radius] == digits[i + radius]:
-                    colors[i] = get_config()["colors"]["accent"]
-                    break
-    elif pattern_type == 'repeated':
-        # Highlight repeated digits
-        for i in range(len(digits)):
-            if digits.count(digits[i]) > 1:
-                colors[i] = get_config()["colors"]["accent"]
+        ax2.bar(positions, digits, color=colors, alpha=0.7)
+        ax2.set_title(f'{pattern_type.title()} Pattern Analysis')
+        ax2.set_xlabel('Position')
+        ax2.set_ylabel('Digit Value')
+        ax2.grid(True, alpha=0.3)
 
-    ax2.bar(positions, digits, color=colors, alpha=0.7)
-    ax2.set_title(f'{pattern_type.title()} Pattern Analysis')
-    ax2.set_xlabel('Position')
-    ax2.set_ylabel('Digit Value')
-    ax2.grid(True, alpha=0.3)
+        # Plot 3: Pattern density heatmap
+        pattern_matrix = data['pattern_matrix']
 
-    # Plot 3: Pattern density heatmap
-    pattern_matrix = np.zeros((len(digits), len(digits)))
+        im = ax3.imshow(pattern_matrix, cmap='Blues', aspect='equal')
+        ax3.set_title(data['pattern_definition'], fontsize=8)
+        ax3.set_xlabel('Position')
+        ax3.set_ylabel('Position')
+        plt.colorbar(im, ax=ax3, fraction=0.046, pad=0.04)
 
-    if pattern_type == 'palindrome':
-        # Palindrome similarity matrix
-        for i in range(len(digits)):
-            for j in range(len(digits)):
-                if digits[i] == digits[j]:
-                    pattern_matrix[i, j] = 1
-    elif pattern_type == 'repeated':
-        # Repetition matrix
-        for i in range(len(digits)):
-            for j in range(len(digits)):
-                if digits[i] == digits[j]:
-                    pattern_matrix[i, j] = 1
+        # Plot 4: Statistical analysis
+        digit_counts = {}
+        for d in digits:
+            digit_counts[d] = digit_counts.get(d, 0) + 1
 
-    im = ax3.imshow(pattern_matrix, cmap='Blues', aspect='equal')
-    ax3.set_title('Pattern Similarity Matrix')
-    ax3.set_xlabel('Position')
-    ax3.set_ylabel('Position')
-    plt.colorbar(im, ax=ax3, fraction=0.046, pad=0.04)
+        digit_values = list(digit_counts.keys())
+        digit_freqs = list(digit_counts.values())
 
-    # Plot 4: Statistical analysis
-    digit_counts = {}
-    for d in digits:
-        digit_counts[d] = digit_counts.get(d, 0) + 1
+        ax4.bar(digit_values, digit_freqs, color=get_config()["colors"]["secondary"], alpha=0.7)
+        ax4.set_title('Digit Frequency Distribution')
+        ax4.set_xlabel('Digit')
+        ax4.set_ylabel('Frequency')
+        ax4.set_xticks(range(10))
+        ax4.grid(True, alpha=0.3)
 
-    digit_values = list(digit_counts.keys())
-    digit_freqs = list(digit_counts.values())
+        plt.suptitle(f'Pattern Analysis: {pattern_type.title()}', fontsize=14)
+        plt.tight_layout()
 
-    ax4.bar(digit_values, digit_freqs, color=get_config()["colors"]["secondary"], alpha=0.7)
-    ax4.set_title('Digit Frequency Distribution')
-    ax4.set_xlabel('Digit')
-    ax4.set_ylabel('Frequency')
-    ax4.set_xticks(range(10))
-    ax4.grid(True, alpha=0.3)
-
-    plt.suptitle(f'Pattern Analysis: {pattern_type.title()}', fontsize=14)
-    plt.tight_layout()
-
-    # Save plot using organized structure
-    filename = f"pattern_analysis_{pattern_type}_{num_str[:20]}.png"
-    filepath = get_organized_output_path('mathematical', 'pattern_analysis', filename)
-    fig.savefig(filepath, 
-                dpi=get_config()["dpi"], 
-                facecolor=get_config()["png_options"]["facecolor"],
-                bbox_inches=get_config()["png_options"]["bbox_inches"],
-                pad_inches=get_config()["png_options"]["pad_inches"],
-                transparent=get_config()["png_options"]["transparent"])
-    plt.close(fig)
+        # Save plot using organized structure
+        filename = f"pattern_analysis_{pattern_type}_{num_str[:20]}.png"
+        filepath = get_organized_output_path('mathematical', 'pattern_analysis', filename)
+        fig.savefig(filepath, 
+                    dpi=get_config()["dpi"], 
+                    facecolor=get_config()["png_options"]["facecolor"],
+                    bbox_inches=get_config()["png_options"]["bbox_inches"],
+                    pad_inches=get_config()["png_options"]["pad_inches"],
+                    transparent=get_config()["png_options"]["transparent"])
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -544,6 +693,7 @@ def _plot_pattern_analysis_matplotlib(number: Union[int, str],
             'pattern_type': pattern_type,
             'length': len(digits),
             'unique_digits': len(set(digits)),
+            **data,
             'backend': 'matplotlib'
         }
     }
@@ -551,14 +701,11 @@ def _plot_pattern_analysis_matplotlib(number: Union[int, str],
 
 def _plot_pattern_analysis_ascii(number: Union[int, str],
                                 pattern_type: str = 'palindrome',
+                                *, include_matrix: bool = True,
                                 **kwargs) -> Dict[str, Any]:
-    """Create ASCII representation of pattern analysis."""
-    # Convert to string for analysis
-    if isinstance(number, int):
-        num_str = str(number)
-    else:
-        num_str = str(number)
-
+    """Create ASCII output, optionally omitting quadratic dense metadata."""
+    data = _pattern_data(number, pattern_type, include_matrix=include_matrix)
+    num_str = _digit_sequence(number)
     digits = [int(d) for d in num_str]
 
     lines = []
@@ -572,20 +719,8 @@ def _plot_pattern_analysis_ascii(number: Union[int, str],
 
     # Show digit sequence with pattern highlighting
     lines.append("Digit Sequence:")
-    pattern_marks = []
-
-    if pattern_type == 'palindrome':
-        for i in range(len(digits)):
-            is_pattern = False
-            for radius in range(1, min(i, len(digits) - 1 - i) + 1):
-                if digits[i - radius] == digits[i + radius]:
-                    is_pattern = True
-                    break
-            pattern_marks.append('*' if is_pattern else ' ')
-    elif pattern_type == 'repeated':
-        for i in range(len(digits)):
-            is_pattern = digits.count(digits[i]) > 1
-            pattern_marks.append('*' if is_pattern else ' ')
+    pattern_marks = ['*' if match else ' ' for match in data['coverage']]
+    lines.append(data['pattern_definition'])
 
     lines.append(" ".join(str(d) for d in digits))
     lines.append(" ".join(pattern_marks))
@@ -619,6 +754,7 @@ def _plot_pattern_analysis_ascii(number: Union[int, str],
             'number': num_str,
             'pattern_type': pattern_type,
             'length': len(digits),
+            **data,
             'backend': 'ascii'
         }
     }
@@ -662,78 +798,73 @@ def _plot_ssrcd_matplotlib(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]
 
     _validate_canvas((get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(get_config()["figure_size"][0] * 1.5, get_config()["figure_size"][1] * 1.5))
+    try:
 
-    num_str = analysis['number_string']
-    digits = [int(d) for d in num_str]
+        num_str = analysis['number_string']
+        digits = [int(d) for d in num_str]
 
-    # Plot 1: Number structure
-    positions = list(range(len(digits)))
-    ax1.plot(positions, digits, 'o-', alpha=0.7, color=get_config()["colors"]["primary"], markersize=3)
-    ax1.set_title(f'Scheherazade {analysis["scheherazade_power"]}^th Power')
-    ax1.set_xlabel('Digit Position')
-    ax1.set_ylabel('Digit Value')
-    ax1.grid(True, alpha=0.3)
+        # Plot 1: Number structure
+        positions = list(range(len(digits)))
+        ax1.plot(positions, digits, 'o-', alpha=0.7, color=get_config()["colors"]["primary"], markersize=3)
+        ax1.set_title(f'Scheherazade {analysis["scheherazade_power"]}^th Power')
+        ax1.set_xlabel('Digit Position')
+        ax1.set_ylabel('Digit Value')
+        ax1.grid(True, alpha=0.3)
 
-    # Plot 2: Palindromic density visualization
-    palindromic_positions = []
-    for i in range(len(digits)):
-        is_palindrome = False
-        for radius in range(1, min(i, len(digits) - 1 - i) + 1):
-            if digits[i - radius] == digits[i + radius]:
-                is_palindrome = True
-                break
-        palindromic_positions.append(1 if is_palindrome else 0)
+        # Plot 2: Palindromic density visualization
+        palindromic_positions = _palindrome_coverage(num_str)
 
-    ax2.bar(positions, palindromic_positions, color=get_config()["colors"]["accent"], alpha=0.7)
-    ax2.set_title('Palindromic Positions')
-    ax2.set_xlabel('Position')
-    ax2.set_ylabel('Is Palindromic (0/1)')
-    ax2.grid(True, alpha=0.3)
+        ax2.bar(positions, palindromic_positions, color=get_config()["colors"]["accent"], alpha=0.7)
+        ax2.set_title('Contiguous Palindrome Coverage (length >= 2)')
+        ax2.set_xlabel('Position')
+        ax2.set_ylabel('Covered (0/1)')
+        ax2.grid(True, alpha=0.3)
 
-    # Plot 3: Pattern density
-    window_size = min(20, len(digits) // 10)
-    if window_size > 0:
-        densities = []
-        for i in range(0, len(digits) - window_size + 1, window_size):
-            window = digits[i:i + window_size]
-            density = sum(palindromic_positions[i:i + window_size]) / window_size
-            densities.append(density)
+        # Plot 3: Pattern density
+        window_size = max(1, min(20, len(digits) // 10))
+        if window_size > 0:
+            densities = []
+            for i in range(0, len(digits) - window_size + 1, window_size):
+                window = digits[i:i + window_size]
+                density = sum(palindromic_positions[i:i + window_size]) / window_size
+                densities.append(density)
 
-        ax3.plot(range(len(densities)), densities, 's-', color=get_config()["colors"]["secondary"], linewidth=2)
-        ax3.set_title(f'Palindromic Density (Window Size {window_size})')
-        ax3.set_xlabel('Window Position')
-        ax3.set_ylabel('Density')
-        ax3.grid(True, alpha=0.3)
+            ax3.plot(range(len(densities)), densities, 's-', color=get_config()["colors"]["secondary"], linewidth=2)
+            ax3.set_title(f'Palindrome Coverage (Window Size {window_size})')
+            ax3.set_xlabel('Window Position')
+            ax3.set_ylabel('Covered fraction')
+            ax3.grid(True, alpha=0.3)
 
-    # Plot 4: Special insights
-    if 'special_insight' in analysis:
-        insight = analysis['special_insight']
-        ax4.text(0.1, 0.8, "Special Insight:", fontsize=12, fontweight='bold')
-        ax4.text(0.1, 0.6, insight['description'], fontsize=10, wrap=True)
-        if 'coefficients' in insight:
-            ax4.text(0.1, 0.4, f"Coefficients: {insight['coefficients']}", fontsize=10)
-        ax4.set_xlim(0, 1)
-        ax4.set_ylim(0, 1)
-        ax4.axis('off')
-    else:
-        ax4.text(0.5, 0.5, "No special insights found", ha='center', va='center', fontsize=12)
-        ax4.set_xlim(0, 1)
-        ax4.set_ylim(0, 1)
-        ax4.axis('off')
+        # Plot 4: Special insights
+        if 'special_insight' in analysis:
+            insight = analysis['special_insight']
+            ax4.text(0.1, 0.8, "Special Insight:", fontsize=12, fontweight='bold')
+            ax4.text(0.1, 0.6, insight['description'], fontsize=10, wrap=True)
+            if 'coefficients' in insight:
+                ax4.text(0.1, 0.4, f"Coefficients: {insight['coefficients']}", fontsize=10)
+            ax4.set_xlim(0, 1)
+            ax4.set_ylim(0, 1)
+            ax4.axis('off')
+        else:
+            ax4.text(0.5, 0.5, "No special insights found", ha='center', va='center', fontsize=12)
+            ax4.set_xlim(0, 1)
+            ax4.set_ylim(0, 1)
+            ax4.axis('off')
 
-    plt.suptitle(f'SSRCD Analysis: 1001^{analysis["scheherazade_power"]}', fontsize=14)
-    plt.tight_layout()
+        plt.suptitle(f'SSRCD Analysis: 1001^{analysis["scheherazade_power"]}', fontsize=14)
+        plt.tight_layout()
 
-    # Save plot using organized structure
-    filename = f"ssrcd_analysis_1001_power_{analysis['scheherazade_power']}.png"
-    filepath = get_organized_output_path('mathematical', 'ssrcd', filename)
-    fig.savefig(filepath, 
-                dpi=get_config()["dpi"], 
-                facecolor=get_config()["png_options"]["facecolor"],
-                bbox_inches=get_config()["png_options"]["bbox_inches"],
-                pad_inches=get_config()["png_options"]["pad_inches"],
-                transparent=get_config()["png_options"]["transparent"])
-    plt.close(fig)
+        # Save plot using organized structure
+        filename = f"ssrcd_analysis_1001_power_{analysis['scheherazade_power']}.png"
+        filepath = get_organized_output_path('mathematical', 'ssrcd', filename)
+        fig.savefig(filepath, 
+                    dpi=get_config()["dpi"], 
+                    facecolor=get_config()["png_options"]["facecolor"],
+                    bbox_inches=get_config()["png_options"]["bbox_inches"],
+                    pad_inches=get_config()["png_options"]["pad_inches"],
+                    transparent=get_config()["png_options"]["transparent"])
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -743,6 +874,10 @@ def _plot_ssrcd_matplotlib(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]
             'number_length': analysis['digit_count'],
             'is_palindromic': analysis['is_palindromic'],
             'palindromic_density': analysis['palindromic_density'],
+            'palindromic_density_definition': 'odd-center contiguous matched pairs per digit (core metric)',
+            'palindrome_coverage': palindromic_positions,
+            'palindrome_coverage_fraction': sum(palindromic_positions) / len(digits),
+            'symmetry_score': _pattern_symmetry_score(num_str),
             'backend': 'matplotlib'
         }
     }
@@ -758,7 +893,9 @@ def _plot_ssrcd_ascii(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]:
     lines.append(f"Number: {analysis['number_string'][:80]}{'...' if len(analysis['number_string']) > 80 else ''}")
     lines.append(f"Length: {analysis['digit_count']} digits")
     lines.append(f"Is Palindromic: {analysis['is_palindromic']}")
-    lines.append(f"Palindromic Density: {analysis['palindromic_density']:.3%}")
+    lines.append(f"Odd-center matched pairs per digit: {analysis['palindromic_density']:.3f}")
+    coverage = _palindrome_coverage(analysis['number_string'])
+    lines.append(f"Contiguous palindrome coverage (length >= 2): {sum(coverage) / len(coverage):.3%}")
     lines.append("")
 
     # Special insights
@@ -805,6 +942,11 @@ def _plot_ssrcd_ascii(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]:
             'scheherazade_power': analysis['scheherazade_power'],
             'number_length': analysis['digit_count'],
             'is_palindromic': analysis['is_palindromic'],
+            'palindromic_density': analysis['palindromic_density'],
+            'palindromic_density_definition': 'odd-center contiguous matched pairs per digit (core metric)',
+            'palindrome_coverage': coverage,
+            'palindrome_coverage_fraction': sum(coverage) / len(coverage),
+            'symmetry_score': _pattern_symmetry_score(analysis['number_string']),
             'backend': 'ascii'
         }
     }
@@ -856,108 +998,108 @@ def _plot_continued_fraction_convergence_matplotlib(value: float,
 
     # Create figure with subplots
     _validate_canvas((16, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
-    fig = plt.figure(figsize=(16, 12))
-    gs = GridSpec(3, 2, figure=fig, hspace=0.3, wspace=0.3)
+    fig = plt.figure(figsize=(16, 12), constrained_layout=True)
+    try:
+        gs = GridSpec(3, 2, figure=fig)
 
-    # Plot 1: Terms as a sequence
-    ax1 = fig.add_subplot(gs[0, 0])
-    positions = list(range(len(terms)))
-    bars = ax1.bar(positions, terms, color=get_config()["colors"]["primary"], alpha=0.7)
-    ax1.set_title('Continued Fraction Terms', fontsize=12, fontweight='bold')
-    ax1.set_xlabel('Term Position')
-    ax1.set_ylabel('Term Value')
-    ax1.set_xticks(positions)
-    ax1.grid(True, alpha=0.3)
+        # Plot 1: Terms as a sequence
+        ax1 = fig.add_subplot(gs[0, 0])
+        positions = list(range(len(terms)))
+        bars = ax1.bar(positions, terms, color=get_config()["colors"]["primary"], alpha=0.7)
+        ax1.set_title('Continued Fraction Terms', fontsize=12, fontweight='bold')
+        ax1.set_xlabel('Term Position')
+        ax1.set_ylabel('Term Value')
+        ax1.set_xticks(positions)
+        ax1.grid(True, alpha=0.3)
 
-    # Add value labels on bars
-    for bar, term in zip(bars, terms):
-        height = bar.get_height()
-        ax1.text(bar.get_x() + bar.get_width()/2., height + 0.1,
-                f'{term}', ha='center', va='bottom', fontsize=8)
+        # Add value labels on bars
+        for bar, term in zip(bars, terms):
+            height = bar.get_height()
+            ax1.text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                    f'{term}', ha='center', va='bottom', fontsize=8)
 
-    # Plot 2: Convergents and their errors
-    ax2 = fig.add_subplot(gs[0, 1])
-    if convergents:
-        approximations = [num/den for num, den in convergents]
-        errors = [abs(approx - value) for approx in approximations]
+        # Plot 2: Convergents and their errors
+        ax2 = fig.add_subplot(gs[0, 1])
+        if convergents:
+            approximations = [num/den for num, den in convergents]
+            errors = [abs(approx - value) for approx in approximations]
 
-        # Plot approximations
-        ax2.plot(range(len(approximations)), approximations, 'b-o',
-                linewidth=2, markersize=6, label='Convergents')
-        ax2.axhline(y=value, color='r', linestyle='--', linewidth=2, label=f'True Value ({value})')
-        ax2.set_title('Convergent Approximations', fontsize=12, fontweight='bold')
-        ax2.set_xlabel('Iteration')
-        ax2.set_ylabel('Approximated Value')
-        ax2.legend()
-        ax2.grid(True, alpha=0.3)
+            # Plot approximations
+            ax2.plot(range(len(approximations)), approximations, 'b-o',
+                    linewidth=2, markersize=6, label='Convergents')
+            ax2.axhline(y=value, color='r', linestyle='--', linewidth=2, label=f'True Value ({value})')
+            ax2.set_title('Convergent Approximations', fontsize=12, fontweight='bold')
+            ax2.set_xlabel('Iteration')
+            ax2.set_ylabel('Approximated Value')
+            ax2.legend()
+            ax2.grid(True, alpha=0.3)
 
-    # Plot 3: Error convergence (log scale)
-    ax3 = fig.add_subplot(gs[1, 0])
-    if convergents:
-        approximations = [num/den for num, den in convergents]
-        errors = [abs(approx - value) for approx in approximations]
+        # Plot 3: Error convergence (log scale)
+        ax3 = fig.add_subplot(gs[1, 0])
+        if convergents:
+            approximations = [num/den for num, den in convergents]
+            errors = [abs(approx - value) for approx in approximations]
 
-        ax3.semilogy(range(len(errors)), errors, 'r-o', linewidth=2, markersize=6)
-        ax3.set_title('Convergence Error (Log Scale)', fontsize=12, fontweight='bold')
-        ax3.set_xlabel('Iteration')
-        ax3.set_ylabel('Absolute Error')
-        ax3.grid(True, alpha=0.3)
+            ax3.semilogy(range(len(errors)), errors, 'r-o', linewidth=2, markersize=6)
+            ax3.set_title('Convergence Error (Log Scale)', fontsize=12, fontweight='bold')
+            ax3.set_xlabel('Iteration')
+            ax3.set_ylabel('Absolute Error')
+            ax3.grid(True, alpha=0.3)
 
-        # Add error values as text
-        for i, error in enumerate(errors):
-            if error > 0:
-                ax3.text(i, error * 1.2, f'{error:.2e}', ha='center', va='bottom', fontsize=8)
+            # Add error values as text
+            for i, error in enumerate(errors):
+                if error > 0:
+                    ax3.text(i, error * 1.2, f'{error:.2e}', ha='center', va='bottom', fontsize=8)
 
-    # Plot 4: Fraction representation
-    ax4 = fig.add_subplot(gs[1, 1])
-    if convergents:
-        fractions_text = "Convergent Fractions:\n\n"
-        for i, (num, den) in enumerate(convergents[:8]):  # Show first 8
-            fractions_text += f"{i}: {num}/{den} = {num/den:.6f}\n"
+        # Plot 4: Fraction representation
+        ax4 = fig.add_subplot(gs[1, 1])
+        if convergents:
+            fractions_text = "Convergent Fractions:\n\n"
+            for i, (num, den) in enumerate(convergents[:8]):  # Show first 8
+                fractions_text += f"{i}: {num}/{den} = {num/den:.6f}\n"
 
-        ax4.text(0.1, 0.5, fractions_text, transform=ax4.transAxes,
-                fontsize=10, verticalalignment='center',
-                bbox=dict(boxstyle="round,pad=0.3", facecolor='lightblue', alpha=0.8))
-        ax4.set_title('Fraction Representations', fontsize=12, fontweight='bold')
-        ax4.set_xlim(0, 1)
-        ax4.set_ylim(0, 1)
-        ax4.axis('off')
+            ax4.text(0.1, 0.5, fractions_text, transform=ax4.transAxes,
+                    fontsize=10, verticalalignment='center',
+                    bbox=dict(boxstyle="round,pad=0.3", facecolor='lightblue', alpha=0.8))
+            ax4.set_title('Fraction Representations', fontsize=12, fontweight='bold')
+            ax4.set_xlim(0, 1)
+            ax4.set_ylim(0, 1)
+            ax4.axis('off')
 
-    # Plot 5: Convergence rate analysis
-    ax5 = fig.add_subplot(gs[2, :])
-    if len(convergents) > 1:
-        approximations = [num/den for num, den in convergents]
-        errors = [abs(approx - value) for approx in approximations]
+        # Plot 5: Convergence rate analysis
+        ax5 = fig.add_subplot(gs[2, :])
+        if len(convergents) > 1:
+            approximations = [num/den for num, den in convergents]
+            errors = [abs(approx - value) for approx in approximations]
 
-        # Calculate convergence rates
-        convergence_rates = []
-        for i in range(1, len(errors)):
-            if errors[i-1] > 0 and errors[i] > 0:
-                rate = errors[i-1] / errors[i]
-                convergence_rates.append(rate)
+            # Calculate convergence rates
+            convergence_rates = []
+            for i in range(1, len(errors)):
+                if errors[i-1] > 0 and errors[i] > 0:
+                    rate = errors[i-1] / errors[i]
+                    convergence_rates.append(rate)
 
-        if convergence_rates:
-            ax5.plot(range(1, len(convergence_rates) + 1), convergence_rates,
-                    'g-o', linewidth=2, markersize=6)
-            ax5.axhline(y=1, color='k', linestyle=':', alpha=0.5, label='Linear convergence')
-            ax5.set_title('Convergence Rate Analysis', fontsize=12, fontweight='bold')
-            ax5.set_xlabel('Step')
-            ax5.set_ylabel('Convergence Rate (Error[n-1]/Error[n])')
-            ax5.legend()
-            ax5.grid(True, alpha=0.3)
+            if convergence_rates:
+                ax5.plot(range(1, len(convergence_rates) + 1), convergence_rates,
+                        'g-o', linewidth=2, markersize=6)
+                ax5.axhline(y=1, color='k', linestyle=':', alpha=0.5, label='Unchanged error')
+                ax5.set_title('Convergence Rate Analysis', fontsize=12, fontweight='bold')
+                ax5.set_xlabel('Step')
+                ax5.set_ylabel('Convergence Rate (Error[n-1]/Error[n])')
+                ax5.legend()
+                ax5.grid(True, alpha=0.3)
 
-    # Overall title
-    fig.suptitle(f'Continued Fraction Convergence Analysis: {value}',
-                fontsize=16, fontweight='bold', y=0.95)
+        # Overall title
+        fig.suptitle(f'Continued Fraction Convergence Analysis: {value}',
+                    fontsize=16, fontweight='bold')
 
-    plt.tight_layout()
-
-    # Save the convergence analysis
-    value_str = str(value).replace('.', '_')
-    filename = f"continued_fraction_convergence_{value_str}_{max_terms}.png"
-    filepath = get_organized_output_path('mathematical', 'continued_fractions', filename)
-    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close(fig)
+        # Save the convergence analysis
+        value_str = str(value).replace('.', '_')
+        filename = f"continued_fraction_convergence_{value_str}_{max_terms}.png"
+        filepath = get_organized_output_path('mathematical', 'continued_fractions', filename)
+        fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -1026,67 +1168,69 @@ def _plot_base_conversion_matrix_matplotlib(start_base: int, end_base: int, numb
     # Create visualization
     _validate_canvas((14, 10), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ax = plt.subplots(figsize=(14, 10))
+    try:
 
-    # Create a grid layout
-    n_bases = len(base_range)
-    cell_width = 1.0
-    cell_height = 0.8
+        # Create a grid layout
+        n_bases = len(base_range)
+        cell_width = 1.0
+        cell_height = 0.8
 
-    # Draw cells and text
-    for i, base in enumerate(base_range):
-        x = i * cell_width
-        y = 0
+        # Draw cells and text
+        for i, base in enumerate(base_range):
+            x = i * cell_width
+            y = 0
 
-        # Draw cell background
-        rect = patches.Rectangle((x, y), cell_width, cell_height,
-                               linewidth=1, edgecolor='black',
-                               facecolor=get_config()["colors"]["background"])
-        ax.add_patch(rect)
+            # Draw cell background
+            rect = patches.Rectangle((x, y), cell_width, cell_height,
+                                   linewidth=1, edgecolor='black',
+                                   facecolor=get_config()["colors"]["background"])
+            ax.add_patch(rect)
 
-        # Add base number
-        ax.text(x + cell_width/2, y + cell_height - 0.2, f'Base {base}',
-               ha='center', va='center', fontsize=10, fontweight='bold')
+            # Add base number
+            ax.text(x + cell_width/2, y + cell_height - 0.2, f'Base {base}',
+                   ha='center', va='center', fontsize=10, fontweight='bold')
 
-        # Add converted number
-        conversion = conversions[base]
-        ax.text(x + cell_width/2, y + cell_height/2, str(conversion),
-               ha='center', va='center', fontsize=9, family='monospace')
+            # Add converted number
+            conversion = conversions[base]
+            ax.text(x + cell_width/2, y + cell_height/2, str(conversion),
+                   ha='center', va='center', fontsize=9, family='monospace')
 
-        # Add digit count
-        if conversion != "ERROR":
-            digit_count = len(str(conversion))
-            ax.text(x + cell_width/2, y + 0.2, f'{digit_count} digits',
-                   ha='center', va='center', fontsize=8, color='gray')
+            # Add digit count
+            if conversion != "ERROR":
+                digit_count = len(str(conversion))
+                ax.text(x + cell_width/2, y + 0.2, f'{digit_count} digits',
+                       ha='center', va='center', fontsize=8, color='gray')
 
-    # Set axis limits and labels
-    ax.set_xlim(0, n_bases * cell_width)
-    ax.set_ylim(0, cell_height)
-    ax.set_aspect('equal')
-    ax.axis('off')
+        # Set axis limits and labels
+        ax.set_xlim(0, n_bases * cell_width)
+        ax.set_ylim(0, cell_height)
+        ax.set_aspect('equal')
+        ax.axis('off')
 
-    # Add title and metadata
-    title = f'Number {number} in Different Bases (Base {start_base} to {end_base})'
-    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+        # Add title and metadata
+        title = f'Number {number} in Different Bases (Base {start_base} to {end_base})'
+        ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
 
-    # Add statistics
-    stats_text = "Statistics:\n"
-    stats_text += f"Total bases: {n_bases}\n"
-    valid_conversions = sum(1 for conv in conversions.values() if conv != "ERROR")
-    stats_text += f"Valid conversions: {valid_conversions}\n"
-    avg_digits = sum(len(str(conv)) for conv in conversions.values() if conv != "ERROR") / max(1, valid_conversions)
-    stats_text += f"Average digits: {avg_digits:.1f}"
+        # Add statistics
+        stats_text = "Statistics:\n"
+        stats_text += f"Total bases: {n_bases}\n"
+        valid_conversions = sum(1 for conv in conversions.values() if conv != "ERROR")
+        stats_text += f"Valid conversions: {valid_conversions}\n"
+        avg_digits = sum(len(str(conv)) for conv in conversions.values() if conv != "ERROR") / max(1, valid_conversions)
+        stats_text += f"Average digits: {avg_digits:.1f}"
 
-    ax.text(n_bases * cell_width + 0.5, cell_height/2, stats_text,
-            fontsize=10, verticalalignment='center',
-            bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgreen', alpha=0.8))
+        ax.text(n_bases * cell_width + 0.5, cell_height/2, stats_text,
+                fontsize=10, verticalalignment='center',
+                bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgreen', alpha=0.8))
 
-    plt.tight_layout()
+        plt.tight_layout()
 
-    # Save matrix visualization
-    filename = f"base_conversion_matrix_{start_base}_{end_base}_{number}.png"
-    filepath = get_organized_output_path('mathematical', 'base_conversions', filename)
-    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close(fig)
+        # Save matrix visualization
+        filename = f"base_conversion_matrix_{start_base}_{end_base}_{number}.png"
+        filepath = get_organized_output_path('mathematical', 'base_conversions', filename)
+        fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -1109,9 +1253,15 @@ def plot_pattern_analysis_radar(sequence: str,
     Create a radar chart visualization of pattern analysis in a sequence.
 
     Args:
-        sequence: String sequence to analyze for patterns
+        sequence: Nonempty raw decimal-digit string, preserving leading zeros.
         backend: Visualization backend
         **kwargs: Additional parameters
+
+    Radar axes are fractions: digit diversity / 10, entropy / log2(10), repeated
+    digit membership, repeated bigram occurrence membership, contiguous palindrome
+    coverage (length >= 2), and equal whole-sequence mirror pairs. Metadata keeps
+    the raw sequence, length and entropy in bits per digit separately. No axis
+    clips counts to fit a radial range.
 
     Returns:
         Dict: Visualization metadata and file paths
@@ -1139,90 +1289,70 @@ def _plot_pattern_analysis_radar_matplotlib(sequence: str, **kwargs) -> Dict[str
     except ImportError:
         raise ImportError("matplotlib is required for matplotlib backend")
 
-    # Analyze sequence patterns
-    digit_counts = {}
-    for digit in sequence:
-        if digit.isdigit():
-            digit_counts[digit] = digit_counts.get(digit, 0) + 1
-
-    # Calculate pattern metrics
-    sequence_length = len(sequence)
-    unique_digits = len(digit_counts)
-    digit_entropy = 0
-
-    for count in digit_counts.values():
-        if count > 0:
-            probability = count / sequence_length
-            digit_entropy -= probability * math.log2(probability)
-
-    # Pattern analysis metrics
-    categories = ['Length', 'Unique Digits', 'Entropy', 'Digit Diversity', 'Pattern Density', 'Symmetry']
-    values = [
-        min(sequence_length / 100, 1),  # Normalized length
-        unique_digits / 10,  # Max 10 digits (0-9)
-        digit_entropy / 4,  # Max entropy for 10 symbols
-        len(digit_counts) / 10,  # Digit diversity
-        len(find_repeated_patterns(sequence)) / 20,  # Pattern count
-        _pattern_symmetry_score(sequence)
-    ]
+    data = _radar_data(sequence)
+    categories = [key.replace('_', ' ').title() for key in data['radar_metrics']]
+    values = list(data['radar_metrics'].values())
 
     # Create radar chart
     _validate_canvas((10, 10), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'))
+    try:
 
-    # Number of variables
-    N = len(categories)
+        # Number of variables
+        N = len(categories)
 
-    # Angle for each category
-    angles = [n / float(N) * 2 * pi for n in range(N)]
-    angles += angles[:1]  # Close the polygon
+        # Angle for each category
+        angles = [n / float(N) * 2 * pi for n in range(N)]
+        angles += angles[:1]  # Close the polygon
 
-    # Values for each category
-    values += values[:1]  # Close the polygon
+        # Values for each category
+        values += values[:1]  # Close the polygon
 
-    # Plot data
-    ax.plot(angles, values, 'o-', linewidth=2, label='Pattern Metrics', color=get_config()["colors"]["primary"])
-    ax.fill(angles, values, alpha=0.25, color=get_config()["colors"]["primary"])
+        # Plot data
+        ax.plot(angles, values, 'o-', linewidth=2, label='Pattern Metrics', color=get_config()["colors"]["primary"])
+        ax.fill(angles, values, alpha=0.25, color=get_config()["colors"]["primary"])
 
-    # Add labels
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories)
+        # Add labels
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels(categories)
+        ax.set_ylim(0, 1)
+        ax.set_ylabel(data['radial_units'])
 
-    # Add value labels on the plot
-    for angle, value, category in zip(angles[:-1], values[:-1], categories):
-        ax.text(angle, value + 0.1, f'{value:.2f}', ha='center', va='center',
-               fontsize=9, fontweight='bold')
+        # Add value labels on the plot
+        for angle, value, category in zip(angles[:-1], values[:-1], categories):
+            ax.text(angle, value + 0.1, f'{value:.2f}', ha='center', va='center',
+                   fontsize=9, fontweight='bold')
 
-    # Set title
-    ax.set_title(f'Pattern Analysis Radar\nSequence Length: {sequence_length}',
-                size=14, fontweight='bold', pad=20)
+        # Set title
+        ax.set_title(f'Pattern Analysis Radar\nSequence Length: {data["sequence_length"]}',
+                     size=14, fontweight='bold', pad=20)
 
-    # Add statistics
-    stats_text = "Sequence Statistics:\n"
-    stats_text += f"Length: {sequence_length}\n"
-    stats_text += f"Unique digits: {unique_digits}\n"
-    stats_text += f"Digit entropy: {digit_entropy:.3f}\n"
-    stats_text += f"Digit diversity: {len(digit_counts) / 10:.3f}"
+        # Add statistics
+        stats_text = "Sequence Statistics:\n"
+        stats_text += f"Length: {data['sequence_length']}\n"
+        stats_text += f"Unique digits: {data['unique_digits']}\n"
+        stats_text += f"Digit entropy: {data['digit_entropy']:.3f} bits per digit"
 
-    ax.text(0.02, 0.02, stats_text, transform=ax.transAxes, fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.3", facecolor='lightyellow', alpha=0.8))
+        ax.text(0.02, 0.02, stats_text, transform=ax.transAxes, fontsize=9,
+                bbox=dict(boxstyle="round,pad=0.3", facecolor='lightyellow', alpha=0.8))
 
-    plt.tight_layout()
+        plt.tight_layout()
 
-    # Save radar visualization
-    seq_hash = hash(sequence) % 10000  # Simple hash for filename
-    filename = f"pattern_analysis_radar_{seq_hash}.png"
-    filepath = get_organized_output_path('mathematical', 'pattern_analysis', filename)
-    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close(fig)
+        # Save radar visualization
+        seq_hash = hash(sequence) % 10000  # Simple hash for filename
+        filename = f"pattern_analysis_radar_{seq_hash}.png"
+        filepath = get_organized_output_path('mathematical', 'pattern_analysis', filename)
+        fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
         'metadata': {
             'type': 'pattern_analysis_radar',
-            'sequence_length': sequence_length,
-            'unique_digits': unique_digits,
-            'entropy': digit_entropy,
+            **data,
+            'entropy': data['digit_entropy'],
+            'symmetry_score': data['radar_metrics']['symmetry_score'],
             'backend': 'matplotlib'
         }
     }
@@ -1304,18 +1434,13 @@ def _plot_base_conversion_plotly(number: int, from_base: int = 10, to_base: int 
     go, make_subplots, width, height = _plotly_grid(1.5, 1.5)
     colors_cfg = get_config()["colors"]
 
-    result = convert_between_bases(number, from_base, to_base)
-
-    digits = [int(d) for d in str(number)]
+    data = _base_conversion_data(number, from_base, to_base)
+    result = data['result']
+    digits = data['source_digits']
     digit_values = sorted(set(digits))
     digit_freqs = [digits.count(d) for d in digit_values]
-
-    steps = []
-    temp = number
-    while temp > 0:
-        steps.append(temp % to_base)
-        temp //= to_base
-    steps_reversed = steps[::-1]
+    steps_reversed = data['coefficients']
+    steps = steps_reversed[::-1]
 
     fig = make_subplots(rows=2, cols=2, subplot_titles=(
         f'Digit Distribution in Base {from_base}',
@@ -1331,15 +1456,19 @@ def _plot_base_conversion_plotly(number: int, from_base: int = 10, to_base: int 
     fig.add_trace(go.Bar(x=list(range(len(steps_reversed))), y=steps_reversed,
                          marker_color=colors_cfg["accent"], name='Coefficients'),
                   row=2, col=1)
+    fig.update_xaxes(title_text='Target digit position (most significant first)', row=1, col=2)
+    fig.update_xaxes(title_text='Target digit position (most significant first)', row=2, col=1)
     if to_base == 2:
-        fig.add_trace(go.Bar(x=list(range(len(steps))), y=[2 ** i for i in range(len(steps))],
+        fig.add_trace(go.Bar(x=list(range(len(data['powers']))),
+                             y=[to_base ** exponent for exponent in data['powers']],
                              marker_color=colors_cfg["primary"], name='2^i'), row=2, col=2)
         fig.update_yaxes(type='log', row=2, col=2)
+        fig.update_xaxes(title_text='Target digit position (most significant first)', row=2, col=2)
     else:
         fig.add_trace(go.Bar(x=digit_values, y=digit_freqs,
                              marker_color=colors_cfg["secondary"], name='Frequency'),
                       row=2, col=2)
-    fig.update_layout(title=f'Base Conversion: {number} ({from_base} → {to_base})',
+    fig.update_layout(title=f'Base Conversion: {number} ({from_base} → {to_base}); sign {data["sign"]:+d}',
                       width=width, height=height, showlegend=False)
 
     filepath = _save_plotly_figure(fig, 'mathematical', 'base_conversions',
@@ -1354,6 +1483,7 @@ def _plot_base_conversion_plotly(number: int, from_base: int = 10, to_base: int 
             'to_base': to_base,
             'result': result,
             'steps': len(steps),
+            **data,
             'backend': 'plotly'
         }
     }
@@ -1365,24 +1495,13 @@ def _plot_pattern_analysis_plotly(number: Union[int, str], pattern_type: str = '
     go, make_subplots, width, height = _plotly_grid(1.5, 1.5)
     colors_cfg = get_config()["colors"]
 
-    num_str = str(number)
+    data = _pattern_data(number, pattern_type)
+    num_str = _digit_sequence(number)
     digits = [int(d) for d in num_str]
     positions = list(range(len(digits)))
-
-    bar_colors = []
-    for i in range(len(digits)):
-        highlighted = False
-        if pattern_type == 'palindrome':
-            for radius in range(1, min(i, len(digits) - 1 - i) + 1):
-                if digits[i - radius] == digits[i + radius]:
-                    highlighted = True
-                    break
-        elif pattern_type == 'repeated':
-            highlighted = digits.count(digits[i]) > 1
-        bar_colors.append(colors_cfg["accent"] if highlighted else colors_cfg["primary"])
-
-    pattern_matrix = [[1 if digits[i] == digits[j] else 0
-                       for j in range(len(digits))] for i in range(len(digits))]
+    bar_colors = [colors_cfg["accent"] if match else colors_cfg["primary"]
+                  for match in data['coverage']]
+    pattern_matrix = data['pattern_matrix']
 
     unique_digits = sorted(set(digits))
     digit_freqs = [digits.count(d) for d in unique_digits]
@@ -1390,14 +1509,14 @@ def _plot_pattern_analysis_plotly(number: Union[int, str], pattern_type: str = '
     fig = make_subplots(rows=2, cols=2, subplot_titles=(
         f'Number: {num_str[:20]}{"..." if len(num_str) > 20 else ""}',
         f'{pattern_type.title()} Pattern Analysis',
-        'Pattern Similarity Matrix', 'Digit Frequency Distribution'))
+        data['pattern_definition'], 'Digit Frequency Distribution'))
     fig.add_trace(go.Scatter(x=positions, y=digits, mode='lines+markers',
                              line=dict(color=colors_cfg["primary"]), name='Sequence'),
                   row=1, col=1)
     fig.add_trace(go.Bar(x=positions, y=digits, marker_color=bar_colors, name='Digits'),
                   row=1, col=2)
     fig.add_trace(go.Heatmap(z=pattern_matrix, colorscale='Blues', showscale=False,
-                             name='Similarity'), row=2, col=1)
+                             name=data['pattern_definition']), row=2, col=1)
     fig.add_trace(go.Bar(x=unique_digits, y=digit_freqs,
                          marker_color=colors_cfg["secondary"], name='Frequency'),
                   row=2, col=2)
@@ -1415,6 +1534,7 @@ def _plot_pattern_analysis_plotly(number: Union[int, str], pattern_type: str = '
             'pattern_type': pattern_type,
             'length': len(digits),
             'unique_digits': len(set(digits)),
+            **data,
             'backend': 'plotly'
         }
     }
@@ -1429,16 +1549,9 @@ def _plot_ssrcd_plotly(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]:
     digits = [int(d) for d in num_str]
     positions = list(range(len(digits)))
 
-    palindromic_positions = []
-    for i in range(len(digits)):
-        is_palindrome = False
-        for radius in range(1, min(i, len(digits) - 1 - i) + 1):
-            if digits[i - radius] == digits[i + radius]:
-                is_palindrome = True
-                break
-        palindromic_positions.append(1 if is_palindrome else 0)
+    palindromic_positions = _palindrome_coverage(num_str)
 
-    window_size = min(20, len(digits) // 10)
+    window_size = max(1, min(20, len(digits) // 10))
     densities = []
     if window_size > 0:
         for i in range(0, len(digits) - window_size + 1, window_size):
@@ -1446,8 +1559,8 @@ def _plot_ssrcd_plotly(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]:
 
     fig = make_subplots(rows=2, cols=2, subplot_titles=(
         f'Scheherazade {analysis["scheherazade_power"]}^th Power',
-        'Palindromic Positions',
-        f'Palindromic Density (Window Size {window_size})',
+        'Contiguous Palindrome Coverage (length >= 2)',
+        f'Palindrome Coverage (Window Size {window_size})',
         'Special Insight'))
     fig.add_trace(go.Scatter(x=positions, y=digits, mode='lines+markers',
                              marker=dict(size=4),
@@ -1482,6 +1595,10 @@ def _plot_ssrcd_plotly(analysis: Dict[str, Any], **kwargs) -> Dict[str, Any]:
             'number_length': analysis['digit_count'],
             'is_palindromic': analysis['is_palindromic'],
             'palindromic_density': analysis['palindromic_density'],
+            'palindromic_density_definition': 'odd-center contiguous matched pairs per digit (core metric)',
+            'palindrome_coverage': palindromic_positions,
+            'palindrome_coverage_fraction': sum(palindromic_positions) / len(digits),
+            'symmetry_score': _pattern_symmetry_score(num_str),
             'backend': 'plotly'
         }
     }
@@ -1598,12 +1715,6 @@ def _plot_base_conversion_matrix_plotly(start_base: int, end_base: int, number: 
     }
 
 
-def _pattern_symmetry_score(sequence: str) -> float:
-    """Compute a real symmetry score: fraction of symmetric pairs around the center."""
-    patterns = find_symmetric_patterns(sequence)
-    if patterns and patterns[0].get('pairs'):
-        return float(patterns[0]['symmetry_score'])
-    return 0.0
 
 
 def _plot_pattern_analysis_radar_plotly(sequence: str, **kwargs) -> Dict[str, Any]:
@@ -1611,29 +1722,9 @@ def _plot_pattern_analysis_radar_plotly(sequence: str, **kwargs) -> Dict[str, An
     go, _, width, height = _plotly_grid(1.0, 1.0)
     colors_cfg = get_config()["colors"]
 
-    digit_counts = {}
-    for digit in sequence:
-        if digit.isdigit():
-            digit_counts[digit] = digit_counts.get(digit, 0) + 1
-
-    sequence_length = len(sequence)
-    unique_digits = len(digit_counts)
-    digit_entropy = 0
-    for count in digit_counts.values():
-        if count > 0:
-            probability = count / sequence_length
-            digit_entropy -= probability * math.log2(probability)
-
-    categories = ['Length', 'Unique Digits', 'Entropy', 'Digit Diversity',
-                  'Pattern Density', 'Symmetry']
-    values = [
-        min(sequence_length / 100, 1),
-        unique_digits / 10,
-        digit_entropy / 4,
-        len(digit_counts) / 10,
-        len(find_repeated_patterns(sequence)) / 20,
-        _pattern_symmetry_score(sequence),
-    ]
+    data = _radar_data(sequence)
+    categories = [key.replace('_', ' ').title() for key in data['radar_metrics']]
+    values = list(data['radar_metrics'].values())
 
     # Close the radar polygon
     categories_closed = categories + [categories[0]]
@@ -1642,9 +1733,10 @@ def _plot_pattern_analysis_radar_plotly(sequence: str, **kwargs) -> Dict[str, An
     fig = go.Figure(data=go.Scatterpolar(
         r=values_closed, theta=categories_closed, fill='toself',
         line=dict(color=colors_cfg["primary"]), name='Pattern Metrics'))
-    fig.update_layout(title=f'Pattern Analysis Radar<br>Sequence Length: {sequence_length}',
+    fig.update_layout(title=f'Pattern Analysis Radar<br>Sequence Length: {data["sequence_length"]}',
                       width=width, height=height,
-                      polar=dict(radialaxis=dict(range=[0, 1])))
+                      polar=dict(radialaxis=dict(range=data['radial_range'],
+                                                 title=data['radial_units'])))
 
     seq_hash = hash(sequence) % 10000
     filepath = _save_plotly_figure(fig, 'mathematical', 'pattern_analysis',
@@ -1654,10 +1746,9 @@ def _plot_pattern_analysis_radar_plotly(sequence: str, **kwargs) -> Dict[str, An
         'files': [filepath],
         'metadata': {
             'type': 'pattern_analysis_radar',
-            'sequence_length': sequence_length,
-            'unique_digits': unique_digits,
-            'digit_entropy': digit_entropy,
-            'symmetry_score': values[-1],
+            **data,
+            'entropy': data['digit_entropy'],
+            'symmetry_score': data['radar_metrics']['symmetry_score'],
             'backend': 'plotly'
         }
     }

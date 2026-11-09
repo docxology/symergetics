@@ -24,6 +24,19 @@ and uses the same declared fan triangles in embedding-squared units.
 - `volume_centroid_exact()` returns the uniform-solid mass centroid under the
   same enclosure contract; zero volume raises `ValueError`.
 
-Vertex mean and mass centroid generally differ. Rotations, projections and
-noninteger scaling can cross floating-point and integer-snapping boundaries;
-do not promise arbitrary transform round trips on the integer lattice.
+Vertex mean and mass centroid generally differ. Rotations and noninteger
+scaling cross floating-point and integer-snapping boundaries; do not promise
+arbitrary transform round trips on the integer lattice.
+
+Polyhedron transforms call `with_vertices(vertices)`: preserve concrete type
+and indexed topology without rerunning constructors, with a new owned list.
+Coordinate objects and other state remain shallow-shared. Subclasses with
+geometry-dependent caches must override this protocol.
+
+`project_to_plane(coord, plane_normal, plane_point=None)` uses exact represented
+rational plane inputs, including finite NumPy floating scalars, followed by one
+nearest-lattice snap. A snapped site can leave the plane. Named `reflect` axes
+remain `origin`, `a`, `b`, `c`, `d`; no arbitrary-normal reflection API is added.
+The separate continuous `xyz_to_quadray_matrix` uses rational inversion of
+the effective embedding and a zero-sum minimum-norm gauge, rounding only the
+final entries to float. It is not exact nearest-site selection.

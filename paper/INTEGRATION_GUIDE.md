@@ -59,10 +59,30 @@ failures are hard failures and must not be hidden by a successful partial PDF.
 
 [figure_manager.py](render/figure_manager.py) and
 [scan_and_register_figures.py](render/scan_and_register_figures.py) provide a
-separate registry/scan workflow. Registry metadata is not independently measured
-evidence and is not a substitute for the renderer's actual caption handling.
-Link the implementation instead of maintaining copied dataclasses or private
-function bodies in documentation.
+separate scientific figure-provenance workflow.
+Registry metadata is not independently measured evidence and does not replace
+the renderer's actual authored caption handling.
+
+The scanner writes its registry to the project's root `output/` even when
+launched from another working directory; it also generates
+`paper/markdown/figures.md`. Do not run it as read-only inspection. Complete
+`technical_details` survive serialization. Loading a snapshot replaces state
+idempotently; invalid record decoding leaves the previous state unchanged.
+
+Filename inference sets `technical_details.inference_basis="filename"`, and
+captions identify the generator as inferred rather than verified. Unencoded
+backend, resolution and data scale remain `unknown`; `high_res` is a filename
+hint, not evidence of 300 DPI. Polyhedron names retain unsuffixed names, and
+parsed signed quadray labels are four redundant coefficients in three spatial
+dimensions, not an extra dimension.
+
+Registry `generated_at` is the actual timezone-aware UTC export time, not a
+source-date footer or file-generation timestamp. Scientific figure footers use
+the UTC date of `SOURCE_DATE_EPOCH` when supplied, otherwise the local date;
+demo sidecar paths are relative to the sidecar directory. These separate
+contracts do not promise byte-identical artifacts across arbitrary toolchains.
+Keep exact API contracts in [the reference](../docs/api/index.md) rather than
+copying dataclasses or private function bodies here.
 
 ## Validation and Testing
 

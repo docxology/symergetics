@@ -24,8 +24,8 @@ from figure_manager import figure_manager, register_figure_auto
 
 
 def extract_metadata_from_filename(filename: str) -> Dict[str, Any]:
-    """Extract metadata from filename"""
-    metadata = {}
+    """Infer filename hints, never unencoded render or dataset measurements."""
+    metadata = {"inference_basis": "filename"}
 
     # Extract backend information
     if '_matplotlib' in filename or '3d.png' in filename:
@@ -41,16 +41,20 @@ def extract_metadata_from_filename(filename: str) -> Dict[str, Any]:
         metadata['backend'] = 'seaborn'
         metadata['generated_by'] = 'seaborn'
     else:
-        metadata['backend'] = 'matplotlib'  # default
-        metadata['generated_by'] = 'matplotlib'
+        metadata['backend'] = 'unknown'
+        metadata['generated_by'] = 'unknown'
 
     # Extract resolution if available
-    if 'high_res' in filename or '300dpi' in filename:
+    if '300dpi' in filename:
         metadata['resolution'] = '300 DPI'
-    elif 'low_res' in filename:
+    elif '150dpi' in filename:
         metadata['resolution'] = '150 DPI'
+    elif 'high_res' in filename:
+        metadata['resolution'] = 'high (filename hint)'
+    elif 'low_res' in filename:
+        metadata['resolution'] = 'low (filename hint)'
     else:
-        metadata['resolution'] = '300 DPI'  # default
+        metadata['resolution'] = 'unknown'
 
     # Extract data size information
     if 'large' in filename:
@@ -58,7 +62,7 @@ def extract_metadata_from_filename(filename: str) -> Dict[str, Any]:
     elif 'small' in filename:
         metadata['data_scale'] = 'small_dataset'
     else:
-        metadata['data_scale'] = 'standard'
+        metadata['data_scale'] = 'unknown'
 
     return metadata
 
@@ -207,6 +211,7 @@ def main():
     print(f"\n✅ Successfully registered {len(registered_figures)} figures")
 
     # Save figure registry
+    figure_manager.output_dir = output_dir
     registry_path = figure_manager.save_figure_registry()
     print(f"💾 Figure registry saved to: {registry_path}")
 

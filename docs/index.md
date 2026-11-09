@@ -15,8 +15,8 @@ These identify archived records, not evidence that current main is a release.
    scientific commands explicitly select Python 3.13.
 2. [Core concepts](core-concept-guide.md) and [first calculations](tutorials/index.md).
 3. [API contracts](api/index.md), [cookbook](api-cookbook-recipes.md) and [runnable demos](examples/index.md).
-4. [Scientific poster sections](api/index.md#scientific-poster-sections-unreleased-main)
-   — focused default versus all seventeen topics; new selector requires unreleased main.
+4. [Scientific poster sections](api/index.md#scientific-poster-sections)
+   — focused default versus all seventeen topics; selector introduced in 1.4.0.
 5. [Suite conventions and executable integration](synergetics-suite.md).
 
 ## Mathematics and implementation
