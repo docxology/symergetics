@@ -158,7 +158,7 @@ def _render_polyhedron_matplotlib(polyhedron, *, suffix, kind, show_edges=True,
         type=kind, polyhedron=type(polyhedron).__name__, vertices=len(vertices),
         volume=polyhedron.volume(), backend='matplotlib',
         view_elevation=elevation, view_azimuth=azimuth,
-        show_wireframe=show_edges, show_surface=show_faces,
+        show_wireframe=show_edges, show_surface=show_faces, show_vertices=show_vertices,
         **_geometry_metadata(polyhedron, anchor)))
 
 
@@ -404,81 +404,83 @@ def _plot_quadray_matplotlib(coord: QuadrayCoordinate,
     )
     _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
-    ax = fig.add_subplot(111, projection='3d')
+    try:
+        ax = fig.add_subplot(111, projection='3d')
 
-    # Convert coordinate to XYZ
-    x, y, z = coord.to_xyz()
+        # Convert coordinate to XYZ
+        x, y, z = coord.to_xyz()
 
-    # Plot the main coordinate
-    ax.scatter([x], [y], [z], color=get_config()["colors"]["primary"],
-              s=200, alpha=1.0, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})')
+        # Plot the main coordinate
+        ax.scatter([x], [y], [z], color=get_config()["colors"]["primary"],
+                  s=200, alpha=1.0, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})')
 
-    # Add direction vectors for quadray axes
-    # Define the four fundamental quadray directions
-    quadray_directions = [
-        QuadrayCoordinate(1, 0, 0, 0),  # A-direction (red)
-        QuadrayCoordinate(0, 1, 0, 0),  # B-direction (green)
-        QuadrayCoordinate(0, 0, 1, 0),  # C-direction (blue)
-        QuadrayCoordinate(0, 0, 0, 1),  # D-direction (yellow)
-    ]
+        # Add direction vectors for quadray axes
+        # Define the four fundamental quadray directions
+        quadray_directions = [
+            QuadrayCoordinate(1, 0, 0, 0),  # A-direction (red)
+            QuadrayCoordinate(0, 1, 0, 0),  # B-direction (green)
+            QuadrayCoordinate(0, 0, 1, 0),  # C-direction (blue)
+            QuadrayCoordinate(0, 0, 0, 1),  # D-direction (yellow)
+        ]
 
-    direction_colors = ['red', 'green', 'blue', 'orange']
-    direction_labels = ['A-axis', 'B-axis', 'C-axis', 'D-axis']
+        direction_colors = ['red', 'green', 'blue', 'orange']
+        direction_labels = ['A-axis', 'B-axis', 'C-axis', 'D-axis']
 
-    # Scale factor for vectors (adjust based on visualization scale)
-    vector_scale = 0.8
+        # Scale factor for vectors (adjust based on visualization scale)
+        vector_scale = 0.8
 
-    for i, (direction, color, label) in enumerate(zip(quadray_directions, direction_colors, direction_labels)):
-        # Calculate direction vector in XYZ space
-        dir_xyz = direction.to_xyz()
+        for i, (direction, color, label) in enumerate(zip(quadray_directions, direction_colors, direction_labels)):
+            # Calculate direction vector in XYZ space
+            dir_xyz = direction.to_xyz()
 
-        # Scale the vector
-        scaled_dir = np.array(dir_xyz) * vector_scale
+            # Scale the vector
+            scaled_dir = np.array(dir_xyz) * vector_scale
 
-        # Plot vector from origin
-        ax.quiver(0, 0, 0, scaled_dir[0], scaled_dir[1], scaled_dir[2],
-                 color=color, alpha=0.7, linewidth=2, arrow_length_ratio=0.1,
-                 label=label if i == 0 else "")  # Only label first vector to avoid clutter
+            # Plot vector from origin
+            ax.quiver(0, 0, 0, scaled_dir[0], scaled_dir[1], scaled_dir[2],
+                     color=color, alpha=0.7, linewidth=2, arrow_length_ratio=0.1,
+                     label=label if i == 0 else "")  # Only label first vector to avoid clutter
 
-    # Show lattice points if requested
-    if show_lattice:
-        if lattice_points:
-            lattice_array = np.array(lattice_points)
-            ax.scatter(lattice_array[:, 0], lattice_array[:, 1], lattice_array[:, 2],
-                      color=get_config()["colors"]["grid"], s=20, alpha=0.3, label='IVM Lattice')
+        # Show lattice points if requested
+        if show_lattice:
+            if lattice_points:
+                lattice_array = np.array(lattice_points)
+                ax.scatter(lattice_array[:, 0], lattice_array[:, 1], lattice_array[:, 2],
+                          color=get_config()["colors"]["grid"], s=20, alpha=0.3, label='IVM Lattice')
 
-    # Set labels and title
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.set_title(f'Quadray Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})')
+        # Set labels and title
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.set_title(f'Quadray Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})')
 
-    # Fit the point, global lattice context, origin and all basis endpoints.
-    all_points = [(x, y, z), (0, 0, 0)]
-    all_points.extend(np.array(direction.to_xyz()) * vector_scale for direction in quadray_directions)
-    all_points.extend(lattice_points)
-    _fit_3d(ax, all_points)
+        # Fit the point, global lattice context, origin and all basis endpoints.
+        all_points = [(x, y, z), (0, 0, 0)]
+        all_points.extend(np.array(direction.to_xyz()) * vector_scale for direction in quadray_directions)
+        all_points.extend(lattice_points)
+        _fit_3d(ax, all_points)
 
-    # Create a custom legend with direction vectors
-    legend_elements = [
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=get_config()["colors"]["primary"],
-                  markersize=10, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})'),
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=get_config()["colors"]["grid"],
-                  markersize=6, alpha=0.3, label='IVM Lattice') if show_lattice else None,
-        plt.Line2D([0], [0], color='red', linewidth=2, label='A-axis'),
-        plt.Line2D([0], [0], color='green', linewidth=2, label='B-axis'),
-        plt.Line2D([0], [0], color='blue', linewidth=2, label='C-axis'),
-        plt.Line2D([0], [0], color='orange', linewidth=2, label='D-axis'),
-    ]
-    # Filter out None elements
-    legend_elements = [elem for elem in legend_elements if elem is not None]
-    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.05, 1))
+        # Create a custom legend with direction vectors
+        legend_elements = [
+            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=get_config()["colors"]["primary"],
+                      markersize=10, label=f'Coordinate ({coord.a},{coord.b},{coord.c},{coord.d})'),
+            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=get_config()["colors"]["grid"],
+                      markersize=6, alpha=0.3, label='IVM Lattice') if show_lattice else None,
+            plt.Line2D([0], [0], color='red', linewidth=2, label='A-axis'),
+            plt.Line2D([0], [0], color='green', linewidth=2, label='B-axis'),
+            plt.Line2D([0], [0], color='blue', linewidth=2, label='C-axis'),
+            plt.Line2D([0], [0], color='orange', linewidth=2, label='D-axis'),
+        ]
+        # Filter out None elements
+        legend_elements = [elem for elem in legend_elements if elem is not None]
+        ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.05, 1))
 
-    # Save plot using organized structure
-    filename = f"quadray_coordinate_{coord.a}_{coord.b}_{coord.c}_{coord.d}.png"
-    filepath = get_organized_output_path('geometric', 'coordinates', filename)
-    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close(fig)
+        # Save plot using organized structure
+        filename = f"quadray_coordinate_{coord.a}_{coord.b}_{coord.c}_{coord.d}.png"
+        filepath = get_organized_output_path('geometric', 'coordinates', filename)
+        fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -576,40 +578,42 @@ def _plot_ivm_lattice_matplotlib(size: int = 5,
 
     _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig = plt.figure(figsize=get_config()["figure_size"])
-    ax = fig.add_subplot(111, projection='3d')
+    try:
+        ax = fig.add_subplot(111, projection='3d')
 
-    if lattice_points:
-        lattice_array = np.array(lattice_points)
+        if lattice_points:
+            lattice_array = np.array(lattice_points)
 
-        # Plot all lattice points
-        ax.scatter(lattice_array[:, 0], lattice_array[:, 1], lattice_array[:, 2],
-                  color=get_config()["colors"]["grid"], s=20, alpha=0.4, label='IVM Lattice')
+            # Plot all lattice points
+            ax.scatter(lattice_array[:, 0], lattice_array[:, 1], lattice_array[:, 2],
+                      color=get_config()["colors"]["grid"], s=20, alpha=0.4, label='IVM Lattice')
 
-    # Highlight specific coordinates if provided
-    if highlight_coordinates:
-        for i, coord in enumerate(highlight_coordinates):
-            x, y, z = coord.to_xyz()
-            ax.scatter([x], [y], [z],
-                      color=get_config()["colors"]["accent"],
-                      s=100, alpha=1.0,
-                      label=f'Highlight {i+1}: ({coord.a},{coord.b},{coord.c},{coord.d})')
+        # Highlight specific coordinates if provided
+        if highlight_coordinates:
+            for i, coord in enumerate(highlight_coordinates):
+                x, y, z = coord.to_xyz()
+                ax.scatter([x], [y], [z],
+                          color=get_config()["colors"]["accent"],
+                          s=100, alpha=1.0,
+                          label=f'Highlight {i+1}: ({coord.a},{coord.b},{coord.c},{coord.d})')
 
-    # Set labels and title
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.set_title(f'Isotropic Vector Matrix (IVM) Lattice - Graph-shell radius {size}')
+        # Set labels and title
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.set_title(f'Isotropic Vector Matrix (IVM) Lattice - Graph-shell radius {size}')
 
-    displayed = lattice_points + [coord.to_xyz() for coord in (highlight_coordinates or [])]
-    _fit_3d(ax, displayed)
+        displayed = lattice_points + [coord.to_xyz() for coord in (highlight_coordinates or [])]
+        _fit_3d(ax, displayed)
 
-    ax.legend()
+        ax.legend()
 
-    # Save plot using organized structure
-    filename = f"ivm_lattice_size_{size}.png"
-    filepath = get_organized_output_path('geometric', 'lattice', filename)
-    fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close(fig)
+        # Save plot using organized structure
+        filename = f"ivm_lattice_size_{size}.png"
+        filepath = get_organized_output_path('geometric', 'lattice', filename)
+        fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
+    finally:
+        plt.close(fig)
 
     return {
         'files': [str(filepath)],
@@ -680,31 +684,40 @@ def plot_coordinate_transformation(coord: QuadrayCoordinate,
     Args:
         coord: Initial coordinate to transform
         transform_func: Function that takes a coordinate and returns transformed coordinate
-        steps: Number of animation steps
+        steps: Number of successive transformation applications (initial point excluded)
         backend: Visualization backend
         **kwargs: Additional parameters
 
     Returns:
         Dict: Visualization metadata and file paths
+
+    ``metadata.steps`` counts applications and ``metadata.samples`` includes the
+    initial coordinate. Matplotlib saves the complete path; ASCII and Plotly
+    report its start and end coordinates without an artifact.
     """
     backend = get_config()["backend"] if backend is None else backend
+    if backend not in ("matplotlib", "ascii", "plotly"):
+        raise ValueError(f"Unsupported backend for coordinate transformation: {backend}")
+
+    # Complete the real transformation before creating a figure or output path.
+    path_coords = [coord]
+    for _ in range(steps):
+        path_coords.append(transform_func(path_coords[-1]))
 
     if backend == "matplotlib":
-        return _plot_transformation_matplotlib(coord, transform_func, steps, **kwargs)
-    elif backend in ("ascii", "plotly"):
-        # These backends report start and end positions without a saved artifact.
-        end_coord = transform_func(coord)
-        return {
-            'files': [],
-            'metadata': {
-                'type': 'coordinate_transformation',
-                'start': (coord.a, coord.b, coord.c, coord.d),
-                'end': (end_coord.a, end_coord.b, end_coord.c, end_coord.d),
-                'backend': backend
-            }
+        return _plot_transformation_matplotlib(path_coords, **kwargs)
+    # These backends report start and end positions without a saved artifact.
+    return {
+        'files': [],
+        'metadata': {
+            'type': 'coordinate_transformation',
+            'steps': len(path_coords) - 1,
+            'samples': len(path_coords),
+            'start': coord.as_tuple(),
+            'end': path_coords[-1].as_tuple(),
+            'backend': backend
         }
-    else:
-        raise ValueError(f"Unsupported backend for coordinate transformation: {backend}")
+    }
 
 
 def plot_polyhedron_3d(polyhedron: Union[str, SymergeticsPolyhedron],
@@ -1035,12 +1048,11 @@ def _plot_polyhedron_wireframe_matplotlib(polyhedron: SymergeticsPolyhedron,
     """Create a wireframe using declared indexed edges."""
     return _render_polyhedron_matplotlib(
         polyhedron, suffix='wireframe', kind='polyhedron_wireframe',
-        show_faces=False, elevation=elevation, azimuth=azimuth)
+        show_faces=False, show_vertices=kwargs.get('show_vertices', True),
+        elevation=elevation, azimuth=azimuth)
 
 
-def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
-                                   transform_func,
-                                   steps: int = 20,
+def _plot_transformation_matplotlib(path_coords: List[QuadrayCoordinate],
                                    **kwargs) -> Dict[str, Any]:
     """Plot a complete transformation path, propagating callback failures."""
     try:
@@ -1048,12 +1060,8 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
     except ImportError:
         raise ImportError("matplotlib is required for transformation animation")
 
-    # Complete the real transformation before creating a figure or output path.
-    path_coords = [coord]
-    current = coord
-    for _ in range(steps):
-        current = transform_func(current)
-        path_coords.append(current)
+    coord = path_coords[0]
+    applications = len(path_coords) - 1
     path_array = np.array([c.to_xyz() for c in path_coords])
 
     _validate_canvas(get_config()["figure_size"], max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
@@ -1064,18 +1072,19 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
             ax.plot(path_array[:, 0], path_array[:, 1], path_array[:, 2],
                     color=get_config()["colors"]["primary"], linewidth=3,
                     label='Transformation Path')
-            ax.scatter([path_array[0, 0]], [path_array[0, 1]], [path_array[0, 2]],
-                       color=get_config()["colors"]["secondary"], s=150, alpha=1.0,
-                       label='Start')
+        ax.scatter([path_array[0, 0]], [path_array[0, 1]], [path_array[0, 2]],
+                   color=get_config()["colors"]["secondary"], s=150, alpha=1.0,
+                   label='Start')
+        if applications:
             ax.scatter([path_array[-1, 0]], [path_array[-1, 1]], [path_array[-1, 2]],
                        color=get_config()["colors"]["accent"], s=150, alpha=1.0,
                        label='End')
-            ax.legend()
+        ax.legend()
 
         _fit_3d(ax, path_array)
-        ax.set_title(f'Coordinate Transformation ({len(path_coords)} steps)')
+        ax.set_title(f'Coordinate Transformation ({applications} applications, {len(path_coords)} samples)')
 
-        filename = f"coordinate_transformation_{len(path_coords)}_steps.png"
+        filename = f"coordinate_transformation_{applications}_steps.png"
         filepath = get_organized_output_path('geometric', 'transformations', filename)
         fig.savefig(filepath, dpi=get_config()["dpi"], bbox_inches='tight')
     finally:
@@ -1085,7 +1094,8 @@ def _plot_transformation_matplotlib(coord: QuadrayCoordinate,
         'files': [str(filepath)],
         'metadata': {
             'type': 'coordinate_transformation',
-            'steps': len(path_coords),
+            'steps': applications,
+            'samples': len(path_coords),
             'start_coordinate': (coord.a, coord.b, coord.c, coord.d),
             'end_coordinate': (path_coords[-1].a, path_coords[-1].b, path_coords[-1].c, path_coords[-1].d),
             'backend': 'matplotlib'

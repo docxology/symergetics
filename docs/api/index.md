@@ -2,14 +2,14 @@
 
 ## Core Concept Integration
 
-This reference describes the development checkout. Rational scalars, integer
+This reference describes the 1.4.0 source interface. Rational scalars, integer
 quadray geometry, finite digit-pattern analysis and file-producing plots are
 implemented; general cognitive, biological, quantum and cosmological models
 are not installed APIs. See the [concept guide](../core-concept-guide.md)
 and [checkout/release installation](../../README.md#install-and-run).
 
-The keyword-only scientific-poster section selector below is **unreleased
-main functionality**, not an addition to the immutable 1.3.0 wheel.
+The keyword-only scientific-poster section selector was introduced in **1.4.0**;
+earlier wheels retain their own release interfaces.
 
 Declaration blocks describe signatures; they are not standalone executable
 class definitions. Complete runnable consumer examples live in the
@@ -197,6 +197,13 @@ must not be reconstructed through the integer coordinate constructor.
 `vertices` remains mutable. `volume()` calculates from the current vertices
 rather than returning a stale cached value after a vertex replacement.
 
+`with_vertices(vertices)` returns a same-concrete-type shallow copy without
+rerunning its constructor. It owns a new vertex list; coordinate objects,
+indexed topology and other state are retained by reference. Polyhedron scale,
+reflection and coordinate transforms use this protocol. Subclasses with
+geometry-dependent caches or different ownership must override it; it is not
+a deep-copy guarantee.
+
 ### Indexed surfaces and live solid analysis
 
 | Method | Contract |
@@ -298,10 +305,18 @@ Import from `symergetics.geometry.transformations`:
 - `reflect(coord, axis)`: origin inversion, or reflection in the plane through
   the origin perpendicular to basis direction `a`, `b`, `c` or `d`, followed by
   lattice projection.
+- `project_to_plane(coord, plane_normal, plane_point=None)`: exact rational
+  Euclidean plane projection followed by one nearest-lattice snap. A finite
+  nonzero three-vector normal is required; `plane_point` defaults to the origin.
+  Finite Python and NumPy floating inputs mean their represented binary ratios.
+  Snapping can move the result off the plane. `reflect` still accepts named
+  axes, not an arbitrary-normal positional argument.
 - `coordinate_transform(coord, matrix)`: a 4×4 linear transform whose row sums
   are equal, so it respects the common-offset gauge.
-- `xyz_to_quadray_matrix(embedding=None)`: the supplied embedding's continuous
-  4×3 pseudoinverse, not a discrete lattice inverse.
+- `xyz_to_quadray_matrix(embedding=None)`: the continuous zero-sum minimum-norm
+  4×3 inverse of the effective embedding (first three columns and their negative
+  sum). Rational inversion retains anisotropic units until final float entries;
+  this is neither exact nearest-lattice search nor a discrete inverse.
 
 Quantized transformations need not preserve distances or be invertible.
 See the [suite guide](../synergetics-suite.md) for embedding and volume units.
@@ -493,7 +508,13 @@ canonical reference's 4. Display axes are anchor-relative scale-one XYZ;
 full exact coordinates and both different centroid measurements remain in
 metadata. The reference-volume bars do not replace live measurements.
 
-### Scientific poster sections (unreleased main)
+Comparative/dashboard annotations use actual computed means, medians, summary
+statistics and correlation coefficients, not literal formatting templates.
+Constant-column correlations are undefined and shown as `N/A`; they are not
+invented zero correlations. Rendering remains a floating presentation boundary,
+not a domain-model validation or general statistical-inference interface.
+
+### Scientific poster sections
 
 Import from `symergetics.visualization.advanced`:
 
@@ -537,11 +558,10 @@ The result retains `files: list[str]` and `metadata` with type/title,
 maps panel IDs to JSON-safe computed payloads; full exact rationals are strings.
 Use those fields to identify what was actually selected, not an assumed layout.
 The [real demo](../../examples/comprehensive_visualizations_demo.py) emits
-separate modular outputs; see the [cookbook](../api-cookbook-recipes.md#select-a-scientific-poster-topic-on-unreleased-main).
+separate modular outputs; see the [cookbook](../api-cookbook-recipes.md#scientific-poster-sections).
 
-The immutable **1.3.0 release wheel does not support this new selector**.
-Use an unreleased development checkout to call `section`; main documentation
-and an unchanged package version string do not extend a published artifact.
+Section selection was introduced in **1.4.0**. Use its release wheel or the
+corresponding checkout; 1.3.0 artifacts retain their earlier interface.
 
 ### Number Visualizations
 
@@ -564,6 +584,41 @@ from symergetics.visualization.mathematical import (
   plot_ssrcd_analysis
 )
 ```
+
+`plot_base_conversion(number, from_base=10, to_base=2, ...)` interprets the
+supplied signed digit spelling in `from_base` (bases 2–36; base 10 requires an
+integer), rather than plotting a decimal surrogate. Returned coefficients and descending place weights
+reconstruct the decoded value; binary coefficients are most-significant-first.
+
+`plot_pattern_analysis(number, pattern_type="palindrome", backend=None, *,
+include_matrix=True, **kwargs)` preserves raw decimal leading zeros. Its
+off-diagonal matrix relates endpoints of contiguous palindromes of length at
+least two, equal-digit positions for `repeated`, or equal whole-sequence
+mirror pairs for `symmetric`. The coverage vector marks participating positions;
+it is not a palindrome-count density.
+
+The dense `pattern_matrix` remains the default on every backend and has
+quadratic output size. Explicit `backend="ascii", include_matrix=False` opts
+into linear text analysis and returns `pattern_matrix=None`; Matplotlib and
+Plotly reject matrix omission before writing an artifact. Radar palindrome
+coverage uses linear-time scalar analysis without a dense matrix, with no
+arbitrary input cap. The computation module's odd-center palindromic density
+is a separate metric. Continued-fraction errors, primorial values, SS-RCD
+quantities and radar scores derive from the supplied numeric data.
+
+Radar axes are dimensionless fractions: distinct digits divided by ten,
+entropy divided by `log2(10)`, repeated-digit and repeated-bigram occurrence
+membership, contiguous-palindrome coverage and equal whole-sequence mirror
+pairs. Raw entropy remains separately reported in bits per digit. These
+fractions are not raw counts clipped to fit a radial range.
+
+Renderers close their own Matplotlib figures after saves and failures, not
+pre-existing caller figures. Unsupported backends raise rather than silently
+falling back.
+
+Scientific footer dates honor the UTC date of `SOURCE_DATE_EPOCH` when set,
+otherwise the current local date. Demo JSON sidecars use paths relative to the sidecar directory; neither
+this date convention nor relative paths guarantee universal byte identity.
 
 ### Batch and Export
 
@@ -598,8 +653,9 @@ The package uses standard Python exceptions:
 ## Performance Notes
 
 - Rational scalar arithmetic and integer determinant volumes are exact.
-- XYZ conversion and continuous transforms use floating point; lattice
-  projection introduces discrete quantization.
+- XYZ output, rotations and continuous inverse entries have floating boundaries;
+  plane operations use exact represented rational arithmetic before a single
+  nearest-lattice snap. Quantization remains distinct from floating roundoff.
 - Core coordinates require NumPy; visualization/scientific backends use extras.
 - Volume calculations use integer determinant methods
 

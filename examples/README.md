@@ -30,8 +30,11 @@ The comprehensive demo's `demonstrate_mega_graphical_abstracts(output_directory=
 can be called with an external destination; it renders `overview`, `geometry`,
 `arithmetic`, `patterns`, `all` and writes JSON sidecars with actual metadata.
 The overview keeps `mega_graphical_abstract.png`; other groups append their
-section name. Group selection is unreleased-main behavior, not 1.3.0 wheel behavior.
+section name. Group selection was introduced in 1.4.0, not retrofitted to older wheels.
 This helper's destination does not redirect every other phase of `main()`.
+JSON `files` are relative to the sidecar directory; runtime paths still identify
+the actual generated files. `SOURCE_DATE_EPOCH` controls the scientific footer's
+UTC date, otherwise the local date is used. This is not a byte-identity guarantee.
 
 `suite_interoperability.py` requires sibling QuadMath/QuadCraft checkouts,
 Node.js and a C++17 compiler; adapters compile in temporary storage. Options
@@ -40,6 +43,13 @@ include `--quadmath-root`, `--quadcraft-root`, `--node`, `--cxx`:
 ```bash
 uv run --python 3.13 --extra scientific python examples/suite_interoperability.py --help
 ```
+
+The interoperability report includes actual `finite_boundary_outcomes` and
+derives `finite_boundary_cases` from the returned records. Cases include
+degree-11/18 extreme stars with both signs and full/single/disabled masks,
+isolated values, subnormal/maximum ties, tiny coupling and signed-zero
+zero-coupling identity. Both production kernels are exercised; this is not
+a frozen inventory count or proof that every finite input behaves identically.
 
 Consult [canonical APIs](../docs/api/index.md), [suite gauges and units](../docs/synergetics-suite.md)
 and [example guides](../docs/examples/) before interpreting numerical output.

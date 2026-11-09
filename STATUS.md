@@ -7,12 +7,12 @@ integer quadrays, nearest-lattice conversion, exact metrics, indexed live solid
 analysis and file-producing visualization. See [API contracts](docs/api/index.md)
 and [suite conventions](docs/synergetics-suite.md).
 
-The graphical-abstract refinements on unreleased main add focused scientific
-poster sections and clearer topology/centroid/unit reporting. They do not alter
-the immutable 1.3.0 release wheel. An unchanged version string is not a source
-revision identifier. This document does **not** assert that the current tree is
-clean, on a particular branch or green; integrated verification belongs to the
-specific revision and environment that produced a receipt.
+Version 1.4.0 introduces focused scientific poster sections, state-preserving
+polyhedron transforms, exact plane arithmetic and source-bound verification.
+Earlier release wheels retain their own interfaces. A version string is not a
+source revision identifier. Release preparation does **not** assert that the
+current tree is clean, on a particular branch, published or green; integrated
+verification belongs to the revision and environment that produced a receipt.
 
 Current commands are centralized in the [testing guide](docs/testing-guide.md)
 and [suite guide](docs/synergetics-suite.md). Scientific work explicitly uses

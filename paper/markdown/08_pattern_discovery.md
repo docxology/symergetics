@@ -35,6 +35,14 @@ entire integer. Counts/densities need an explicit interval and definition.
 Numerical entropy-like summaries are not generally exact rational information
 measures. See [palindromes.py](../../symergetics/computation/palindromes.py).
 
+The plotting API distinguishes raw-string palindrome coverage from the
+computation module's odd-center density. Leading zeros remain part of the raw
+input. Radar axes are fractions (digit diversity, normalized entropy, repeated
+digit/bigram membership, contiguous-palindrome coverage and equal mirror pairs),
+not counts clipped into a common radial range. Scalar coverage is linear; the
+default returned relation matrix has quadratic size, with explicit matrix-free
+ASCII mode available. See [method definitions](../../docs/api/index.md#mathematical-visualizations).
+
 ### Large Number Pattern Analysis
 
 Arbitrary-precision integers avoid fixed-width overflow but do not provide
@@ -46,17 +54,17 @@ The selected sequence summary appears once as Figure 5 in the
 [computational-method implementation section](05_computational_methods.md#implementation-architecture).
 Its generating formulas and statistics are not independent evidence of a universal law.
 
-![Figure 8: Palindrome Example Analysis](../../output/mathematical/palindromes/palindrome_analysis_enhanced.png)
+![Figure 8: Contiguous Palindrome Analysis of 1001](../../output/publication/1.4.0/mathematical/pattern_analysis/pattern_analysis_palindrome_1001.png)
 
-**Figure 8**: Palindrome-analysis example panels. Digit symmetry and any interval-based summaries should be read in their stated bases and ranges, not as a representation-independent measure of physical symmetry or information.
+**Figure 8**: Raw decimal sequence `1001`, with contiguous palindrome coverage for lengths ≥ 2, including even-length intervals. All four positions are covered; the matrix marks inclusive endpoint pairs (0,3) for `1001` and (1,2) for `00`, symmetrically. The bar heights are the covered digit values, so the two covered zeros have zero height. This is not the core odd-center matched-pair density metric or a representation-independent measure of physical symmetry.
 
-![Figure 9: Scheherazade Number Example](../../output/mathematical/scheherazade/scheherazade_analysis_enhanced.png)
+![Figure 9: SS-RCD Analysis of 1001 Cubed](../../output/publication/1.4.0/mathematical/ssrcd/ssrcd_analysis_1001_power_3.png)
 
-**Figure 9**: Example analysis of powers of 1001. The binomial-block relation has a no-carry condition; selected digit patterns are not evidence of biological, physical or financial regularities.
+**Figure 9**: Exact `1001**3 = 1003003001 = (1000 + 1)**3`. Its base-1000 blocks `1 | 003 | 003 | 001` encode the binomial coefficients [1,3,3,1] without carry between blocks. Such block interpretation requires coefficients smaller than 1000; selected digit patterns are not evidence of biological, physical or financial regularities.
 
-![Figure 10: Primorial Sequence Example](../../output/mathematical/primorials/primorial_analysis_enhanced.png)
+![Figure 10: Prime-Bounded Primorial Distribution](../../output/publication/1.4.0/numbers/primorials/primorial_distribution_max_n_13.png)
 
-**Figure 10**: Example visualization of prime-product growth. Distinguish the prime-bound argument from the count of included primes, and distinguish exact computed integers from finite-precision plotted values.
+**Figure 10**: Prime-bounded primorials for integer bounds 2 through 13: `n#` multiplies primes ≤ n, not the first n primes. Plateaus occur at composite bounds; `13# = 2×3×5×7×11×13 = 30030`. Exact integer products remain distinct from the finite-precision plotted values, logarithms and factorial ratios.
 
 ### Pattern Discovery Results
 

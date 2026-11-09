@@ -74,10 +74,15 @@ add memory. Configuration rejects nonpositive/nonfinite dimensions and nominal
 canvases exceeding 100,000,000 pixels. Tight bounding boxes can change the final
 saved dimensions, so this is a guard, not an exact peak-memory bound.
 
-Use fewer panels or lower DPI when appropriate. The unreleased main poster's
-focused default is meant for legibility; `section="all"` restores all seventeen
-topics and their larger layout. Ordinary figure configuration does not promise
-to resize fixed-layout abstract APIs. See [poster contracts](api/index.md#scientific-poster-sections-unreleased-main).
+Use fewer panels or lower DPI when appropriate. The 1.4.0 poster's focused
+default is meant for legibility; `section="all"` restores all seventeen topics
+and their larger layout. Ordinary figure configuration does not promise to
+resize fixed-layout APIs. See [poster contracts](api/index.md#scientific-poster-sections).
+
+Pattern analysis retains its quadratic dense matrix by default. Explicit
+ASCII `include_matrix=False` gives linear text analysis with no matrix;
+graphical backends require the matrix. Radar coverage is always linear.
+These are output/algorithm bounds, not universal timing or memory measurements.
 
 ## What is not an implemented acceleration facility
 

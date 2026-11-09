@@ -9,6 +9,7 @@ for a portable, revision-specific execution receipt.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -31,33 +32,130 @@ class Check:
     environment: dict[str, str] = field(default_factory=dict)
 
 
-GENERATED_PREFIXES = {
-    "QuadMath": ("quadmath/output/", "docs/manuscript/figures/"),
-    "symergetics": ("output/",),
+# Only untracked disposable products are excluded. Tracked figures/data can be
+# manuscript inputs and are always source, regardless of their directory.
+UNTRACKED_OUTPUT_PREFIXES = {
+    "QuadMath": ("quadmath/output/",),
+    "symergetics": ("output/", "paper/output/",),
     "QuadCraft": (),
 }
 
 
-def repository_state(name: str, root: Path, git: str) -> dict:
-    """Identify this checkout, distinguishing generated changes from source."""
+def repository_state(name: str, root: Path, git: str,
+                     excluded_reports: Iterable[Path] = ()) -> dict:
+    """Fingerprint tracked inputs plus nonignored, non-output untracked inputs.
+
+    Cleanliness uses Git's clean filters, object format and core.filemode policy,
+    including edits hidden by assume-unchanged. The integrity fingerprint instead
+    binds raw relative names, file kinds/executable bits, contents and staged
+    index entries: even a Git-clean materialization change breaks that binding.
+    Symlinks bind link text, never private target bytes. Ignored untracked builds,
+    output prefixes and selected untracked receipts are excluded. Git inspection
+    neither refreshes the on-disk index nor writes objects.
+    """
     def inspect(*arguments: str) -> str:
-        return subprocess.run(
-            (git, *arguments), cwd=root, check=True, capture_output=True, text=True,
-        ).stdout
+        return os.fsdecode(subprocess.run(
+            (git, "--no-optional-locks", *arguments), cwd=root, check=True,
+            capture_output=True, stdin=subprocess.DEVNULL,
+        ).stdout)
 
     toplevel = Path(inspect("rev-parse", "--show-toplevel").rstrip("\n")).resolve()
     if toplevel != root.resolve():
         raise ValueError(f"{name} is not a repository root")
     revision = inspect("rev-parse", "--verify", "HEAD").strip()
+    filemode = inspect("config", "--type=bool", "--default=true",
+                       "--get", "core.filemode").strip() == "true"
     status = inspect("status", "--porcelain=v1", "-z", "--untracked-files=all")
-    paths = []
+    tracked_changes = set()
     entries = iter(status.split("\0"))
     for entry in entries:
         if not entry:
             continue
-        paths.append(entry[3:])
+        # Trust status for index-vs-HEAD changes only. Worktree status can be
+        # stat-dirty while filtered bytes match, or hide assume-unchanged edits.
+        if entry[0] not in (" ", "?"):
+            tracked_changes.add(entry[3:])
         if "R" in entry[:2] or "C" in entry[:2]:
-            paths.append(next(entries))
+            next(entries)
+    tracked = set(filter(None, inspect("ls-files", "-z").split("\0")))
+    untracked = set(filter(None, inspect(
+        "ls-files", "--others", "--exclude-standard", "-z").split("\0")))
+    reports = {path.resolve().relative_to(root.resolve()).as_posix()
+               for path in excluded_reports if path.resolve().is_relative_to(root.resolve())}
+    prefixes = UNTRACKED_OUTPUT_PREFIXES[name]
+
+    def is_input(path: str) -> bool:
+        return path in tracked or (path not in reports and not path.startswith(prefixes))
+
+    inputs = tracked | {path for path in untracked if is_input(path)}
+    index = inspect("ls-files", "--stage", "-z")
+    indexed_blobs = {}
+    for entry in filter(None, index.split("\0")):
+        metadata, path = entry.split("\t", 1)
+        mode, object_id, stage = metadata.split()
+        indexed_blobs[path] = (mode, object_id)
+    content_changes = set()
+    regular_files = []
+    digest = hashlib.sha256()
+    digest.update(os.fsencode(index))
+    for path in sorted(inputs):
+        file = root / path
+        digest.update(os.fsencode(path) + b"\0")
+        indexed = indexed_blobs.get(path)
+        if file.is_symlink():
+            target = os.fsencode(os.readlink(file))
+            payload = b"link:" + target
+            mode = "120000"
+            if indexed is not None:
+                # Hash the link text as an unfiltered Git blob, not its target.
+                object_id = subprocess.run(
+                    (git, "hash-object", "--stdin", "--no-filters"), cwd=root,
+                    input=target, check=True, capture_output=True,
+                ).stdout.decode("ascii").strip()
+                if object_id != indexed[1]:
+                    content_changes.add(path)
+        elif file.is_file():
+            stat = file.stat()
+            mode = "100755" if stat.st_mode & 0o100 else "100644"
+            digest.update(f"file:{stat.st_mode & 0o111}:{stat.st_size}:".encode("ascii"))
+            with file.open("rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            if indexed is not None:
+                regular_files.append(path)
+            payload = b""
+        elif not file.exists():
+            payload, mode = b"missing", None
+        else:
+            # Submodule directories need their own integrity policy; do not
+            # certify their mutable worktrees by hashing only the gitlink.
+            raise ValueError(f"{name} has an unsupported non-file input: {path}")
+        digest.update(payload + b"\0")
+        if indexed is not None:
+            indexed_mode = indexed[0]
+            same_kind = mode in ("100644", "100755") and indexed_mode in (
+                "100644", "100755")
+            if mode != indexed_mode and (filemode or not same_kind):
+                content_changes.add(path)
+    if regular_files:
+        # --stdin-paths batches arbitrary path counts without argv-size limits.
+        # Git expects C-quoted lines (not NUL records); quote literal newlines,
+        # carriage returns, tabs, quotes and backslashes without Unicode recoding.
+        quoted = []
+        for path in regular_files:
+            encoded = (os.fsencode(path).replace(b"\\", b"\\\\")
+                       .replace(b'"', b'\\"').replace(b"\n", b"\\n")
+                       .replace(b"\r", b"\\r").replace(b"\t", b"\\t"))
+            quoted.append(b'"' + encoded + b'"\n')
+        hashes = subprocess.run(
+            (git, "hash-object", "--stdin-paths"), cwd=root,
+            input=b"".join(quoted), check=True, capture_output=True,
+        ).stdout.decode("ascii").splitlines()
+        if len(hashes) != len(regular_files):
+            raise ValueError(f"{name}: Git did not hash every tracked regular input")
+        content_changes.update(
+            path for path, object_id in zip(regular_files, hashes)
+            if object_id != indexed_blobs[path][1])
     if name == "QuadCraft":
         declaration = re.search(
             r"\bproject\s*\(\s*QuadCraft\s+VERSION\s+([0-9]+(?:\.[0-9]+)+)",
@@ -70,19 +168,24 @@ def repository_state(name: str, root: Path, git: str) -> dict:
     else:
         with (root / "pyproject.toml").open("rb") as manifest:
             version = tomllib.load(manifest)["project"]["version"]
-    generated = GENERATED_PREFIXES[name]
+    source_paths = sorted(content_changes | tracked_changes | {
+        path for path in untracked if is_input(path)})
     return {
         "revision": revision,
         "version": version,
-        "worktree_dirty": bool(status),
-        "source_dirty": any(not path.startswith(generated) for path in paths),
-        "generated_prefixes": list(generated),
+        "worktree_dirty": bool(status) or bool(content_changes),
+        "source_dirty": bool(source_paths),
+        "source_paths": source_paths,
+        "input_sha256": digest.hexdigest(),
+        "input_count": len(inputs),
+        "untracked_output_prefixes": list(prefixes),
+        "untracked_report_exclusions": sorted(reports - tracked),
     }
 
 
 def execute(checks: Iterable[Check],
             locations: Mapping[str, Path] | None = None) -> tuple[int, dict]:
-    """Run real commands, fail fast, and optionally replace host paths in reports."""
+    """Run an arbitrary nonempty, uniquely named ordered plan, stopping on failure."""
     aliases = sorted((locations or {}).items(), key=lambda item: len(str(item[1])),
                      reverse=True)
 
@@ -92,6 +195,11 @@ def execute(checks: Iterable[Check],
         return value
 
     pending = list(checks)
+    if not pending:
+        raise ValueError("verification plan must contain at least one check")
+    names = [check.name for check in pending]
+    if any(not name.strip() for name in names) or len(set(names)) != len(names):
+        raise ValueError("verification check names must be nonempty and unique")
     results = []
     exit_code = 0
     for check in pending:
@@ -125,6 +233,76 @@ def execute(checks: Iterable[Check],
         "checks": results,
         "not_run": [check.name for check in pending[len(results):]],
     }
+
+
+def verify(checks: Iterable[Check], roots: Mapping[str, Path], git: str,
+           locations: Mapping[str, Path] | None = None, *,
+           require_clean: bool = False,
+           requested_refs: Mapping[str, str] | None = None,
+           expected_revisions: Mapping[str, str] | None = None,
+           excluded_reports: Iterable[Path] = ()) -> tuple[int, dict]:
+    """Bind execution to before/after inputs and optional requested/exact refs.
+
+    Ordinary dirty checkouts remain usable, but input/HEAD/index drift always
+    fails. Release mode additionally requires clean authored inputs at both
+    boundaries. These editable-source receipts do not certify distributions.
+    """
+    pending = list(checks)
+    requested_refs, expected_revisions = requested_refs or {}, expected_revisions or {}
+    repositories, errors = {}, []
+    for name, root in roots.items():
+        before = repository_state(name, root, git, excluded_reports)
+        requested, expected = requested_refs.get(name), expected_revisions.get(name)
+        resolved = None
+        if requested:
+            resolution = subprocess.run(
+                (git, "rev-parse", "--verify", "--end-of-options", requested + "^{commit}"),
+                cwd=root, capture_output=True, text=True, stdin=subprocess.DEVNULL,
+            )
+            if resolution.returncode:
+                errors.append(f"{name}: requested ref cannot be resolved")
+            else:
+                resolved = resolution.stdout.strip()
+                if resolved != before["revision"]:
+                    errors.append(f"{name}: requested ref differs from HEAD")
+        if expected is not None:
+            if not re.fullmatch(r"[0-9a-fA-F]{40}|[0-9a-fA-F]{64}", expected):
+                errors.append(f"{name}: expected revision must be a full commit object ID")
+            elif expected.lower() != before["revision"]:
+                errors.append(f"{name}: expected revision differs from HEAD")
+        if require_clean and before["source_dirty"]:
+            errors.append(f"{name}: uncommitted source changes before execution")
+        repositories[name] = {
+            "requested_ref": requested, "requested_ref_revision": resolved,
+            "expected_revision": expected, "before": before,
+        }
+    if errors:
+        code, receipt = 1, {"status": "failed", "checks": [],
+                            "not_run": [check.name for check in pending]}
+    else:
+        code, receipt = execute(pending, locations)
+    for name, root in roots.items():
+        binding = repositories[name]
+        try:
+            after = repository_state(name, root, git, excluded_reports)
+        except (OSError, ValueError, KeyError, subprocess.CalledProcessError):
+            binding["after"] = None
+            errors.append(f"{name}: cannot identify source after execution")
+            continue
+        binding["after"] = after
+        before = binding["before"]
+        if (before["revision"], before["input_sha256"]) != (
+                after["revision"], after["input_sha256"]):
+            errors.append(f"{name}: source or HEAD changed during execution")
+        if require_clean and after["source_dirty"]:
+            errors.append(f"{name}: uncommitted source changes after execution")
+    if errors:
+        code = code or 1
+        receipt["status"] = "failed"
+    receipt.update(repositories=repositories, integrity_errors=errors,
+                   source_integrity="failed" if errors else "unchanged",
+                   require_clean=require_clean)
+    return code, receipt
 
 
 def plan(math_root: Path, symer_root: Path, craft_root: Path, scratch: Path,
@@ -161,7 +339,7 @@ def plan(math_root: Path, symer_root: Path, craft_root: Path, scratch: Path,
               craft_root),
         Check("QuadCraft native build", (cmake, "--build", str(build), "--parallel", "2"),
               craft_root),
-        Check("QuadCraft native tests", (ctest, "--output-on-failure"), build),
+        Check("QuadCraft native tests", (ctest, "--output-on-failure", "--no-tests=error"), build),
         Check("Five-implementation interoperability", (sp, "examples/suite_interoperability.py",
               "--quadmath-root", str(math_root), "--quadcraft-root", str(craft_root),
               "--node", node, "--cxx", cxx), symer_root, symer_common),
@@ -199,7 +377,11 @@ def main() -> int:
     parser.add_argument("--browser", action="store_true",
                         help="Include the real Chromium gate; install its locked tooling first")
     parser.add_argument("--require-clean", action="store_true",
-                        help="Reject uncommitted source changes (generated output is recorded separately)")
+                        help="Require clean tracked inputs and non-output untracked inputs before/after")
+    for repository in ("quadmath", "symergetics", "quadcraft"):
+        parser.add_argument(f"--{repository}-ref", help="Requested Git ref; must resolve to HEAD")
+        parser.add_argument(f"--{repository}-expected-revision",
+                            help="Expected full commit object ID; must equal HEAD")
     args = parser.parse_args()
     python_selector = args.python
     interpreter = Path(args.python).expanduser()
@@ -223,14 +405,6 @@ def main() -> int:
             parser.error(f"required executable not found: {command}")
         tools[name] = executable
     roots = {"QuadMath": math_root, "symergetics": here, "QuadCraft": craft_root}
-    try:
-        repositories = {name: repository_state(name, root, tools["git"])
-                        for name, root in roots.items()}
-    except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as exc:
-        parser.error(f"cannot identify source checkouts: {exc}")
-    dirty = [name for name, state in repositories.items() if state["source_dirty"]]
-    if args.require_clean and dirty:
-        parser.error("uncommitted source changes in " + ", ".join(dirty))
     with tempfile.TemporaryDirectory(prefix="synergetics-verify-") as temporary:
         checks = plan(math_root, here, craft_root, Path(temporary), python_selector,
                       tools["uv"], tools["node"], tools["cmake"], tools["ctest"],
@@ -239,10 +413,20 @@ def main() -> int:
                      **{f"tool_{name}": Path(path) for name, path in tools.items()}}
         if explicit_interpreter:
             locations["interpreter"] = interpreter
-        code, receipt = execute(checks, locations)
-    receipt = {"schema_version": 1, "profile": "full" if args.browser else "core",
+        try:
+            code, receipt = verify(
+                checks, roots, tools["git"], locations, require_clean=args.require_clean,
+                requested_refs={name: getattr(args, name.lower() + "_ref")
+                                for name in roots},
+                expected_revisions={name: getattr(args, name.lower() + "_expected_revision")
+                                    for name in roots},
+                excluded_reports=[args.report] if args.report else [],
+            )
+        except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as exc:
+            parser.error(f"cannot verify source checkouts: {exc}")
+    receipt = {"schema_version": 2, "profile": "full" if args.browser else "core",
                "python_requested": "${interpreter}" if explicit_interpreter else args.python,
-               "repositories": repositories, **receipt}
+               **receipt}
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")

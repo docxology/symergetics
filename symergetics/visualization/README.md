@@ -14,8 +14,8 @@ uv sync --python 3.13 --extra scientific
 ```
 
 The package is not on PyPI. Use the checkout or a versioned GitHub wheel for its
-own interface. Main-only features below are not retroactive additions to the
-immutable 1.3.0 release. See the [installation and API guide](../../docs/api/index.md).
+own interface. Poster selection was introduced in 1.4.0 and is not retrofitted
+to older releases. See the [installation and API guide](../../docs/api/index.md).
 
 ## Choose a renderer by its actual mathematical input
 
@@ -24,7 +24,7 @@ immutable 1.3.0 release. See the [installation and API guide](../../docs/api/ind
 | [`geometry.py`](geometry.py) | Coordinates, physical FCC shells, live indexed polyhedra, projections and solid abstracts | [Geometry API](../../docs/api/index.md#geometry-module) |
 | [`numbers.py`](numbers.py) | Finite palindrome, Scheherazade and prime-bound primorial displays | [Number APIs](../../docs/api/index.md) |
 | [`mathematical.py`](mathematical.py) | Continued fractions, base/digit analysis and related finite diagnostics | [Examples and cookbook](../../docs/api-cookbook-recipes.md) |
-| [`advanced.py`](advanced.py) | Comparative/dashboard plots and computed scientific posters | [Poster selections](../../docs/api/index.md#scientific-poster-sections-unreleased-main) |
+| [`advanced.py`](advanced.py) | Comparative/dashboard plots and computed scientific posters | [Poster selections](../../docs/api/index.md#scientific-poster-sections) |
 | [`__init__.py`](__init__.py) | Process-global configuration, organized paths, serial batch dispatch and reporting | [Visualization API](../../docs/api/index.md#visualization-module) |
 
 Backend support is function-specific. A shared `backend` parameter does not
@@ -75,7 +75,7 @@ optional panels when disabled. Solid `metadata.panels` is the actual panel ID
 list. Full exact vertices, topology, anchor and measurements remain in metadata
 even when enormous display annotations are explicitly omitted.
 
-## Select a readable scientific-poster topic on unreleased main
+## Scientific poster sections
 
 ```python
 from symergetics.visualization.advanced import create_mega_graphical_abstract
@@ -100,6 +100,16 @@ explicit/default primary path rather than automatically exporting every
 configured format. The
 [comprehensive demo](../../examples/comprehensive_visualizations_demo.py)
 renders separate groups with JSON sidecars.
+
+Scientific footers use the UTC date of `SOURCE_DATE_EPOCH` when set, otherwise
+the local date. Sidecar paths are relative to the sidecar directory. Registry
+export timestamps instead describe real UTC export time; these fields do not
+guarantee byte-identical files across toolchains.
+
+Raw digit strings retain leading zeros. Pattern matrices are dense by default;
+ASCII `include_matrix=False` explicitly opts into linear text and `None` matrix
+metadata. Graphical backends reject omission; radar coverage is always linear.
+See [mathematical contracts](../../docs/api/index.md#mathematical-visualizations).
 
 ## Use actual paths and batch outcomes rather than assumed capabilities
 

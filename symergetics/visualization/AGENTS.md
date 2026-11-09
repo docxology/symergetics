@@ -12,10 +12,10 @@ output paths resolve from the working directory, not from this source directory;
 use explicit temporary destinations for probes and never overwrite user `output/`.
 Close owned figures on success and failure; inspect actual returned artifacts.
 
-On unreleased main, `create_mega_graphical_abstract(title=None, output_path=None,
+Introduced in 1.4.0, `create_mega_graphical_abstract(title=None, output_path=None,
 backend=None, *, section="overview")` accepts `overview`, `geometry`,
 `arithmetic`, `patterns`, `all`. The default is a focused overview; `all` retains
-all 17 computed topics. This is not a claim about the immutable 1.3.0 wheel.
+all 17 computed topics. Earlier release artifacts retain their own interfaces.
 Preserve selected-section/panel metadata and exact native-vs-XYZ units. Solid
 abstracts must distinguish vertex means, snapped centers and mass centroids;
 respect display flags without inventing missing geometry. Follow the current

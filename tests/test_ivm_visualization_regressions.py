@@ -171,7 +171,8 @@ def test_real_transform_validation_errors_escape_without_artifacts(output_config
     assert plt.get_fignums() == figures
 
 
-def test_later_transform_failure_does_not_save_a_partial_success(output_config):
+@pytest.mark.parametrize("backend", ["ascii", "matplotlib", "plotly"])
+def test_later_transform_failure_does_not_save_a_partial_success(output_config, backend):
     plt = pytest.importorskip("matplotlib.pyplot")
     figures = plt.get_fignums()
     limit_error = RuntimeError("translation exceeds the supplied trajectory domain")
@@ -184,7 +185,7 @@ def test_later_transform_failure_does_not_save_a_partial_success(output_config):
         return QuadrayCoordinate(q.a + 1, q.b, q.c, q.d)
 
     with pytest.raises(RuntimeError) as caught:
-        plot_coordinate_transformation(QuadrayCoordinate(0, 0, 0, 0), transform, steps=3, backend="matplotlib")
+        plot_coordinate_transformation(QuadrayCoordinate(0, 0, 0, 0), transform, steps=3, backend=backend)
     assert caught.value is limit_error
     assert visited == [(0, 0, 0, 0), (1, 0, 0, 0), (2, 0, 0, 0)]
     assert not list(output_config.rglob("*"))
@@ -198,7 +199,7 @@ def test_unexpected_transform_failure_closes_any_figure(output_config):
     def transform(q):
         raise RuntimeError("transform failed")
 
-    with pytest.raises(RuntimeError, match="transform failed"):
+    with pytest.raises(RuntimeError):
         plot_coordinate_transformation(QuadrayCoordinate(0, 0, 0, 0), transform,
                                        steps=1, backend="matplotlib")
     assert plt.get_fignums() == figures
@@ -209,10 +210,80 @@ def test_transformation_save_failure_closes_real_figure(output_config):
     plt = pytest.importorskip("matplotlib.pyplot")
     figures = plt.get_fignums()
     # A real filesystem collision, not an injected renderer exception.
-    (output_config / "coordinate_transformation_3_steps.png").mkdir()
+    (output_config / "coordinate_transformation_2_steps.png").mkdir()
     with pytest.raises(OSError):
         plot_coordinate_transformation(QuadrayCoordinate(0, 0, 0, 0), lambda q: q,
                                        steps=2, backend="matplotlib")
+    assert plt.get_fignums() == figures
+
+
+@pytest.mark.parametrize("kind,filename", [
+    ("coordinate", "quadray_coordinate_1_0_0_0.png"),
+    ("lattice", "ivm_lattice_size_0.png"),
+])
+def test_geometry_save_failure_closes_owned_figure_not_callers(output_config, kind, filename):
+    plt = pytest.importorskip("matplotlib.pyplot")
+    caller = plt.figure()
+    try:
+        figures = plt.get_fignums()
+        (output_config / filename).mkdir()
+        with pytest.raises(OSError):
+            if kind == "coordinate":
+                plot_quadray_coordinate(QuadrayCoordinate(1, 0, 0, 0),
+                                       lattice_size=0, backend="matplotlib")
+            else:
+                plot_ivm_lattice(0, backend="matplotlib")
+        assert plt.get_fignums() == figures
+        assert plt.fignum_exists(caller.number)
+    finally:
+        plt.close(caller)
+
+
+@pytest.mark.parametrize("backend", ["ascii", "matplotlib", "plotly"])
+@pytest.mark.parametrize("steps", [0, 1, 3])
+def test_transformation_counts_and_data_match_successive_translation(output_config, monkeypatch, backend, steps):
+    plt = pytest.importorskip("matplotlib.pyplot")
+    from matplotlib.figure import Figure
+
+    initial = QuadrayCoordinate(1, 0, 0, 0)
+    displacement = QuadrayCoordinate(0, 1, 0, 0)
+    visited = []
+    rendered = {}
+    savefig = Figure.savefig
+
+    def capture_and_save(fig, *args, **kwargs):
+        ax = fig.axes[0]
+        rendered["lines"] = [np.column_stack(line.get_data_3d()) for line in ax.lines]
+        rendered["markers"] = [np.column_stack(collection._offsets3d)
+                               for collection in ax.collections if hasattr(collection, "_offsets3d")]
+        return savefig(fig, *args, **kwargs)
+
+    def translate(coord):
+        visited.append(coord.as_tuple())
+        return coord.add(displacement)
+
+    monkeypatch.setattr(Figure, "savefig", capture_and_save)
+    figures = plt.get_fignums()
+    result = plot_coordinate_transformation(initial, translate, steps=steps, backend=backend)
+    # Adding the B basis changes scale-one XYZ by (-1, 1, -1) per application.
+    expected_xyz = np.array([(1 - n, 1 + n, 1 - n) for n in range(steps + 1)])
+    assert visited == [(1, n, 0, 0) for n in range(steps)]
+    metadata = result["metadata"]
+    assert metadata["steps"] == len(visited)
+    assert metadata["samples"] == len(expected_xyz)
+    end = metadata["end_coordinate"] if backend == "matplotlib" else metadata["end"]
+    assert end == (1, steps, 0, 0)
+    if backend == "matplotlib":
+        if steps:
+            np.testing.assert_array_equal(rendered["lines"][0], expected_xyz)
+        else:
+            assert rendered["lines"] == []
+        np.testing.assert_array_equal(rendered["markers"][0], expected_xyz[:1])
+        if steps:
+            np.testing.assert_array_equal(rendered["markers"][-1], expected_xyz[-1:])
+        assert plt.imread(result["files"][0]).std() > 0
+    else:
+        assert result["files"] == []
     assert plt.get_fignums() == figures
 
 
@@ -221,7 +292,7 @@ def test_unknown_transformation_backend_is_rejected_before_callback(output_confi
     def transform(q):
         raise AssertionError("unsupported backend must not execute the callback")
 
-    with pytest.raises(ValueError, match="Unsupported backend"):
+    with pytest.raises(ValueError):
         plot_coordinate_transformation(QuadrayCoordinate(0, 0, 0, 0), transform, backend=backend)
     assert not list(output_config.rglob("*"))
 

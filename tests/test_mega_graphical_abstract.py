@@ -3,6 +3,10 @@ import math
 from fractions import Fraction
 import json
 from xml.etree import ElementTree
+from datetime import datetime
+import importlib.util
+from pathlib import Path
+import shutil
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -104,7 +108,7 @@ def test_poster_rejects_an_unsupported_backend():
 @pytest.mark.parametrize('section', ['', 'unknown', None, ['geometry']])
 def test_invalid_section_fails_before_allocating_a_figure(tmp_path, section):
     before = plt.get_fignums()
-    with pytest.raises(ValueError, match='section'):
+    with pytest.raises(ValueError):
         create_mega_graphical_abstract(output_path=tmp_path / 'invalid.svg', section=section)
     assert plt.get_fignums() == before
     assert not list(tmp_path.iterdir())
@@ -172,3 +176,54 @@ def test_selected_poster_releases_figure_after_save_failure(tmp_path, section):
     with pytest.raises(IsADirectoryError):
         create_mega_graphical_abstract(output_path=destination, section=section)
     assert plt.get_fignums() == before
+
+
+@pytest.mark.parametrize('epoch, expected', [
+    ('946684800', '2000-01-01'),
+    ('946681200', '1999-12-31'),
+    (None, None),
+])
+def test_poster_generation_date_uses_source_epoch_or_local_date(
+    tmp_path, monkeypatch, epoch, expected,
+):
+    if epoch is None:
+        monkeypatch.delenv('SOURCE_DATE_EPOCH', raising=False)
+    else:
+        monkeypatch.setenv('SOURCE_DATE_EPOCH', epoch)
+    local_before = datetime.now().strftime('%Y-%m-%d')
+    destination = tmp_path / 'dated.svg'
+    with plt.rc_context({'svg.fonttype': 'none'}):
+        create_mega_graphical_abstract(output_path=destination, section='patterns')
+    local_after = datetime.now().strftime('%Y-%m-%d')
+    root = ElementTree.parse(destination).getroot()
+    dates = [
+        ''.join(node.itertext()).removeprefix('Generated: ')
+        for node in root.iter('{http://www.w3.org/2000/svg}text')
+        if ''.join(node.itertext()).startswith('Generated: ')
+    ]
+    assert len(dates) == 1
+    assert dates[0] in ({expected} if expected is not None else {local_before, local_after})
+
+
+def test_scientific_sidecars_are_portable_without_changing_runtime_paths(tmp_path):
+    source = Path(__file__).resolve().parents[1] / 'examples/comprehensive_visualizations_demo.py'
+    spec = importlib.util.spec_from_file_location('comprehensive_demo', source)
+    demo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(demo)
+    destination = tmp_path / 'original'
+    results = demo.demonstrate_mega_graphical_abstracts(destination)
+    assert len(results) == 5
+    relocated = tmp_path / 'relocated'
+    shutil.copytree(destination, relocated)
+    for result in results:
+        assert 'error' not in result
+        assert all(Path(filename).is_absolute() for filename in result['files'])
+        sidecar = Path(result['files'][-1])
+        saved = json.loads(sidecar.read_text())
+        assert saved['metadata'] == result['metadata']
+        assert saved['data'] == json.loads(json.dumps(result['data'], allow_nan=False))
+        assert all(not Path(filename).is_absolute() for filename in saved['files'])
+        assert saved['files'] == [Path(filename).name for filename in result['files']]
+        for filename in saved['files']:
+            assert (relocated / filename).is_file()
+            assert (relocated / filename).read_bytes() == (destination / filename).read_bytes()

@@ -14,6 +14,7 @@ Author: Symergetics Team
 Based on QuadMath implementation by docxology
 """
 
+from copy import copy
 from fractions import Fraction
 import math
 from typing import List, Optional, Tuple
@@ -222,6 +223,19 @@ class SymergeticsPolyhedron:
             vertices: List of Quadray coordinates defining the polyhedron vertices
         """
         self.vertices = vertices
+
+    def with_vertices(self, vertices: List[QuadrayCoordinate]) -> 'SymergeticsPolyhedron':
+        """Return a same-type shallow copy with an independently owned vertex list.
+
+        Constructors are not rerun: indexed topology and other non-vertex state
+        are retained by reference. The supplied coordinate objects are retained,
+        not cloned; transforms supply newly created coordinates. Subclasses with
+        geometry-dependent caches or different state ownership must override this
+        protocol to update that state.
+        """
+        result = copy(self)
+        result.vertices = list(vertices)
+        return result
 
     def volume(self) -> Fraction:
         """

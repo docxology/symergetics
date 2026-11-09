@@ -25,7 +25,6 @@ def assert_files_real(result):
 
 # Import visualization modules
 from symergetics.visualization.mathematical import (
-    plot_base_conversion,
     plot_base_conversion_matrix,
     plot_continued_fraction,
     plot_continued_fraction_convergence,
@@ -200,14 +199,6 @@ class TestOriginalMathematicalVisualizationsCoverage:
     def test_plot_continued_fraction_custom_value(self):
         """Test plot_continued_fraction with custom value."""
         result = plot_continued_fraction(math.sqrt(2), max_terms=12)
-
-        # Should return a dict with file information
-        assert isinstance(result, dict)
-        assert_files_real(result)
-
-    def test_plot_base_conversion_large_number(self):
-        """Test plot_base_conversion with large number."""
-        result = plot_base_conversion(1001, max_base=16)
 
         # Should return a dict with file information
         assert isinstance(result, dict)

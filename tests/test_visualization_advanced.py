@@ -6,11 +6,16 @@ import sys
 from pathlib import Path
 
 import pytest
+import matplotlib.pyplot as plt
+import numpy as np
+
+from symergetics.visualization import advanced
 
 from symergetics.visualization import get_config, set_config
 from symergetics.visualization.advanced import (
     create_comparative_analysis_visualization,
     create_pattern_discovery_visualization,
+    create_geometric_mnemonics_visualization,
     create_statistical_analysis_dashboard,
 )
 
@@ -241,3 +246,149 @@ else:
         result = create_pattern_discovery_visualization(data)
         assert_rendered(result)
         assert result['metadata']['total_analyses'] == 2
+
+
+def test_pattern_discovery_initializes_dependencies_in_cold_process():
+    result = run_python('''
+from pathlib import Path
+import matplotlib.pyplot as plt
+from symergetics.visualization import set_config
+from symergetics.visualization.advanced import create_pattern_discovery_visualization
+set_config({"dpi": 40})
+caller = plt.figure()
+before = plt.get_fignums()
+result = create_pattern_discovery_visualization([
+    {"length": 3, "pattern_complexity": {"complexity_score": 1},
+     "symmetry_analysis": {"symmetry_score": 0.25}},
+    {"length": 5, "pattern_complexity": {"complexity_score": 2},
+     "symmetry_analysis": {"symmetry_score": 0.5}},
+])
+assert plt.get_fignums() == before
+assert result["metadata"]["total_analyses"] == 2
+assert Path(result["files"][0]).read_bytes().startswith(bytes.fromhex("89504e470d0a1a0a"))
+plt.close(caller)
+''')
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('renderer', [
+    create_comparative_analysis_visualization,
+    create_pattern_discovery_visualization,
+    create_statistical_analysis_dashboard,
+    create_geometric_mnemonics_visualization,
+])
+@pytest.mark.parametrize('blocked', [False, True])
+def test_legacy_renderers_own_only_their_figure(
+    renderer, blocked, tmp_path, analysis_results,
+):
+    if blocked:
+        destination = tmp_path / 'blocked'
+        destination.write_text('not a directory')
+        set_config({'output_dir': str(destination)})
+    set_config({'dpi': 40})
+    if renderer is create_comparative_analysis_visualization:
+        args = (analysis_results[:2], analysis_results[2:])
+    elif renderer is create_geometric_mnemonics_visualization:
+        args = ([1, 2],)
+    else:
+        args = (analysis_results,)
+    caller = plt.figure()
+    before = plt.get_fignums()
+    try:
+        if blocked:
+            with pytest.raises(NotADirectoryError):
+                renderer(*args)
+        else:
+            assert_rendered(renderer(*args))
+        assert plt.get_fignums() == before
+        assert plt.fignum_exists(caller.number)
+    finally:
+        plt.close(caller)
+
+
+def test_dashboard_analysis_failure_releases_figure():
+    caller = plt.figure()
+    before = plt.get_fignums()
+    try:
+        with pytest.raises(ValueError):
+            create_statistical_analysis_dashboard([
+                {'length': 3, 'pattern_complexity': {'complexity_score': float('inf')}},
+            ])
+        assert plt.get_fignums() == before
+    finally:
+        plt.close(caller)
+
+
+@pytest.mark.parametrize('constant', [False, True])
+def test_dashboard_correlations_are_numeric_or_undefined(constant):
+    advanced._ensure_matplotlib_numpy()
+    figure, ax = plt.subplots()
+    try:
+        density = [1, 1, 1] if constant else [3, 2, 1]
+        advanced._plot_correlation_matrix(
+            ax, [1, 2, 3], [2, 4, 6], density, [6, 4, 2],
+        )
+        actual = ax.images[0].get_array()
+        expected = np.array([
+            [1, 1, -1, -1], [1, 1, -1, -1],
+            [-1, -1, 1, 1], [-1, -1, 1, 1],
+        ], dtype=float)
+        if constant:
+            expected[2, :] = np.nan
+            expected[:, 2] = np.nan
+        np.testing.assert_allclose(actual.filled(np.nan), expected, equal_nan=True)
+        for text in ax.texts:
+            column, row = text.get_position()
+            value = expected[row, column]
+            if np.isnan(value):
+                assert text.get_text() == 'N/A'
+            else:
+                assert float(text.get_text()) == pytest.approx(value)
+    finally:
+        plt.close(figure)
+
+
+def test_histogram_labels_and_table_follow_actual_statistics():
+    advanced._ensure_matplotlib_numpy()
+    figure, axes = plt.subplots(1, 2)
+    try:
+        advanced._plot_detailed_histogram(axes[0], [1, 2, 6], 'Data', 'blue')
+        for line, expected in zip(axes[0].lines, [3, 2]):
+            np.testing.assert_array_equal(line.get_xdata(), [expected, expected])
+            assert float(line.get_label().split(':')[1]) == expected
+        advanced._plot_summary_table(
+            axes[1], [1, 2, 6], [2], [1, 1, 1], [],
+        )
+        cells = axes[1].tables[0].get_celld()
+        assert [cells[1, col].get_text().get_text() for col in range(1, 6)] == [
+            '3.00', '2.00', '1.00', '6.00', '2.65',
+        ]
+        assert cells[2, 5].get_text().get_text() == 'N/A'
+        assert cells[3, 5].get_text().get_text() == '0.00'
+        assert all(cells[4, col].get_text().get_text() == 'N/A' for col in range(1, 6))
+    finally:
+        plt.close(figure)
+
+
+def test_analysis_overviews_report_computed_values(analysis_results):
+    figure, axes = plt.subplots(1, 2)
+    try:
+        advanced._plot_main_statistics(axes[0], analysis_results)
+        values = dict(
+            line.strip().split(': ', 1)
+            for line in axes[0].texts[0].get_text().splitlines() if ': ' in line
+        )
+        assert float(values['Average Length']) == 4.8
+        assert float(values['Average Complexity']) == 2.25
+        assert float(values['Average Symmetry']) == 0.65
+        advanced._plot_mnemonics_overview(axes[1], [
+            {'platonic_relationships': {'cube': {}}, 'ivm_scaling_factors': {'2': {}}},
+            {'rational_approximations': {'pi': {}}},
+        ])
+        values = dict(
+            line.strip().split(': ', 1)
+            for line in axes[1].texts[0].get_text().splitlines() if ': ' in line
+        )
+        assert float(values['Avg Relationships/Number']) == 1.5
+    finally:
+        plt.close(figure)

@@ -10,6 +10,6 @@ independent spatial axes. Geometry depends on indexed surfaces, not convex hulls
 Check exported callers before changing interfaces; avoid importing optional
 plotting libraries eagerly. NumPy is a required dependency, not an optional
 renderer. Do not write into repository `output/` for inspection or validation.
-Current poster section selection belongs to unreleased main, not the immutable
-1.3.0 wheel. Verification follows the current assignment; do not infer a green
-suite from historical receipts.
+Poster section selection was introduced in 1.4.0; earlier wheels retain their
+own interfaces. Verification follows the current assignment; do not infer a
+green suite from historical receipts.

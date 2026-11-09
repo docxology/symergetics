@@ -27,6 +27,7 @@ import time
 from pathlib import Path
 from typing import Dict, Any, List
 import json
+import os
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent
@@ -443,7 +444,8 @@ def demonstrate_mega_graphical_abstracts(output_directory=None) -> List[Dict[str
 
     An optional output directory supports isolated consumer/render runs without
     writing repository output. Each PNG has a JSON sidecar containing its actual
-    panel identities, declared units and full exact computed results.
+    panel identities, declared units and full exact computed results. Sidecar
+    file paths are relative to its directory; returned runtime paths are unchanged.
     """
     results = []
     for section in ('overview', 'geometry', 'arithmetic', 'patterns', 'all'):
@@ -458,7 +460,15 @@ def demonstrate_mega_graphical_abstracts(output_directory=None) -> List[Dict[str
             )
             sidecar = destination.with_suffix('.json')
             result['files'].append(str(sidecar))
-            sidecar.write_text(json.dumps(result, indent=2, allow_nan=False), encoding='utf-8')
+            manifest = {
+                **result,
+                'files': [
+                    Path(os.path.relpath(Path(filename).resolve(),
+                                         sidecar.parent.resolve())).as_posix()
+                    for filename in result['files']
+                ],
+            }
+            sidecar.write_text(json.dumps(manifest, indent=2, allow_nan=False), encoding='utf-8')
             results.append(result)
             log(f"Mega {section}: {result['metadata']['panels']} panels; {destination}")
         except Exception as error:

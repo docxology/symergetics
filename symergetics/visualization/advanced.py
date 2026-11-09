@@ -95,54 +95,56 @@ def _create_comparative_matplotlib(
     # Create multi-panel figure
     _validate_canvas((18, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    fig.suptitle(f'Comparative Analysis: {domain1_name} vs {domain2_name}',
-                fontsize=16, fontweight='bold')
+    try:
+        fig.suptitle(f'Comparative Analysis: {domain1_name} vs {domain2_name}',
+                    fontsize=16, fontweight='bold')
 
-    # Panel 1: Complexity comparison
-    _plot_complexity_comparison(axes[0, 0], domain1_metrics, domain2_metrics,
-                              domain1_name, domain2_name)
+        # Panel 1: Complexity comparison
+        _plot_complexity_comparison(axes[0, 0], domain1_metrics, domain2_metrics,
+                                  domain1_name, domain2_name)
 
-    # Panel 2: Symmetry comparison
-    _plot_symmetry_comparison(axes[0, 1], domain1_metrics, domain2_metrics,
-                            domain1_name, domain2_name)
+        # Panel 2: Symmetry comparison
+        _plot_symmetry_comparison(axes[0, 1], domain1_metrics, domain2_metrics,
+                                domain1_name, domain2_name)
 
-    # Panel 3: Palindromic density comparison
-    _plot_palindromic_comparison(axes[0, 2], domain1_metrics, domain2_metrics,
-                               domain1_name, domain2_name)
+        # Panel 3: Palindromic density comparison
+        _plot_palindromic_comparison(axes[0, 2], domain1_metrics, domain2_metrics,
+                                   domain1_name, domain2_name)
 
-    # Panel 4: Length distribution
-    _plot_length_distribution(axes[1, 0], domain1_data, domain2_data,
-                            domain1_name, domain2_name)
+        # Panel 4: Length distribution
+        _plot_length_distribution(axes[1, 0], domain1_data, domain2_data,
+                                domain1_name, domain2_name)
 
-    # Panel 5: Digit distribution comparison
-    _plot_digit_distribution_comparison(axes[1, 1], domain1_data, domain2_data,
-                                     domain1_name, domain2_name)
+        # Panel 5: Digit distribution comparison
+        _plot_digit_distribution_comparison(axes[1, 1], domain1_data, domain2_data,
+                                         domain1_name, domain2_name)
 
-    # Panel 6: Correlation heatmap
-    _plot_correlation_heatmap(axes[1, 2], domain1_data, domain2_data,
-                            domain1_name, domain2_name)
+        # Panel 6: Correlation heatmap
+        _plot_correlation_heatmap(axes[1, 2], domain1_data, domain2_data,
+                                domain1_name, domain2_name)
 
-    plt.tight_layout()
+        fig.tight_layout()
 
-    # Save the visualization
-    output_path = get_organized_output_path('mathematical', 'comparative_analysis',
-                                          f'comparative_analysis_{domain1_name.lower()}_vs_{domain2_name.lower()}.png')
+        # Save the visualization
+        output_path = get_organized_output_path('mathematical', 'comparative_analysis',
+                                              f'comparative_analysis_{domain1_name.lower()}_vs_{domain2_name.lower()}.png')
 
-    plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close()
+        fig.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
 
-    return {
-        'files': [str(output_path)],
-        'metadata': {
-            'type': 'comparative_analysis',
-            'domain1': domain1_name,
-            'domain2': domain2_name,
-            'domain1_count': len(domain1_data),
-            'domain2_count': len(domain2_data),
-            'panels': 6,
-            'backend': 'matplotlib'
+        return {
+            'files': [str(output_path)],
+            'metadata': {
+                'type': 'comparative_analysis',
+                'domain1': domain1_name,
+                'domain2': domain2_name,
+                'domain1_count': len(domain1_data),
+                'domain2_count': len(domain2_data),
+                'panels': 6,
+                'backend': 'matplotlib'
+            }
         }
-    }
+    finally:
+        _plt.close(fig)
 
 
 def _extract_domain_metrics(data: List[Dict[str, Any]]) -> Dict[str, List[float]]:
@@ -363,15 +365,7 @@ def _create_pattern_discovery_matplotlib(
     **kwargs
 ) -> Dict[str, Any]:
     """Create pattern discovery visualization using matplotlib."""
-    try:
-        import matplotlib.pyplot as plt
-        import numpy as np
-    except ImportError:
-        raise ImportError("matplotlib is required for pattern discovery visualization")
-
-    # Make plt available to helper functions
-    global _plt
-    _plt = plt
+    plt, _ = _ensure_matplotlib_numpy()
 
     # Extract pattern information
     palindromic_numbers = []
@@ -393,42 +387,44 @@ def _create_pattern_discovery_matplotlib(
     # Create visualization
     _validate_canvas((15, 12), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-    fig.suptitle(title, fontsize=16, fontweight='bold')
+    try:
+        fig.suptitle(title, fontsize=16, fontweight='bold')
 
-    # Panel 1: Pattern type distribution
-    _plot_pattern_type_distribution(axes[0, 0], analysis_results)
+        # Panel 1: Pattern type distribution
+        _plot_pattern_type_distribution(axes[0, 0], analysis_results)
 
-    # Panel 2: Complexity vs Symmetry scatter
-    _plot_complexity_symmetry_scatter(axes[0, 1], analysis_results)
+        # Panel 2: Complexity vs Symmetry scatter
+        _plot_complexity_symmetry_scatter(axes[0, 1], analysis_results)
 
-    # Panel 3: Pattern discovery timeline
-    _plot_pattern_discovery_timeline(axes[1, 0], analysis_results)
+        # Panel 3: Pattern discovery timeline
+        _plot_pattern_discovery_timeline(axes[1, 0], analysis_results)
 
-    # Panel 4: Outstanding patterns
-    _plot_outstanding_patterns(axes[1, 1], palindromic_numbers, high_complexity_numbers, high_symmetry_numbers)
+        # Panel 4: Outstanding patterns
+        _plot_outstanding_patterns(axes[1, 1], palindromic_numbers, high_complexity_numbers, high_symmetry_numbers)
 
-    _plt.tight_layout()
+        fig.tight_layout()
 
-    # Save visualization
-    safe_title = title.lower().replace(' ', '_').replace('-', '_')
-    output_path = get_organized_output_path('mathematical', 'pattern_discovery',
-                                          f'pattern_discovery_{safe_title}.png')
+        # Save visualization
+        safe_title = title.lower().replace(' ', '_').replace('-', '_')
+        output_path = get_organized_output_path('mathematical', 'pattern_discovery',
+                                              f'pattern_discovery_{safe_title}.png')
 
-    _plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
-    _plt.close()
+        fig.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
 
-    return {
-        'files': [str(output_path)],
-        'metadata': {
-            'type': 'pattern_discovery',
-            'title': title,
-            'total_analyses': len(analysis_results),
-            'palindromic_count': len(palindromic_numbers),
-            'high_complexity_count': len(high_complexity_numbers),
-            'high_symmetry_count': len(high_symmetry_numbers),
-            'backend': 'matplotlib'
+        return {
+            'files': [str(output_path)],
+            'metadata': {
+                'type': 'pattern_discovery',
+                'title': title,
+                'total_analyses': len(analysis_results),
+                'palindromic_count': len(palindromic_numbers),
+                'high_complexity_count': len(high_complexity_numbers),
+                'high_symmetry_count': len(high_symmetry_numbers),
+                'backend': 'matplotlib'
+            }
         }
-    }
+    finally:
+        _plt.close(fig)
 
 
 def _plot_pattern_type_distribution(ax, analysis_results):
@@ -601,63 +597,63 @@ def _create_statistical_dashboard_matplotlib(
 
     # Create dashboard layout
     _validate_canvas((20, 16), max(get_config()["dpi"], float(_plt.rcParams["figure.dpi"])))
-    fig = _plt.figure(figsize=(20, 16))
-    fig.suptitle(title, fontsize=20, fontweight='bold')
+    fig = _plt.figure(figsize=(20, 16), constrained_layout=True)
+    try:
+        fig.suptitle(title, fontsize=20, fontweight='bold')
 
-    # Create subplots with GridSpec for better layout
-    gs = fig.add_gridspec(4, 4, hspace=0.3, wspace=0.3)
+        # Create subplots with GridSpec for better layout
+        gs = fig.add_gridspec(4, 4)
 
-    # Main statistics panel
-    ax_stats = fig.add_subplot(gs[0, :2])
-    _plot_main_statistics(ax_stats, analysis_results)
+        # Main statistics panel
+        ax_stats = fig.add_subplot(gs[0, :2])
+        _plot_main_statistics(ax_stats, analysis_results)
 
-    # Distribution panel
-    ax_dist = fig.add_subplot(gs[0, 2:])
-    _plot_distribution_summary(ax_dist, lengths, complexities, symmetries)
+        # Distribution panel
+        ax_dist = fig.add_subplot(gs[0, 2:])
+        _plot_distribution_summary(ax_dist, lengths, complexities, symmetries)
 
-    # Correlation matrix
-    ax_corr = fig.add_subplot(gs[1, :2])
-    _plot_correlation_matrix(ax_corr, complexities, symmetries, palindromic_densities, lengths)
+        # Correlation matrix
+        ax_corr = fig.add_subplot(gs[1, :2])
+        _plot_correlation_matrix(ax_corr, complexities, symmetries, palindromic_densities, lengths)
 
-    # Time series (if applicable)
-    ax_time = fig.add_subplot(gs[1, 2:])
-    _plot_metric_evolution(ax_time, complexities, symmetries, palindromic_densities)
+        # Time series (if applicable)
+        ax_time = fig.add_subplot(gs[1, 2:])
+        _plot_metric_evolution(ax_time, complexities, symmetries, palindromic_densities)
 
-    # Detailed histograms
-    ax_hist1 = fig.add_subplot(gs[2, :2])
-    _plot_detailed_histogram(ax_hist1, complexities, 'Complexity Scores', 'blue')
+        # Detailed histograms
+        ax_hist1 = fig.add_subplot(gs[2, :2])
+        _plot_detailed_histogram(ax_hist1, complexities, 'Complexity Scores', 'blue')
 
-    ax_hist2 = fig.add_subplot(gs[2, 2:])
-    _plot_detailed_histogram(ax_hist2, symmetries, 'Symmetry Scores', 'green')
+        ax_hist2 = fig.add_subplot(gs[2, 2:])
+        _plot_detailed_histogram(ax_hist2, symmetries, 'Symmetry Scores', 'green')
 
-    # Box plot comparison
-    ax_box = fig.add_subplot(gs[3, :2])
-    _plot_box_plot_comparison(ax_box, complexities, symmetries, palindromic_densities)
+        # Box plot comparison
+        ax_box = fig.add_subplot(gs[3, :2])
+        _plot_box_plot_comparison(ax_box, complexities, symmetries, palindromic_densities)
 
-    # Summary statistics table
-    ax_table = fig.add_subplot(gs[3, 2:])
-    _plot_summary_table(ax_table, complexities, symmetries, palindromic_densities, lengths)
+        # Summary statistics table
+        ax_table = fig.add_subplot(gs[3, 2:])
+        _plot_summary_table(ax_table, complexities, symmetries, palindromic_densities, lengths)
 
-    _plt.tight_layout()
+        # Save dashboard
+        safe_title = title.lower().replace(' ', '_').replace('-', '_')
+        output_path = get_organized_output_path('mathematical', 'statistical_dashboard',
+                                              f'statistical_dashboard_{safe_title}.png')
 
-    # Save dashboard
-    safe_title = title.lower().replace(' ', '_').replace('-', '_')
-    output_path = get_organized_output_path('mathematical', 'statistical_dashboard',
-                                          f'statistical_dashboard_{safe_title}.png')
+        fig.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
 
-    _plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
-    _plt.close()
-
-    return {
-        'files': [str(output_path)],
-        'metadata': {
-            'type': 'statistical_dashboard',
-            'title': title,
-            'total_analyses': len(analysis_results),
-            'panels': 8,
-            'backend': 'matplotlib'
+        return {
+            'files': [str(output_path)],
+            'metadata': {
+                'type': 'statistical_dashboard',
+                'title': title,
+                'total_analyses': len(analysis_results),
+                'panels': 8,
+                'backend': 'matplotlib'
+            }
         }
-    }
+    finally:
+        _plt.close(fig)
 
 
 def _plot_main_statistics(ax, analysis_results):
@@ -667,7 +663,7 @@ def _plot_main_statistics(ax, analysis_results):
     palindromic_ratio = palindromic_count / total_count if total_count > 0 else 0
 
     # Create summary text
-    summary_text = ".1f"".1f"".1f"f"""
+    summary_text = f"""
     Mathematical Analysis Summary
 
     Total Analyses: {total_count}
@@ -710,9 +706,13 @@ def _plot_correlation_matrix(ax, complexities, symmetries, densities, lengths):
         ax.set_title('Correlation Matrix\n(No Data)')
         return
     
-    # Create correlation matrix
-    data = _np.array([complexities, symmetries, densities, lengths])
-    corr_matrix = _np.corrcoef(data)
+    # Correlation is undefined for constant columns or fewer than two samples.
+    data = _np.array([complexities, symmetries, densities, lengths], dtype=float)
+    corr_matrix = _np.full((4, 4), _np.nan)
+    if data.shape[1] > 1:
+        varying = _np.flatnonzero(_np.any(data != data[:, :1], axis=1))
+        if varying.size:
+            corr_matrix[_np.ix_(varying, varying)] = _np.corrcoef(data[varying])
 
     im = ax.imshow(corr_matrix, cmap='coolwarm', vmin=-1, vmax=1)
 
@@ -726,7 +726,9 @@ def _plot_correlation_matrix(ax, complexities, symmetries, densities, lengths):
     # Add correlation values
     for i in range(len(labels)):
         for j in range(len(labels)):
-            text = ax.text(j, i, '.2f', ha='center', va='center', color='black')
+            value = corr_matrix[i, j]
+            label = f'{value:.2f}' if _np.isfinite(value) else 'N/A'
+            ax.text(j, i, label, ha='center', va='center', color='black')
 
     ax.set_title('Correlation Matrix')
     _plt.colorbar(im, ax=ax, shrink=0.8)
@@ -750,24 +752,13 @@ def _plot_metric_evolution(ax, complexities, symmetries, densities):
 def _plot_detailed_histogram(ax, data, title, color):
     """Plot detailed histogram with statistics."""
     if data:
-        hist_result = ax.hist(data, bins=15, alpha=0.7, color=color, edgecolor='black')
-        if len(hist_result) >= 3:
-            n, bins, patches = hist_result
-        else:
-            # Handle case where hist returns fewer values (e.g., in mocked tests)
-            n, bins = hist_result[0], hist_result[1] if len(hist_result) > 1 else []
-            patches = []
-
-        # Add mean and median lines
-        if data:
-            mean_val = statistics.mean(data)
-            median_val = statistics.median(data)
-        else:
-            mean_val = 0
-            median_val = 0
-
-        ax.axvline(mean_val, color='red', linestyle='--', linewidth=2, label='.2f')
-        ax.axvline(median_val, color='green', linestyle=':', linewidth=2, label='.2f')
+        ax.hist(data, bins=15, alpha=0.7, color=color, edgecolor='black')
+        mean_val = statistics.mean(data)
+        median_val = statistics.median(data)
+        ax.axvline(mean_val, color='red', linestyle='--', linewidth=2,
+                   label=f'Mean: {mean_val:.2f}')
+        ax.axvline(median_val, color='green', linestyle=':', linewidth=2,
+                   label=f'Median: {median_val:.2f}')
 
         ax.legend()
         ax.grid(True, alpha=0.3)
@@ -793,7 +784,7 @@ def _plot_box_plot_comparison(ax, complexities, symmetries, densities):
 
 
 def _plot_summary_table(ax, complexities, symmetries, densities, lengths):
-    """Plot summary statistics table."""
+    """Plot summary statistics; sample standard deviation needs two values."""
     # Calculate statistics
     stats_data = []
     for name, data in [('Complexity', complexities), ('Symmetry', symmetries),
@@ -801,11 +792,11 @@ def _plot_summary_table(ax, complexities, symmetries, densities, lengths):
         if data:
             stats_data.append([
                 name,
-                '.2f',
-                '.2f',
-                '.2f',
-                '.2f',
-                '.2f'
+                f'{statistics.mean(data):.2f}',
+                f'{statistics.median(data):.2f}',
+                f'{min(data):.2f}',
+                f'{max(data):.2f}',
+                f'{statistics.stdev(data):.2f}' if len(data) > 1 else 'N/A',
             ])
         else:
             stats_data.append([name, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A'])
@@ -874,46 +865,48 @@ def _create_geometric_mnemonics_matplotlib(
     # Create comprehensive visualization
     _validate_canvas((18, 15), max(get_config()["dpi"], float(plt.rcParams["figure.dpi"])))
     fig, axes = plt.subplots(3, 2, figsize=(18, 15))
-    fig.suptitle(title, fontsize=18, fontweight='bold')
+    try:
+        fig.suptitle(title, fontsize=18, fontweight='bold')
 
-    # Panel 1: Overview statistics
-    _plot_mnemonics_overview(axes[0, 0], analyses)
+        # Panel 1: Overview statistics
+        _plot_mnemonics_overview(axes[0, 0], analyses)
 
-    # Panel 2: Geometric form distribution
-    _plot_geometric_distribution(axes[0, 1], relationships)
+        # Panel 2: Geometric form distribution
+        _plot_geometric_distribution(axes[0, 1], relationships)
 
-    # Panel 3: Scaling factor analysis
-    _plot_scaling_factors(axes[1, 0], relationships)
+        # Panel 3: Scaling factor analysis
+        _plot_scaling_factors(axes[1, 0], relationships)
 
-    # Panel 4: IVM relationship network
-    _plot_ivm_relationships(axes[1, 1], relationships)
+        # Panel 4: IVM relationship network
+        _plot_ivm_relationships(axes[1, 1], relationships)
 
-    # Panel 5: Rational approximation quality
-    _plot_rational_approximations(axes[2, 0], analyses)
+        # Panel 5: Rational approximation quality
+        _plot_rational_approximations(axes[2, 0], analyses)
 
-    # Panel 6: Platonic solid relationships
-    _plot_platonic_relationships(axes[2, 1], relationships)
+        # Panel 6: Platonic solid relationships
+        _plot_platonic_relationships(axes[2, 1], relationships)
 
-    plt.tight_layout()
+        fig.tight_layout()
 
-    # Save visualization
-    safe_title = title.lower().replace(' ', '_').replace('-', '_')
-    output_path = get_organized_output_path('mathematical', 'geometric_mnemonics',
-                                          f'geometric_mnemonics_{safe_title}.png')
+        # Save visualization
+        safe_title = title.lower().replace(' ', '_').replace('-', '_')
+        output_path = get_organized_output_path('mathematical', 'geometric_mnemonics',
+                                              f'geometric_mnemonics_{safe_title}.png')
 
-    plt.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
-    plt.close()
+        fig.savefig(output_path, dpi=get_config()["dpi"], bbox_inches='tight')
 
-    return {
-        'files': [str(output_path)],
-        'metadata': {
-            'type': 'geometric_mnemonics',
-            'title': title,
-            'numbers_analyzed': len(numbers),
-            'relationships_found': len(relationships),
-            'backend': 'matplotlib'
+        return {
+            'files': [str(output_path)],
+            'metadata': {
+                'type': 'geometric_mnemonics',
+                'title': title,
+                'numbers_analyzed': len(numbers),
+                'relationships_found': len(relationships),
+                'backend': 'matplotlib'
+            }
         }
-    }
+    finally:
+        _plt.close(fig)
 
 
 def _extract_geometric_relationships(analyses: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
@@ -951,7 +944,7 @@ def _plot_mnemonics_overview(ax, analyses):
     rational_approxs = sum(len(a.get('rational_approximations', {})) for a in analyses)
 
     # Create summary text
-    summary_text = ".1f"".1f"".1f"".1f"f"""
+    summary_text = f"""
     Geometric Mnemonics Overview
 
     Total Numbers: {total_numbers}
@@ -1146,12 +1139,14 @@ def create_mega_graphical_abstract(
     ``geometry``, ``arithmetic``, ``patterns``, or ``all`` (all 17 topics).
     An omitted title follows the selected section; explicit titles are retained.
     The first three positional arguments and canonical default PNG path remain
-    supported. This selector is unreleased-main behavior, not a 1.3.0 API claim.
+    supported. Section selection was introduced in 1.4.0.
 
     Returns file paths, actual panel identities/layout metadata, and JSON-safe
     ``data`` keyed by panel identity. Exact rational results are full strings;
     floating references and geometric units are identified alongside their data.
     Required computation/save errors propagate and the owned figure is closed.
+    The footer uses the UTC date of ``SOURCE_DATE_EPOCH`` when set, otherwise
+    the current local date. This alone does not guarantee byte-identical exports.
     """
     groups = {
         'geometry': (
@@ -1772,12 +1767,17 @@ def _create_geometry_precision_panel(ax):
 
 
 def _add_contextualizing_text(fig):
-    """State the actual figure scope and generation date, without quality claims."""
-    from datetime import datetime
+    """Use the UTC SOURCE_DATE_EPOCH date, or the current local date if unset."""
+    from datetime import datetime, timezone
+    import os
+
+    epoch = os.environ.get('SOURCE_DATE_EPOCH')
+    generated = (datetime.fromtimestamp(int(epoch), timezone.utc)
+                 if epoch is not None else datetime.now())
 
     fig.text(0.05, 0.025,
              'Computed rational arithmetic, declared geometric units and finite sequence examples.\n'
              'Continuous irrational quantities remain approximations; mesh validity has explicit preconditions.',
              fontsize=10, ha='left', va='bottom')
-    fig.text(0.97, 0.025, f'Generated: {datetime.now():%Y-%m-%d}',
+    fig.text(0.97, 0.025, f'Generated: {generated:%Y-%m-%d}',
              fontsize=10, ha='right', va='bottom')

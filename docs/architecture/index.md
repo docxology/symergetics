@@ -48,6 +48,9 @@ nearest projection and IVM shell enumeration share this module. See the
 face cycles over mutable vertex lists. Edges are deduplicated by index;
 faces become triangle fans. Volume, area, diagnostics and both exact centroids
 are recomputed from current vertices rather than cached reference constants.
+`with_vertices` preserves concrete type and topology through transforms using
+a shallow copy and a new owned list. Other state is shared unless subclasses
+override the protocol to manage geometry-dependent caches.
 
 Closed orientable nonintersecting shells are a precondition for solid measures.
 Multiple shells use even-odd enclosure to model cavities. Face nonplanarity,
@@ -60,9 +63,11 @@ see [solid analysis](../api/index.md#indexed-surfaces-and-live-solid-analysis).
 [`geometry/transformations.py`](../../symergetics/geometry/transformations.py)
 implements translation, scale, reflection, coordinate matrices, XYZ rotations
 and plane projection. Operations leaving the lattice project back; they are
-not generally invertible or metric preserving. Gauge-compatible 4 by 4 maps
-and continuous 4 by 3 pseudoinverses have different contracts from discrete
-nearest conversion.
+not generally invertible or metric preserving. Exact represented rational plane
+arithmetic precedes one nearest-lattice snap; the resulting site can leave the
+plane. Gauge-compatible 4 by 4 maps and continuous 4 by 3 pseudoinverses have
+different contracts from exact nearest conversion. The continuous inverse uses
+rational cofactors of the effective embedding and rounds only final entries.
 
 ## Computation Module Architecture
 
@@ -87,10 +92,10 @@ fans underpin measurement and rendering. Backend support and output format
 handling are function-specific, not universal promises attached to global
 `formats`. See [plotting contracts](../api/index.md#visualization-module).
 
-The unreleased main mega API retains its original three positional parameters
-and adds keyword-only topic selection. Its focused default, all-topic option,
+The 1.4.0 mega API retains its original three positional parameters and adds
+keyword-only topic selection. Its focused default, all-topic option,
 computed payload and overwrite behavior are documented in
-[poster sections](../api/index.md#scientific-poster-sections-unreleased-main).
+[poster sections](../api/index.md#scientific-poster-sections).
 
 ## Error Handling Architecture
 
@@ -115,9 +120,9 @@ is not proof that this run produced it. The orchestrator writes `logs/` and
 
 Use a checkout or GitHub release wheel, not PyPI. See
 [installation](../../README.md#install-and-run). The scientific workflow uses
-Python 3.13 explicitly without changing the repository pin. Main documentation
-can describe unreleased changes while package metadata still says 1.3.0;
-pin the source revision when reproducing them.
+Python 3.13 explicitly without changing the repository pin. Record both the
+package version and source revision; see the authoritative
+[source/distribution verification contract](../synergetics-suite.md#complete-suite-verification).
 
 ## Testing Architecture
 

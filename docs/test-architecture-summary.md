@@ -47,7 +47,7 @@ data and computations are required; do not mock away the behavior under review.
 - Vertex mean versus uniform-solid mass center versus snapped lattice centroid.
 - Anchor-relative plotting, actual declared edges/fans and bounded labels with
   complete exact metadata.
-- Unreleased-main poster selection versus immutable release-wheel signatures.
+- Poster selection introduced in 1.4.0 versus earlier release-wheel signatures.
 
 These distinctions are specified in the [API reference](api/index.md), not
 redefined in each test description.

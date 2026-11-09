@@ -31,15 +31,18 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        id: symergetics
         with:
           path: symergetics
           ref: ${{ inputs.symergetics_ref || github.sha }}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        id: quadmath
         with:
           repository: docxology/QuadMath
           ref: ${{ inputs.quadmath_ref || 'main' }}
           path: QuadMath
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        id: quadcraft
         with:
           repository: docxology/QuadCraft
           ref: ${{ inputs.quadcraft_ref || 'main' }}
@@ -62,7 +65,18 @@ jobs:
       - name: Verify actual repositories and runtimes
         env:
           BROWSER_DIAGNOSTICS_DIR: ${{ runner.temp }}/browser-diagnostics
-        run: python symergetics/verify_suite.py --browser --require-clean --report '${{ runner.temp }}/suite-receipt.json'
+          QUADMATH_REF: ${{ inputs.quadmath_ref || 'main' }}
+          SYMERGETICS_REF: ${{ inputs.symergetics_ref || github.sha }}
+          QUADCRAFT_REF: ${{ inputs.quadcraft_ref || 'main' }}
+          QUADMATH_REVISION: ${{ steps.quadmath.outputs.commit }}
+          SYMERGETICS_REVISION: ${{ steps.symergetics.outputs.commit }}
+          QUADCRAFT_REVISION: ${{ steps.quadcraft.outputs.commit }}
+        run: |
+          python symergetics/verify_suite.py --browser --require-clean \
+            --quadmath-ref "$QUADMATH_REF" --quadmath-expected-revision "$QUADMATH_REVISION" \
+            --symergetics-ref "$SYMERGETICS_REF" --symergetics-expected-revision "$SYMERGETICS_REVISION" \
+            --quadcraft-ref "$QUADCRAFT_REF" --quadcraft-expected-revision "$QUADCRAFT_REVISION" \
+            --report '${{ runner.temp }}/suite-receipt.json'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
