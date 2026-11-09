@@ -3,7 +3,7 @@
     "name": "symergetics",
     "version": "1.4.0"
   },
-  "generated_at_utc": "2026-11-09T20:33:18.561084+00:00",
+  "generated_at_utc": "2026-11-09T21:39:22.980912+00:00",
   "rendering": {
     "source_date_epoch": "1794182400",
     "config": {
@@ -171,7 +171,7 @@
     },
     {
       "path": "symergetics/visualization/mathematical.py",
-      "sha256": "4031d62cc44aa57533cc53d186c74988d9afdc9ef2265a52df0538aec16a9c9b"
+      "sha256": "17ccc8e5a594cd9e70a3c87d4dedd3dd394764c91323f05a73a9e1c7c22e9ef2"
     },
     {
       "path": "symergetics/visualization/numbers.py",
@@ -6805,7 +6805,7 @@
       "assets": [
         {
           "path": "scientific_sections/overview.svg",
-          "sha256": "c3dce8844f8c061b71a86ad149f6043e0b764b415483657f32c745484163baf2",
+          "sha256": "1da4eea2b3a8693d23acf4ea885ce995688f0b1fd08569386c6bea78feb82eff",
           "bytes": 556241,
           "format": "SVG",
           "width": "1097.28pt",
@@ -8083,7 +8083,7 @@
       "assets": [
         {
           "path": "scientific_sections/geometry.svg",
-          "sha256": "97a8232618437786dc207867fa4d8046b0735f46c9e69955a73f946f0d77e2ca",
+          "sha256": "723fa47fab31f546c2595820d7066e2c4f008337d9ccb32a2b228bb1e546dcd2",
           "bytes": 611828,
           "format": "SVG",
           "width": "1097.28pt",
@@ -8278,7 +8278,7 @@
       "assets": [
         {
           "path": "scientific_sections/arithmetic.svg",
-          "sha256": "fb4f3fe55d3a2ae0fc80fde675c949da67706c05ceaed740b39a73999a9c820d",
+          "sha256": "cfd36f483c7ce8c3ac2444a73648684d6f18ad332258ca9810428d2d2db2b095",
           "bytes": 207139,
           "format": "SVG",
           "width": "1097.28pt",
@@ -8538,7 +8538,7 @@
       "assets": [
         {
           "path": "scientific_sections/patterns.svg",
-          "sha256": "10020934f6c4e9fb9be3a2b3dbe6c297a1d60f55c520fde33f47e973619ffbb9",
+          "sha256": "414c255b3503f4f5ad20e9e26d7e3decb00e271fca72aba7a7d2c6456cfdb9b7",
           "bytes": 186398,
           "format": "SVG",
           "width": "1097.28pt",
@@ -10177,7 +10177,7 @@
       "assets": [
         {
           "path": "scientific_sections/all.svg",
-          "sha256": "755ee19576d90bdcd7f04597b96cc25f5de48b26760e6e04027aedd55e8561c7",
+          "sha256": "6d8118248f811285a47757382c8c7f795ea926020e2e354ce7bc6b1b79624dfe",
           "bytes": 891267,
           "format": "SVG",
           "width": "1638.72pt",

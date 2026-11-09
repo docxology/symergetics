@@ -376,7 +376,7 @@ def _plot_continued_fraction_ascii(value: float,
     }
 
 
-def plot_base_conversion(number: int,
+def plot_base_conversion(number: Union[int, str],
                         from_base: int = 10,
                         to_base: int = 2,
                         backend: Optional[str] = None,
@@ -410,7 +410,7 @@ def plot_base_conversion(number: int,
         raise ValueError(f"Unsupported backend: {backend}")
 
 
-def _plot_base_conversion_matplotlib(number: int,
+def _plot_base_conversion_matplotlib(number: Union[int, str],
                                    from_base: int = 10,
                                    to_base: int = 2,
                                    **kwargs) -> Dict[str, Any]:
@@ -511,7 +511,7 @@ def _plot_base_conversion_matplotlib(number: int,
     }
 
 
-def _plot_base_conversion_ascii(number: int,
+def _plot_base_conversion_ascii(number: Union[int, str],
                                from_base: int = 10,
                                to_base: int = 2,
                                **kwargs) -> Dict[str, Any]:
@@ -1428,7 +1428,7 @@ def _plot_continued_fraction_plotly(value: float, max_terms: int = 10,
     }
 
 
-def _plot_base_conversion_plotly(number: int, from_base: int = 10, to_base: int = 2,
+def _plot_base_conversion_plotly(number: Union[int, str], from_base: int = 10, to_base: int = 2,
                                  **kwargs) -> Dict[str, Any]:
     """Plot base conversion process using plotly."""
     go, make_subplots, width, height = _plotly_grid(1.5, 1.5)
