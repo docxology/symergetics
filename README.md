@@ -1,5 +1,11 @@
 # Symergetics
 
+<p align="center">
+  <a href="https://github.com/docxology/symergetics/actions/workflows/verify.yml"><img alt="verify.yml workflow status on main" src="https://github.com/docxology/symergetics/actions/workflows/verify.yml/badge.svg?branch=main"></a>
+  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
+  <img alt="Requires Python 3.11 or newer" src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white">
+</p>
+
 Python implementation of Buckminster Fuller's Synergetics: exact rational
 arithmetic, quadray/IVM coordinates, polyhedra, number-pattern experiments
 (palindromes, primorials, scheherazade), and multi-backend visualization.
@@ -108,3 +114,24 @@ in separate exact-ref checkouts, not discarded local outputs. See the
 [authoritative source and distribution proof contract](docs/synergetics-suite.md#complete-suite-verification).
 See [release notes](CHANGELOG.md), the [suite workflow](.github/workflows/suite.yml)
 and [package verification](.github/workflows/verify.yml).
+
+## Package map
+
+Generated on 2026-11-12 from the `import` statements under `symergetics/`. An arrow from A to B means code in A imports B; arrows already implied by a longer path are left out, so the picture shows layering rather than every edge.
+
+```mermaid
+flowchart TB
+    accTitle: Internal dependency map of the symergetics package
+    accDescr: Generated from import statements in symergetics. Each box is a subpackage of the package; an arrow from A to B means code in A imports B; arrows already implied by a longer path are omitted. Most-imported: core, computation, visualization.
+    n_visualization["visualization/"]
+    n_computation["computation/"]
+    n_utils["utils/"]
+    n_core["core/"]
+    n_geometry["geometry/"]
+    n_visualization --> n_geometry
+    n_visualization --> n_utils
+    n_utils --> n_core
+    n_geometry --> n_core
+    n_computation --> n_visualization
+    n_core --> n_computation
+```
