@@ -387,13 +387,16 @@ def find_palindromic_primes(limit: int) -> List[int]:
 
 def analyze_number_for_synergetics(number: Union[int, SymergeticsNumber]) -> Dict[str, Union[bool, float, List, Dict]]:
     """
-    Perform comprehensive Synergetics analysis on a number.
+    Analyze the supplied number's decimal palindrome and pattern properties.
 
     Args:
         number: Number to analyze
 
     Returns:
         Dict: Complete analysis including all palindromic and pattern properties
+
+    SymergeticsNumber inputs use their numerator, as in the pattern helpers.
+    Scheherazade-power analysis and prime factorization are separate APIs.
     """
     analysis = {
         'is_palindromic': is_palindromic(number),
@@ -402,10 +405,5 @@ def analyze_number_for_synergetics(number: Union[int, SymergeticsNumber]) -> Dic
         'palindromic_density': calculate_palindromic_density(number),
         'symmetric_patterns': find_symmetric_patterns(number),
     }
-
-    # Add Synergetics-specific insights
-    if isinstance(number, SymergeticsNumber):
-        analysis['scheherazade_analysis'] = analyze_scheherazade_ssrcd(1)  # Placeholder
-        analysis['prime_factors'] = {}  # Could integrate with primorials module
 
     return analysis
