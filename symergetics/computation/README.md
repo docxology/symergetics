@@ -9,6 +9,12 @@
 - `geometric_mnemonics.py`: descriptive links to geometric ratios and integer
   ratio visualization (the plotting function requires matplotlib).
 
+`analyze_number_for_synergetics(number)` reports only the supplied value's
+palindrome and digit-pattern properties. A `SymergeticsNumber` uses its
+numerator, matching the individual pattern helpers; no factorization or
+unrelated Scheherazade result is implied. For a known power of 1001, call
+`analyze_scheherazade_ssrcd(power)` explicitly with its exponent.
+
 Use the [API reference](../../docs/api/index.md) for signatures. Integer and
 rational calculations coexist with float scores, correlations and bounded
 approximations. Pattern metrics and mnemonic associations are descriptive

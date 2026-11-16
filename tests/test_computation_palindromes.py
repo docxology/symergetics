@@ -216,6 +216,21 @@ class TestComprehensiveAnalysis:
         assert analysis['is_palindromic'] == False
         assert 'repeated_patterns' in analysis
 
+    @pytest.mark.parametrize("value, palindromic", [
+        (121, True), (123, False), (1001, True), (1002001, True),
+    ])
+    def test_wrapped_number_reports_only_its_own_patterns(self, value, palindromic):
+        analysis = analyze_number_for_synergetics(SymergeticsNumber(value))
+
+        assert analysis == analyze_number_for_synergetics(value)
+        assert analysis['is_palindromic'] is palindromic
+        if palindromic:
+            assert str(value) in analysis['palindromic_patterns']
+        else:
+            assert analysis['palindromic_patterns'] == []
+        assert 'scheherazade_analysis' not in analysis
+        assert 'prime_factors' not in analysis
+
 
 class TestEdgeCases:
     """Test edge cases and error conditions."""
