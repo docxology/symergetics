@@ -1,7 +1,6 @@
 # Symergetics
 
 <p align="center">
-  <a href="https://github.com/docxology/symergetics/actions/workflows/verify.yml"><img alt="verify.yml workflow status on main" src="https://github.com/docxology/symergetics/actions/workflows/verify.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
   <img alt="Requires Python 3.11 or newer" src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white">
 </p>
@@ -26,19 +25,19 @@ Scientific work explicitly selects Python 3.13; do not change the repository's
 From a checkout:
 
 ```bash
-uv sync --python 3.13 --extra scientific
-uv run --python 3.13 --extra scientific python -c "from symergetics import QuadrayCoordinate; print(QuadrayCoordinate(1, 0, 0, 0).to_xyz())"
+uv sync --locked --python 3.13 --extra scientific
+uv run --locked --python 3.13 --extra scientific python -c "from symergetics import QuadrayCoordinate; print(QuadrayCoordinate(1, 0, 0, 0).to_xyz())"
 ```
 
 NumPy is a required dependency of the core coordinate API. Scientific and test
 tools remain available through their extras:
 
 ```bash
-uv run --python 3.13 --extra scientific --extra test pytest tests/test_core_coordinates.py -q --no-cov
+uv run --locked --python 3.13 --extra scientific --extra test pytest tests/test_core_coordinates.py -q --no-cov
 ```
 
 For the [1.4.0 release wheel](https://github.com/docxology/symergetics/releases/tag/1.4.0),
-once published, run in a separate directory/environment:
+run in a separate directory and environment:
 
 ```bash
 uv venv --python 3.13 .venv
@@ -91,7 +90,7 @@ instead of embedding stale test statistics. See the [API contracts](docs/api/ind
 With sibling checkouts, Node.js and a C++17 compiler:
 
 ```bash
-uv run --python 3.13 --extra scientific --extra test python examples/suite_interoperability.py
+uv run --locked --python 3.13 --extra scientific --extra test python examples/suite_interoperability.py
 ```
 
 This exercises the actual implementations across all three projects; no
