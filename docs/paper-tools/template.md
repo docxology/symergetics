@@ -7,6 +7,7 @@ uv sync --locked --python 3.13 --extra scientific
 uv run --locked --no-sync python docs/paper-tools/stage_template.py
 ```
 
+Name the physical checkout directory `symergetics` so the pinned validator can find the combined PDF.
 Use a separate [Template checkout](https://github.com/docxology/template/tree/87704feae0a4490ef7dad9c931d268e8c30273c2) at `87704feae0a4490ef7dad9c931d268e8c30273c2`, with Pandoc, pandoc-crossref and LaTeX from the [Template run guide](https://github.com/docxology/template/blob/87704feae0a4490ef7dad9c931d268e8c30273c2/docs/RUN_GUIDE.md). Set `symergetics_checkout` to the absolute project checkout path. Run from Template with an unused slot.
 
 ```sh
