@@ -6,7 +6,7 @@ No new feature backlog is inferred from an old receipt. Track an actionable
 issue with its affected paths and observable acceptance criterion; completion
 requires evidence for that issue, not a saved package-wide test count.
 [STATUS.md](STATUS.md) records dated evidence and
-[the testing guide](docs/testing-guide.md) supplies current commands.
+[the testing guide](testing-guide.md) supplies current commands.
 
 ## Historical completed maintenance — 2026-08/09
 

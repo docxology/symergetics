@@ -132,11 +132,11 @@ def check_requirements():
             return False
 
         # Check markdown sections
-        markdown_dir = paper_dir / "markdown"
+        markdown_dir = paper_dir.parent / "docs" / "manuscript"
         logger.debug(f"Checking markdown directory: {markdown_dir}")
         if not markdown_dir.exists():
             logger.error(f"Markdown directory not found: {markdown_dir}")
-            print("❌ Error: paper/markdown/ directory not found")
+            print("❌ Error: docs/manuscript/ directory not found")
             return False
 
         md_files = list(markdown_dir.glob("*.md"))
@@ -469,7 +469,7 @@ def regenerate_mermaid_diagrams():
                 return False
 
         # Check for markdown files with Mermaid blocks
-        markdown_dir = PROJECT_ROOT / "paper" / "markdown"
+        markdown_dir = PROJECT_ROOT / "docs" / "manuscript"
         mermaid_blocks = []
 
         for md_file in markdown_dir.glob("*.md"):
@@ -787,7 +787,7 @@ def generate_summary():
         "11_conclusion.md"
     ]
 
-    markdown_dir = PROJECT_ROOT / "paper" / "markdown"
+    markdown_dir = PROJECT_ROOT / "docs" / "manuscript"
     found_sections = 0
     for section in sections:
         if (markdown_dir / section).exists():

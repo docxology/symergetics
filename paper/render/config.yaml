@@ -89,7 +89,7 @@ images:
 
 # Output directories
 directories:
-  markdown: "markdown"     # relative to paper/
+  markdown: "../docs/manuscript"     # relative to paper/
   output: "output"         # relative to paper/
   data_source: "../output" # relative to paper/ (source of images/data)
 

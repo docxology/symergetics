@@ -102,5 +102,5 @@ remain in the [checkout guide](../README.md).
 
 - [Source-bound research status](research/index.md)
 - [Application scenarios and missing evidence](case-studies-real-world-applications.md)
-- [Open manuscript questions](../paper/markdown/10_ongoing_questions_inquiries.md)
+- [Open manuscript questions](manuscript/10_ongoing_questions_inquiries.md)
 - [Documentation map](index.md)

@@ -2,7 +2,7 @@
 
 The [test index](TEST_INDEX.md) is a navigation map, not a live collection or
 correctness certificate. [Testing guidance](../docs/testing-guide.md) defines
-canonical commands; dated receipts live in [STATUS](../STATUS.md) and the
+canonical commands; dated receipts live in [STATUS](../docs/STATUS.md) and the
 [suite guide](../docs/synergetics-suite.md).
 
 Run from the repository root with Python 3.13 and scientific/test extras:

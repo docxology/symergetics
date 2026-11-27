@@ -41,7 +41,7 @@ input. Radar axes are fractions (digit diversity, normalized entropy, repeated
 digit/bigram membership, contiguous-palindrome coverage and equal mirror pairs),
 not counts clipped into a common radial range. Scalar coverage is linear; the
 default returned relation matrix has quadratic size, with explicit matrix-free
-ASCII mode available. See [method definitions](../../docs/api/index.md#mathematical-visualizations).
+ASCII mode available. See [method definitions](../api/index.md#mathematical-visualizations).
 
 ### Large Number Pattern Analysis
 
@@ -75,7 +75,7 @@ replication. There is no new benchmark, conjecture proof or domain dataset here.
 
 ### Implementation Architecture
 
-The [API reference](../../docs/api/index.md) maps actual callable operations.
+The [API reference](../api/index.md) maps actual callable operations.
 The [source map](04_system_architecture.md#package-structure) avoids references
 to nonexistent pattern/complexity/optimization modules.
 

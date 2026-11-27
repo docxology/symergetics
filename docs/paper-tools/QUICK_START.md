@@ -19,7 +19,7 @@ python3.13 -m venv .venv-paper
 
 This installs the checkout, not a nonexistent PyPI release. The requirements
 file also includes development/test tools; installing them does not run them.
-The scientific dependencies come from [pyproject.toml](../pyproject.toml).
+The scientific dependencies come from [pyproject.toml](../../pyproject.toml).
 Renderer requirements include Matplotlib's portable DejaVu font bundle and the
 PDF parser used by regression checks; no machine-specific TeX fonts are needed
 for this ReportLab path.
@@ -35,7 +35,7 @@ Do not change `.python-version` to run this workflow.
 The structural validator checks source sections and root `output/` references;
 it does not prove mathematics, follow every external link or establish current
 empirical evidence. The image helper is a separate diagnostic. See
-[validation scope](validation/README.md).
+[validation scope](VALIDATION.md).
 
 ### Generate a PDF without regenerating examples
 
@@ -54,8 +54,8 @@ the exit code; Mermaid's optional text representation is a separate boundary.
 
 ### Updating Paper Content
 
-Edit the twelve numbered files linked from [paper structure](README.md#paper-structure).
-Keep actual APIs in the [implementation reference](../docs/api/index.md), and
+Edit the twelve numbered files linked from [paper structure](../manuscript/README.md#paper-structure).
+Keep actual APIs in the [implementation reference](../api/index.md), and
 keep proposed uses visibly separate from tested behavior. Generate visualizations
 only through the real example/renderer that owns them, in isolation; do not
 hand-edit or overwrite user output to make a validation check pass.
@@ -80,7 +80,7 @@ three-dash table delimiters and escape literal cell pipes, including in code.
 In the isolated PDF, check headings near page feet, unchanged literal identifiers,
 empty columns and wrapped table cells as well as figures. H5/H6, merged table
 cells, full LaTeX math and bibliography processing are not equivalent to a full
-publishing engine; see the [renderer limits](render/README.md#pdf-heading-pagination-unicode-and-pipe-tables).
+publishing engine; see the [renderer limits](REPORTLAB.md#pdf-heading-pagination-unicode-and-pipe-tables).
 
 ## Troubleshooting
 
@@ -92,6 +92,6 @@ publishing engine; see the [renderer limits](render/README.md#pdf-heading-pagina
 - **Wrong source/output directory:** keep `--paper-dir paper` explicit from root.
 - **Old report:** regenerate to a disposable report path for the reviewed revision.
 - **Unexpected regeneration:** stop using the orchestration command for PDF-only
-  work; inspect [generate_paper.py](generate_paper.py) before invoking it.
+  work; inspect [generate_paper.py](../../paper/generate_paper.py) before invoking it.
 
-[Paper overview](README.md) · [Renderer contract](render/README.md)
+[Paper overview](../manuscript/README.md) · [Renderer contract](REPORTLAB.md)

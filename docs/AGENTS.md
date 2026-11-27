@@ -6,7 +6,7 @@
 [api/index.md](api/index.md); architecture, examples and tutorials link to those
 contracts. Mathematical guides define the quotient/metric/units. Research,
 application and learning/philosophy pages discuss context, not extra APIs.
-The separate paper pipeline lives under `../paper/`; manuscript status is under
+The native paper tools live under `../paper/`; canonical manuscript sources are under
 `manuscript/`. Generated `output/` and `paper/output/` files are not hand-edited docs.
 
 ## Source-bound examples

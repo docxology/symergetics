@@ -21,7 +21,7 @@ This manuscript describes software and mathematical examples, not empirical
 success in cognition, biology, materials, climate, finance or quantum physics.
 Proposed applications are separated from implemented interfaces. Test inventories,
 collected cases and historical execution receipts are distinguished in
-[Test evidence and count semantics](../TEST_EVIDENCE.md); none proves universal
+[Test evidence and count semantics](../paper-tools/TEST_EVIDENCE.md); none proves universal
 correctness or a speed advantage. The development source is available in the
 [repository](https://github.com/docxology/symergetics), under its Apache 2.0
 [license](../../LICENSE). These editable sources are not a revision of an

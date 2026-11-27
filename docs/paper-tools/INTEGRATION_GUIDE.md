@@ -17,8 +17,8 @@ producer and its returned paths. Generated artifacts can predate source edits.
 
 ## Image Discovery Process
 
-[ScientificPaperRenderer._find_image_path](render/pdf_renderer.py) resolves the
-reference against `paper/markdown/`, exactly as ordinary Markdown does.
+[ScientificPaperRenderer._find_image_path](../../paper/render/pdf_renderer.py) resolves the
+reference against `docs/manuscript/`, exactly as ordinary Markdown does.
 It does not discard directory prefixes, recursively choose a basename match or
 substitute a different file when the requested path is absent.
 Absolute image references are rejected. The publication validators additionally
@@ -26,12 +26,12 @@ require the resolved asset to remain under repository `output/`.
 
 ## Reference Patterns
 
-The structural [validator](validation/validate_paper.py) and image diagnostic
+The structural [validator](../../paper/validation/validate_paper.py) and image diagnostic
 use source-relative image paths and matching caption paragraphs. Existing
 concrete source example:
 
 ```markdown
-![Figure 1: Quadray Coordinate System Origin](../../output/geometric/coordinates/quadray_coordinate_0_0_0_0.png)
+![Figure 1: Quadray Coordinate System Origin](../../output/publication/1.4.0/geometric/coordinates/quadray_coordinate_0_0_0_0.png)
 
 **Figure 1**: Quadray origin in a rank-three embedding. The four slots represent a common-offset gauge, not four independent spatial dimensions.
 ```
@@ -57,15 +57,15 @@ failures are hard failures and must not be hidden by a successful partial PDF.
 
 ## Figure Management System
 
-[figure_manager.py](render/figure_manager.py) and
-[scan_and_register_figures.py](render/scan_and_register_figures.py) provide a
+[figure_manager.py](../../paper/render/figure_manager.py) and
+[scan_and_register_figures.py](../../paper/render/scan_and_register_figures.py) provide a
 separate scientific figure-provenance workflow.
 Registry metadata is not independently measured evidence and does not replace
 the renderer's actual authored caption handling.
 
 The scanner writes its registry to the project's root `output/` even when
 launched from another working directory; it also generates
-`paper/markdown/figures.md`. Do not run it as read-only inspection. Complete
+`docs/manuscript/figures.md`. Do not run it as read-only inspection. Complete
 `technical_details` survive serialization. Loading a snapshot replaces state
 idempotently; invalid record decoding leaves the previous state unchanged.
 
@@ -81,7 +81,7 @@ source-date footer or file-generation timestamp. Scientific figure footers use
 the UTC date of `SOURCE_DATE_EPOCH` when supplied, otherwise the local date;
 demo sidecar paths are relative to the sidecar directory. These separate
 contracts do not promise byte-identical artifacts across arbitrary toolchains.
-Keep exact API contracts in [the reference](../docs/api/index.md) rather than
+Keep exact API contracts in [the reference](../api/index.md) rather than
 copying dataclasses or private function bodies here.
 
 ## Validation and Testing
@@ -93,7 +93,7 @@ figures. Then inspect the PDF at ordinary reading width for legibility, clipping
 geometry and caption agreement. A file-existence check cannot establish those
 properties or mathematical accuracy.
 
-The checked-in [validation_report.md](validation_report.md) is a historical
+The checked-in [validation_report.md](../../paper/validation_report.md) is a historical
 generated artifact with old section names and paths. It is preserved, not a
 current receipt. [Test evidence](TEST_EVIDENCE.md) has separate revision semantics.
 
@@ -114,5 +114,5 @@ current receipt. [Test evidence](TEST_EVIDENCE.md) has separate revision semanti
 Captions state what is computed, units, scale/gauge where relevant and whether
 values are exact or approximate. They do not claim new discoveries or empirical
 benefit from visual appearance. Keep detailed mathematical definitions in
-[foundations](markdown/03_mathematical_foundations.md) and writing conventions in
+[foundations](../manuscript/03_mathematical_foundations.md) and writing conventions in
 [style guidance](STYLE_GUIDE.md).

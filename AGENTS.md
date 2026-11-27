@@ -3,9 +3,9 @@
 ## Orientation ladder (cold start)
 
 1. Read [README.md](README.md) for installation and scope, then [docs/index.md](docs/index.md).
-2. [STATUS.md](STATUS.md) separates present capabilities from dated receipts;
+2. [STATUS.md](docs/STATUS.md) separates present capabilities from dated receipts;
    it is not a current green-main claim.
-3. [TODO.md](TODO.md) is the root backlog/history surface, not a test inventory.
+3. [TODO.md](docs/TODO.md) is the root backlog/history surface, not a test inventory.
 4. Consult [architecture](docs/architecture/index.md) and scoped `AGENTS.md`
    before editing. Follow the current assignment's verification/ownership rules.
 
@@ -16,7 +16,7 @@
 - `examples/`: actual demo scripts, many of which generate `output/` files.
 - `docs/`: hand-written implementation and conceptual guides.
 - `output/`: generated/user artifacts; never hand-edit or overwrite casually.
-- `paper/`: separate manuscript and rendering pipeline; `paper/output/` is generated.
+- `paper/`: native renderer and diagnostics for `docs/manuscript/`; `paper/output/` is generated.
 
 ## Verification (read the gotchas before running)
 

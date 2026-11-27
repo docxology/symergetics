@@ -5,7 +5,7 @@ Source review base: `8ab949e4932537ceee1af93b08196fe21bf4ee85` (2026-10-13).
 This page preserves a **historical snapshot**, not current-main suite counts.
 The commands below document that snapshot's Python 3.12 environment; a fresh
 scientific workflow uses explicit Python 3.13 as described in
-[the checkout guide](../README.md). No tests were rerun for the documentation
+[the checkout guide](../../README.md). No tests were rerun for the documentation
 corrections, and the checked inventory is not asserted to match later edits.
 
 Reproduce the inventory without importing test modules:
@@ -19,7 +19,7 @@ The historical checked inventory counts **1,017 test-prefixed AST function defin
 across 39 Python files** under `tests/**/test_*.py`. It includes nested
 functions; it does not claim that every definition is discoverable by pytest.
 Its input digest is `84ccefc608ec85b1d3ab5273440e3b25970d34523b4be9800d2fee73e97fba7d`.
-Each file has its own SHA-256 in [the generated inventory](validation/test_inventory.json).
+Each file has its own SHA-256 in [the generated inventory](../../paper/validation/test_inventory.json).
 Counts change with source revisions; regenerate rather than replacing prose
 with another floating count.
 

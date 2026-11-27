@@ -77,7 +77,7 @@ class ScientificPaperRenderer:
 
     def __init__(self, paper_dir: str, output_dir: str = None):
         self.paper_dir = Path(paper_dir)
-        self.markdown_dir = self.paper_dir / "markdown"
+        self.markdown_dir = self.paper_dir.parent / "docs" / "manuscript"
         self.output_dir = Path(output_dir) if output_dir else self.paper_dir / "output"
         self.output_dir.mkdir(exist_ok=True)
 

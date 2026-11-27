@@ -57,7 +57,7 @@ def generate_mermaid_png(mermaid_code, output_path, title="Diagram"):
 def process_markdown_files():
     """Process all markdown files and generate Mermaid diagrams."""
     paper_dir = Path(__file__).parent.parent
-    markdown_dir = paper_dir / "markdown"
+    markdown_dir = paper_dir.parent / "docs" / "manuscript"
     mermaid_dir = paper_dir / "mermaid_images"
 
     # Create mermaid_images directory

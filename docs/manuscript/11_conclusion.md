@@ -24,7 +24,7 @@ Cartesian methods, symbolic tools or floating-point workflows is claimed.
 ### Technical Achievements
 
 The [architecture](04_system_architecture.md) links actual implementation
-modules. [Test evidence](../TEST_EVIDENCE.md) separates source inventories,
+modules. [Test evidence](../paper-tools/TEST_EVIDENCE.md) separates source inventories,
 collected cases and historical execution receipts; these support their own
 revisions and do not guarantee every calculation. No new comparative performance
 benchmark or independent mathematical replication is reported here.
@@ -46,8 +46,8 @@ A plotted pattern or exact fraction cannot replace those requirements.
 
 ### Conclusion
 
-Use the [API reference](../../docs/api/index.md) for implemented interfaces and
-the [research guide](../../docs/research/index.md) for evidence boundaries.
+Use the [API reference](../api/index.md) for implemented interfaces and
+the [research guide](../research/index.md) for evidence boundaries.
 Editable checkout sources can correct documentation without altering historical
 PDFs, versioned releases or deposited publications.
 

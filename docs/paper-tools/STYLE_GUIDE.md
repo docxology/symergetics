@@ -32,7 +32,7 @@ to the header width. Tables must identify units and comparison conventions.
 ## Image Integration Guidelines
 
 Use source-relative image paths, concrete figure numbers and detailed captions.
-For files in `paper/markdown/`, repository assets begin `../../output/`.
+For files in `docs/manuscript/`, repository assets begin `../../output/`.
 The [integration guide](INTEGRATION_GUIDE.md) defines exact resolution, caption
 handling and aspect-preserving raster fitting. Missing/unsupported inputs fail;
 SVG/PDF filename discovery does not provide a conversion stage.
@@ -45,7 +45,7 @@ validates the mathematics or a real-world benefit. Example using an existing
 source reference:
 
 ```markdown
-![Figure 2: Quadray Representative (2,1,1,0)](../../output/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
+![Figure 2: Quadray Representative (2,1,1,0)](../../output/publication/1.4.0/geometric/coordinates/quadray_coordinate_2_1_1_0.png)
 
 **Figure 2**: Coordinate example in the scale-1 rank-three embedding. The tuple (2,1,1,0) maps to XYZ (0,2,2); a common offset in all four slots leaves the position unchanged.
 ```
@@ -80,8 +80,8 @@ development checkout have different revision boundaries.
 - **Digit patterns** state base, search interval and the no-carry condition for
   binomial coefficients read as base-1000 blocks.
 
-[Foundations](markdown/03_mathematical_foundations.md) is the canonical manuscript
-mathematical account; [research boundaries](../docs/research/index.md) gives
+[Foundations](../manuscript/03_mathematical_foundations.md) is the canonical manuscript
+mathematical account; [research boundaries](../research/index.md) gives
 source/model limits.
 
 ## Code Block Standards
@@ -89,14 +89,14 @@ source/model limits.
 Runnable snippets use real APIs with complete imports, supported inputs and no
 omitted implementation. Do not include `pass`, fake defaults, undefined helper
 calls or a speculative domain class as software documentation. Prefer links to
-[API contracts](../docs/api/index.md) and actual examples to another drifting API
+[API contracts](../api/index.md) and actual examples to another drifting API
 copy. If discussing a proposed algorithm, use clearly labeled prose with its
 inputs, assumptions and acceptance evidence instead of a runnable-looking stub.
 Keep displayed snippets short; the renderer truncates long code blocks.
 
 ## Section Structure
 
-Use the twelve numbered modules linked from [paper structure](README.md#paper-structure).
+Use the twelve numbered modules linked from [paper structure](../manuscript/README.md#paper-structure).
 A section should state its question, assumptions, method/source, result/status
 and limitations. “Results” must not silently mix known identities, source review,
 test execution and empirical efficacy. Cross-link prerequisites rather than

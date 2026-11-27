@@ -5,7 +5,7 @@
 Specify the numeric domain, operation and output representation separately.
 Exact rational arithmetic avoids rounding in rational algebra, but neither
 eliminates input uncertainty nor makes every algorithm exact or efficient.
-The [API reference](../../docs/api/index.md) owns signatures and supported inputs.
+The [API reference](../api/index.md) owns signatures and supported inputs.
 
 ### Exact Rational Arithmetic Implementation
 
@@ -67,7 +67,7 @@ gives linear text analysis and no matrix; graphical backends require the matrix.
 Radar palindrome coverage is always linear and is distinct from the computation
 module's odd-center density. Signed base conversion decodes the stated source
 base and aligns descending place weights with most-significant-first digits.
-See [numeric visualization contracts](../../docs/api/index.md#mathematical-visualizations).
+See [numeric visualization contracts](../api/index.md#mathematical-visualizations).
 
 ### Performance Optimization
 

@@ -2,8 +2,8 @@
 
 These are unanswered research questions, not promised features or demonstrated
 advantages. The current implementation and its domains are described in the
-[API reference](../../docs/api/index.md). The
-[research methodology guide](../../docs/research/index.md#research-methodology)
+[API reference](../api/index.md). The
+[research methodology guide](../research/index.md#research-methodology)
 defines evidence requirements.
 
 ### Open Research Questions
@@ -61,7 +61,7 @@ A higher-dimensional generalization would require a newly defined representation
 and metric; the current four quadray slots do not already implement four physical
 dimensions. Domain integrations should only become API documentation after real
 interfaces and consumer examples exist. See the
-[research agenda](../../docs/future-implications-research-directions.md).
+[research agenda](../future-implications-research-directions.md).
 
 ### Predictive Histories and Futures
 

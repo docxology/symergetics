@@ -1,0 +1,31 @@
+paper:
+  title: "Symergetics: Symbolic Synergetics for Rational Arithmetic, Geometric Pattern Discovery, and All-Integer Accounting"
+  subtitle: "Development source and reproducible mathematical examples"
+
+authors:
+  - name: "Daniel Ari Friedman"
+    orcid: "0000-0001-6232-9096"
+    affiliation: "Active Inference Institute"
+
+publication:
+  github_repository: docxology/symergetics
+  repository_url: https://github.com/docxology/symergetics
+  transmission_bookends:
+    enabled: false
+
+keywords:
+  - exact arithmetic
+  - quadray coordinates
+  - computational geometry
+
+metadata:
+  language: en
+  license: Apache-2.0
+
+render:
+  formats:
+    pdf: true
+    html: true
+    slides: false
+    docx: false
+    epub: false

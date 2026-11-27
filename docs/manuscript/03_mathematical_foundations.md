@@ -2,6 +2,8 @@
 
 ### The Synergetics Framework
 
+The historical framework is described by Fuller and Applewhite [@fuller1975synergetics].
+
 Fuller and Applewhite's [Synergetics](https://www.rwgrayprojects.com/synergetics/)
 is historical context for ratio-based geometric exploration. This manuscript
 uses explicit mathematical definitions; philosophical claims about universal
@@ -39,7 +41,7 @@ limits. See [coordinates.py](../../symergetics/core/coordinates.py).
 The continuous zero-sum minimum-norm inverse is a separate operation: rational
 inversion of the effective embedding retains anisotropic units until final
 floating entries. It neither snaps to integer sites nor certifies a lossless
-floating round trip. See [transformation contracts](../../docs/api/index.md#transformations).
+floating round trip. See [transformation contracts](../api/index.md#transformations).
 
 ### Isotropic Vector Matrix (IVM) Units
 
@@ -47,7 +49,7 @@ Project each displacement to (a−d,b−d,c−d). The tetrahedral native volume 
 abs(det)/4, returned as a `Fraction`; the primitive corner tetrahedron has volume
 1/4 despite the function name `integer_tetra_volume`. In the default scale-1
 embedding, Cartesian cubic volume = (8/3) × native volume. A uniform scale s
-multiplies Cartesian volume by |s|³.
+multiplies Cartesian volume by the cube of the absolute value of the scale factor `s`.
 
 The default regular tetrahedron has native volume 1 and Cartesian edge 2√2.
 Default cube, octahedron and cuboctahedron volumes are 3, 4 and 20, respectively,
@@ -79,8 +81,8 @@ but `primorial(6)` does not use that index convention. See
 
 ### Implementation Architecture
 
-The [API reference](../../docs/api/index.md) owns callable details; the
-[research guide](../../docs/research/index.md) collects source and modeling limits.
+The [API reference](../api/index.md) owns callable details; the
+[research guide](../research/index.md) collects source and modeling limits.
 These definitions support mathematical examples, not universal precision or
 domain-validation claims.
 

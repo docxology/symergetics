@@ -7,7 +7,7 @@
 Tests live in [`tests/`](../tests/); the [test index](../tests/TEST_INDEX.md) is
 a navigation aid, not a live test-count receipt. Current collection and executed
 results depend on the source revision and environment. Historical outcomes
-belong in [STATUS.md](../STATUS.md), clearly dated, never advertised as current
+belong in [STATUS.md](STATUS.md), clearly dated, never advertised as current
 green status.
 
 ## Running Tests

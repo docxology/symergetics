@@ -8,7 +8,7 @@ The test suite covers exact arithmetic, integer geometry, finite sequence
 analysis, plotting and real orchestration/integration. This page maps
 responsibilities, not test totals or a current pass receipt. Use pytest
 collection for current cases; use an executed gate for results. Historical
-receipts are explicitly dated in [STATUS.md](../STATUS.md).
+receipts are explicitly dated in [STATUS.md](STATUS.md).
 
 ## Test Architecture Overview
 

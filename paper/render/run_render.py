@@ -69,7 +69,7 @@ Examples:
         print(f"Error: Paper directory not found: {paper_dir}")
         sys.exit(1)
 
-    markdown_dir = paper_dir / "markdown"
+    markdown_dir = paper_dir.parent / "docs" / "manuscript"
     if not markdown_dir.exists():
         print(f"Error: Markdown directory not found: {markdown_dir}")
         sys.exit(1)

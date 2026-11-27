@@ -4,7 +4,7 @@
 
 The mathematical examples below follow from stated definitions and source
 contracts; they are not a newly executed benchmark or empirical validation.
-[Test evidence and count semantics](../TEST_EVIDENCE.md) records historical,
+[Test evidence and count semantics](../paper-tools/TEST_EVIDENCE.md) records historical,
 revision-bound inventories and execution receipts. Source definitions, collected
 cases, passes and coverage are different measurements. None establishes
 universal precision preservation or domain accuracy.
@@ -38,8 +38,8 @@ Palindrome properties depend on the selected base and representation.
 
 ### Performance Benchmarks
 
-No reproducible comparative benchmark supports the earlier “3.2× improvement in
-pattern recognition accuracy” claim; it is withdrawn. No speedup, distributed
+The earlier claim of improved pattern recognition accuracy is withdrawn
+because no reproducible comparative benchmark supports it. No speedup, distributed
 processing result, memory-efficiency result or cross-platform reproducibility
 experiment is reported here. A performance study must supply inputs, comparator,
 environment, measurement protocol and uncertainty before claiming an advantage.

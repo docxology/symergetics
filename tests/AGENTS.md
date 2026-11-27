@@ -14,6 +14,6 @@ MPLBACKEND=Agg uv run --python 3.13 --extra scientific --extra test python -m py
 ```
 
 The full suite omits `--no-cov`; the package-wide floor is 85%, not a per-file
-requirement. Current receipts belong in [STATUS](../STATUS.md), not hard-coded
+requirement. Current receipts belong in [STATUS](../docs/STATUS.md), not hard-coded
 counts here. Follow the active assignment when it defers verification; these
 commands do not authorize mid-flight runs.

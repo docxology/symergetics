@@ -52,7 +52,7 @@ matrices and exact nearest-site conversion remain distinct.
 Distinguish exact squared metric, generally irrational length/area, exact
 vertex mean and exact uniform-solid centroid. Sampling vertices more densely
 can change their mean without changing the intended solid's mass distribution.
-Use the [API reference](../../docs/api/index.md) for supported operations; this
+Use the [API reference](../api/index.md) for supported operations; this
 manuscript does not introduce `GeometricAnalyzer` or `PatternRecognizer` APIs.
 
 ### Visualization and Representation Methods
@@ -69,11 +69,11 @@ Architecture and materials studies could consume these primitives, but stress,
 fatigue, buckling, crystal refinement and mechanical stability require separate
 models and evidence. No architectural, crystal-structure or engineering analyzer
 is supplied by this section. See the
-[application scenarios](../../docs/case-studies-real-world-applications.md).
+[application scenarios](../case-studies-real-world-applications.md).
 
 ### Implementation and Examples
 
-Use [actual source contracts](../../docs/api/index.md) and the
-[example map](../../docs/examples/index.md) rather than hypothetical domain
+Use [actual source contracts](../api/index.md) and the
+[example map](../examples/index.md) rather than hypothetical domain
 classes. A volume demonstration establishes neither design safety nor empirical
 benefit.

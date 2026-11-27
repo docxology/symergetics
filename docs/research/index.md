@@ -121,7 +121,7 @@ approximation policy, dependencies and output provenance. Separate exact
 arithmetic correctness from model adequacy and measurement error. Consider the
 alternative explanation most likely to overturn a result and identify the next
 discriminating observation. A suite receipt supports its executed revision only;
-see [test evidence](../../paper/TEST_EVIDENCE.md). This guide reports source review,
+see [test evidence](../paper-tools/TEST_EVIDENCE.md). This guide reports source review,
 not a newly executed study or benchmark.
 
 ## Related Research Modules
@@ -131,5 +131,5 @@ not a newly executed study or benchmark.
 - [Future questions](../future-implications-research-directions.md)
 - [Learning activities and study design](../learning-theory-synergetics.md)
 - [Philosophical interpretation](../synergetics-philosophy-education.md)
-- [Editable paper sources](../../paper/markdown/README.md)
+- [Editable paper sources](../manuscript/README.md)
 - [Documentation map](../index.md)

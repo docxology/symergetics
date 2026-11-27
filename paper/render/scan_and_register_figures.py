@@ -219,7 +219,7 @@ def main():
     figure_content = generate_figure_references(registered_figures)
 
     # Save to markdown file
-    figures_md_path = project_root / "paper" / "markdown" / "figures.md"
+    figures_md_path = project_root / "docs" / "manuscript" / "figures.md"
     with open(figures_md_path, 'w') as f:
         f.write(figure_content)
 
