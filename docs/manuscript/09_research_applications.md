@@ -3,8 +3,8 @@
 This section describes **proposed uses of mathematical components**, not
 validated integrations or empirical successes. No domain dataset, controlled
 study, deployment or measured benefit is reported. The
-[research boundary guide](../../docs/research/index.md) owns detailed limits;
-the [API reference](../../docs/api/index.md) owns runnable software interfaces.
+[research boundary guide](../research/index.md) owns detailed limits;
+the [API reference](../api/index.md) owns runnable software interfaces.
 
 ### Active Inference and Cognitive Science
 
@@ -50,12 +50,12 @@ anomaly-detection efficacy is claimed here.
 Rational arithmetic and visualization can support mathematical activities.
 Improved understanding or retention is a hypothesis requiring an educational
 study, not an implication of numerical exactness. See
-[learning activities and evaluation design](../../docs/learning-theory-synergetics.md).
+[learning activities and evaluation design](../learning-theory-synergetics.md).
 
 ### Implementation and Examples
 
-Use the [interdisciplinary component map](../../docs/interdisciplinary-applications-synergetics.md)
-and [application scenarios](../../docs/case-studies-real-world-applications.md)
+Use the [interdisciplinary component map](../interdisciplinary-applications-synergetics.md)
+and [application scenarios](../case-studies-real-world-applications.md)
 for requirements a domain study would need to satisfy. Reproducible arithmetic
 is only one part of reproducible science; input provenance, model adequacy,
 uncertainty and independent validation remain necessary.

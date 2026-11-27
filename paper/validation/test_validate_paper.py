@@ -15,7 +15,7 @@ class PaperValidationTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.paper = self.root / "paper"
-        self.markdown = self.paper / "markdown"
+        self.markdown = self.root / "docs" / "manuscript"
         self.markdown.mkdir(parents=True)
         self.output = self.root / "output" / "geometric" / "polyhedra"
         self.output.mkdir(parents=True)

@@ -4,8 +4,8 @@
 
 The development checkout implements rational scalar arithmetic, rank-three
 integer quadrays, nearest-lattice conversion, exact metrics, indexed live solid
-analysis and file-producing visualization. See [API contracts](docs/api/index.md)
-and [suite conventions](docs/synergetics-suite.md).
+analysis and file-producing visualization. See [API contracts](api/index.md)
+and [suite conventions](synergetics-suite.md).
 
 Version 1.4.0 introduces focused scientific poster sections, state-preserving
 polyhedron transforms, exact plane arithmetic and source-bound verification.
@@ -14,8 +14,8 @@ source revision identifier. Release preparation does **not** assert that the
 current tree is clean, on a particular branch, published or green; integrated
 verification belongs to the revision and environment that produced a receipt.
 
-Current commands are centralized in the [testing guide](docs/testing-guide.md)
-and [suite guide](docs/synergetics-suite.md). Scientific work explicitly uses
+Current commands are centralized in the [testing guide](testing-guide.md)
+and [suite guide](synergetics-suite.md). Scientific work explicitly uses
 Python 3.13; existing repository pins remain unchanged. Collection counts,
 coverage and demo outcomes must be measured when needed, not inferred below.
 
@@ -38,8 +38,8 @@ results for the current edits**:
   Python 3.11 compatibility work. Those observations do not establish present
   optional-dependency compatibility or a universal supported interpreter matrix.
 
-See [suite evidence boundaries](docs/synergetics-suite.md) and
-[actual workflows](.github/workflows/verify.yml) for reproduction context.
+See [suite evidence boundaries](synergetics-suite.md) and
+[actual workflows](../.github/workflows/verify.yml) for reproduction context.
 The commands above intentionally preserve the historical invocation spelling;
 use the linked current guides for explicitly selected Python 3.13 commands.
 

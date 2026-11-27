@@ -34,7 +34,7 @@ These identify archived records, not evidence that current main is a release.
 - [Troubleshooting](troubleshooting-faq.md).
 - [Test commands and coverage](testing-guide.md), [test responsibilities](test-architecture-summary.md).
 - [Contributor workflow](contributor-development-guide.md).
-- [Capabilities and dated receipts](../STATUS.md), [backlog/history](../TODO.md).
+- [Capabilities and dated receipts](STATUS.md), [backlog/history](TODO.md).
 - [Documentation maintenance](AGENTS.md).
 
 ## Conceptual applications and research

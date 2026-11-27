@@ -9,10 +9,10 @@
 Python implementation of Buckminster Fuller's Synergetics: exact rational
 arithmetic, quadray/IVM coordinates, polyhedra, number-pattern experiments
 (palindromes, primorials, scheherazade), and multi-backend visualization.
-Paper pipeline under `paper/`; demo outputs under `output/`.
+[Manuscript](docs/manuscript/README.md) and [rendering instructions](docs/paper-tools/template.md); demo outputs under `output/`.
 
 - Agents: start at [AGENTS.md](AGENTS.md) (orientation, verification commands).
-- Current state: [STATUS.md](STATUS.md) · Backlog: [TODO.md](TODO.md)
+- Current state: [STATUS.md](docs/STATUS.md) · Backlog: [TODO.md](docs/TODO.md)
 - Documentation hub: [docs/index.md](docs/index.md)
 - Quick check: see [Install and run](#install-and-run).
 

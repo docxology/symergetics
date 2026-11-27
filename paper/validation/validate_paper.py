@@ -36,7 +36,7 @@ class PaperValidator:
     
     def __init__(self, paper_dir: str = "paper"):
         self.paper_dir = Path(paper_dir)
-        self.markdown_dir = self.paper_dir / "markdown"
+        self.markdown_dir = self.paper_dir.parent / "docs" / "manuscript"
         self.output_dir = self.paper_dir.parent / "output"
         self.results: List[ValidationResult] = []
         

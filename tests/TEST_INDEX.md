@@ -5,7 +5,7 @@ coverage report or proof of complete correctness. Parametrization expands test
 functions into cases; skips depend on the environment. A filename containing
 `comprehensive`, `coverage` or `real` does not certify completeness or all-backend
 execution. See [execution and isolation](README.md), [canonical testing guide](../docs/testing-guide.md)
-and dated [receipts](../STATUS.md).
+and dated [receipts](../docs/STATUS.md).
 
 ## Source-file map
 

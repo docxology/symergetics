@@ -1,6 +1,6 @@
 # Validation Work: Structural Checks, Not Scientific Proof
 
-Follow [validation scope](README.md) and [writing conventions](../STYLE_GUIDE.md).
+Follow [validation scope](../../docs/paper-tools/VALIDATION.md) and [writing conventions](../../docs/paper-tools/STYLE_GUIDE.md).
 Keep source-path, caption and section rules aligned with actual sources.
 Do not describe style checks as complete citation, link or mathematical
 validation. Test inventories and historical reports belong to their recorded

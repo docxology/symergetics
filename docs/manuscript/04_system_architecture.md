@@ -19,13 +19,13 @@ correctness of an arbitrary extension.
 | Prime products | [computation/primorials.py](../../symergetics/computation/primorials.py) | Prime-bounded primorials, powers of 1001 and binomial-block checks |
 | Digit patterns | [computation/palindromes.py](../../symergetics/computation/palindromes.py) | Representation-dependent number-pattern utilities |
 | Analysis | [computation/analysis.py](../../symergetics/computation/analysis.py) | Mathematical analysis helpers; inspect individual numerical methods |
-| Visualization | [visualization](../../symergetics/visualization/) | Geometric and mathematical plots and output handling |
+| Visualization | [visualization](../../symergetics/visualization) | Geometric and mathematical plots and output handling |
 | Conversion | [utils/conversion.py](../../symergetics/utils/conversion.py) | Conversion helpers and their own numeric policies |
 
 This replaces descriptions of unimplemented `patterns`, `complexity`,
 `optimization`, engineering-analysis and automatic analyzer-registration
-frameworks. The [architecture guide](../../docs/architecture/index.md) and
-[API reference](../../docs/api/index.md) own detailed interfaces.
+frameworks. The [architecture guide](../architecture/index.md) and
+[API reference](../api/index.md) own detailed interfaces.
 
 ### Core Module: Mathematical Foundation
 
@@ -57,7 +57,7 @@ renderer. Captions must state units and approximation boundaries.
 
 ### Testing and Quality Assurance
 
-[Test evidence](../TEST_EVIDENCE.md) distinguishes source-definition inventories,
+[Test evidence](../paper-tools/TEST_EVIDENCE.md) distinguishes source-definition inventories,
 collected cases and historical execution/coverage receipts. A passing assertion
 supports that case, not universal exactness or domain efficacy. This document
 reports source review, not a fresh execution receipt.
@@ -65,7 +65,7 @@ reports source review, not a fresh execution receipt.
 ### Integration and Workflow
 
 The [checkout guide](../../README.md) owns package installation. The
-[paper quick start](../QUICK_START.md) uses the renderer directly; the larger
+[paper quick start](../paper-tools/QUICK_START.md) uses the renderer directly; the larger
 `generate_paper.py` orchestration can run tests, regenerate examples and clear
 outputs, so it must not be described as a PDF-only command.
 
@@ -78,6 +78,6 @@ measured conditions before claiming efficiency.
 
 ### Documentation and Maintenance
 
-Keep callable examples in the [API reference](../../docs/api/index.md),
+Keep callable examples in the [API reference](../api/index.md),
 mathematical conventions in [foundations](03_mathematical_foundations.md), and
 proposed domain uses in [research applications](09_research_applications.md).

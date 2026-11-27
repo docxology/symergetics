@@ -21,7 +21,7 @@ class TestScientificPaperRenderer(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.paper = self.root / "paper"
-        (self.paper / "markdown").mkdir(parents=True)
+        (self.root / "docs" / "manuscript").mkdir(parents=True)
         self.assets = self.root / "output" / "figures"
         self.assets.mkdir(parents=True)
         self.renderer = ScientificPaperRenderer(str(self.paper), str(self.root / "pdf"))
@@ -33,7 +33,7 @@ class TestScientificPaperRenderer(unittest.TestCase):
         return path
 
     def render_source(self, filename, content):
-        (self.paper / "markdown" / filename).write_text(content, encoding="utf-8")
+        (self.root / "docs" / "manuscript" / filename).write_text(content, encoding="utf-8")
         return PdfReader(self.renderer.generate_pdf("preview.pdf"))
 
     def test_pdf_prints_distinct_h1_through_h4_headings(self):

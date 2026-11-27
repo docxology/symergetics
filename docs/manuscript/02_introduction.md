@@ -44,8 +44,8 @@ experiments; they are not established by this manuscript.
 
 The contribution is a package-level integration and exposition of selected
 mathematical computations, not a new foundation for physics or a claim to have
-invented exact arithmetic. The [API reference](../../docs/api/index.md) is the
-canonical callable contract. The [research guide](../../docs/research/index.md)
+invented exact arithmetic. The [API reference](../api/index.md) is the
+canonical callable contract. The [research guide](../research/index.md)
 records approximation, modeling and evidence limits.
 
 ### Paper Organization
